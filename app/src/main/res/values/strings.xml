@@ -1,3 +1,11 @@
 <resources>
     <string name="app_name">FilePicker</string>
+    <string name="launch_file_picker">Launch File Picker</string>
+    <string name="file_thumbnail">File thumbnail</string>
+    <string name="path">Path : %1$s</string>
+    <string name="size">Size :  %1$d</string>
+    <string name="mime">Mime: %1$s</string>
+    <string name="type">Type : %1$d</string>
+    <string name="name">Name : %1$s</string>
+    <string name="bucketname">BucketName : %1$s</string>
 </resources>

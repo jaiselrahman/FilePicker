@@ -2,8 +2,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.jaisel.filepicker">
 
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <application>
-        <activity android:name=".FilePicker"></activity>
+        <activity android:name=".activity.FilePickerActivity"></activity>
     </application>
 
 </manifest>

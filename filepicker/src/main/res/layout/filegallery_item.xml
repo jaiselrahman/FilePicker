@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tool="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <com.jaisel.filepicker.view.SquareImage
+        android:id="@+id/file_thumbnail"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:contentDescription="@string/file_thumbnail"
+        android:scaleType="centerCrop" />
+
+    <TextView
+        android:id="@+id/file_duration"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end|top"
+        android:background="@drawable/transparent_background"
+        android:textColor="@android:color/white"
+        android:textSize="12sp"
+        tool:text="02:10" />
+
+    <TextView
+        android:id="@+id/file_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="@color/transparent_background"
+        android:ellipsize="end"
+        android:gravity="center_vertical"
+        android:lines="2"
+        android:padding="5dp"
+        android:textColor="@android:color/white"
+        android:textSize="12sp" />
+</FrameLayout>

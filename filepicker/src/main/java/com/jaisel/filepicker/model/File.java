@@ -1,5 +1,6 @@
 package com.jaisel.filepicker.model;
 
+import android.net.Uri;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.IntDef;
@@ -22,7 +23,12 @@ public class File implements Parcelable {
     };
     private long id, size, duration, date;
     private long height, width;
-    private String name, path, mimeType, bucketId, bucketName;
+    private String name;
+    private Uri thumbnail;
+    private String path;
+    private String mimeType;
+    private String bucketId;
+    private String bucketName;
     private @Type
     int mediaType;
 
@@ -37,6 +43,7 @@ public class File implements Parcelable {
         height = in.readLong();
         width = in.readLong();
         name = in.readString();
+        thumbnail = in.readParcelable(Uri.class.getClassLoader());
         path = in.readString();
         mimeType = in.readString();
         bucketId = in.readString();
@@ -53,6 +60,7 @@ public class File implements Parcelable {
         dest.writeLong(height);
         dest.writeLong(width);
         dest.writeString(name);
+        dest.writeParcelable(thumbnail, flags);
         dest.writeString(path);
         dest.writeString(mimeType);
         dest.writeString(bucketId);
@@ -63,6 +71,14 @@ public class File implements Parcelable {
     @Override
     public int describeContents() {
         return 0;
+    }
+
+    public Uri getThumbnail() {
+        return thumbnail;
+    }
+
+    public void setThumbnail(Uri thumbnail) {
+        this.thumbnail = thumbnail;
     }
 
     public long getHeight() {

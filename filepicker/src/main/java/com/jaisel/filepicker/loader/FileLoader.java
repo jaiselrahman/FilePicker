@@ -3,11 +3,20 @@ package com.jaisel.filepicker.loader;
 import android.content.Context;
 import android.content.CursorLoader;
 import android.provider.MediaStore;
+import android.support.annotation.Nullable;
+import android.support.v4.app.FragmentActivity;
+
+import java.util.ArrayList;
+import java.util.Arrays;
 
 import static android.provider.MediaStore.MediaColumns.DATA;
 import static android.provider.MediaStore.MediaColumns.MIME_TYPE;
 
 public class FileLoader extends CursorLoader {
+    private static final ArrayList<String> ImageSelectionArgs = new ArrayList<>();
+    private static final ArrayList<String> AudioSelectionArgs = new ArrayList<>();
+    private static final ArrayList<String> VideoSelectionArgs = new ArrayList<>();
+    private static final ArrayList<String> FileSelectionArgs = new ArrayList<>();
     private static final String[] FILE_PROJECTION = {
             MediaStore.Files.FileColumns._ID,
             MediaStore.Files.FileColumns.TITLE,
@@ -21,23 +30,57 @@ public class FileLoader extends CursorLoader {
             MediaStore.Files.FileColumns.HEIGHT,
             MediaStore.Files.FileColumns.WIDTH,
             MediaStore.Video.Media.DURATION,
+            MediaStore.Audio.AudioColumns.ALBUM_ID
     };
 
+    static {
+        ImageSelectionArgs.addAll(Arrays.asList("image/jpeg", "image/png", "image/jpg", "image/gif"));
+        AudioSelectionArgs.addAll(Arrays.asList("audio/mpeg", "audio/mp3", "audio/x-ms-wma"));
+        VideoSelectionArgs.addAll(Arrays.asList("video/mpeg", "video/mp4"));
+        FileSelectionArgs.addAll(Arrays.asList("%.txt", "%.pdf"));
+    }
+
+    private String selection = MIME_TYPE + "=? or " + MIME_TYPE + "=? or " + MIME_TYPE + "=? or " + MIME_TYPE + "=? or "
+            + MIME_TYPE + "=? or " + MIME_TYPE + "=? or " + MIME_TYPE + "=? or "
+            + MIME_TYPE + "=? or " + MIME_TYPE + "=? or "
+            + DATA + " LIKE ? or " + DATA + " LIKE ?";
+
     public FileLoader(Context context) {
+        this(context, null);
+    }
+
+    public FileLoader(Context context, @Nullable String[] suffixes) {
         super(context);
         setProjection(FILE_PROJECTION);
         setUri(MediaStore.Files.getContentUri("external"));
         setSortOrder(MediaStore.Files.FileColumns.DATE_ADDED + " DESC");
 
-        setSelection(MIME_TYPE + "=? or " + MIME_TYPE + "=? or " + MIME_TYPE + "=? or " + MIME_TYPE + "=? or "
-                + MIME_TYPE + "=? or " + MIME_TYPE + "=? or "
-                + MIME_TYPE + "=? or " + MIME_TYPE + "=? or " + MIME_TYPE + "=? or "
-                + DATA + " LIKE ? or " + DATA + " LIKE ?");
+        ArrayList<String> selectionArgs = new ArrayList<>();
+        selectionArgs.addAll(ImageSelectionArgs);
+        selectionArgs.addAll(AudioSelectionArgs);
+        selectionArgs.addAll(VideoSelectionArgs);
+        selectionArgs.addAll(FileSelectionArgs);
+        if (suffixes != null) {
+            StringBuilder selectionBuilder = new StringBuilder(selection);
+            for (String suffix : suffixes) {
+                selectionBuilder.append(" or ")
+                        .append(DATA)
+                        .append(" LIKE ?");
+                selectionArgs.add("%." + suffix);
+            }
+            setSelection(selectionBuilder.toString());
+        } else {
+            setSelection(selection);
+        }
+        setSelectionArgs(selectionArgs.toArray(new String[]{}));
+    }
 
-        String[] selectionArgs = new String[]{"image/jpeg", "image/png", "image/jpg", "image/gif",
-                "video/mpeg", "video/mp4",
-                "audio/mpeg", "audio/mp3", "audio/x-ms-wma",
-                "%.txt", "%.pdf"};
-        setSelectionArgs(selectionArgs);
+    public static void loadFiles(FragmentActivity activity, FileResultCallback fileResultCallback) {
+        loadFiles(activity, fileResultCallback, null);
+    }
+
+    public static void loadFiles(FragmentActivity activity, FileResultCallback fileResultCallback, String[] suffixes) {
+        activity.getLoaderManager().initLoader(0, null,
+                new FileLoaderCallBack(activity, fileResultCallback, suffixes));
     }
 }

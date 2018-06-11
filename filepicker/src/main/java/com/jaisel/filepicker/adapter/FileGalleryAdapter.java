@@ -6,6 +6,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
@@ -17,15 +18,20 @@ import com.jaisel.filepicker.view.SquareImage;
 
 import java.util.ArrayList;
 
-public class FileGalleryAdapter extends RecyclerView.Adapter<FileGalleryAdapter.ViewHolder> {
+public class FileGalleryAdapter extends MultiSelectionAdapter<FileGalleryAdapter.ViewHolder>
+        implements MultiSelectionAdapter.OnSelectionListener<FileGalleryAdapter.ViewHolder> {
     private ArrayList<File> files;
     private Context context;
     private RequestManager glideRequest;
+    private OnSelectionListener<ViewHolder> onSelectionListener;
 
     public FileGalleryAdapter(Context context, ArrayList<File> files) {
+        super(files);
         this.files = files;
         this.context = context;
         glideRequest = Glide.with(context);
+        super.setOnSelectionListener(this);
+        setMaxSelection(10);
     }
 
     @NonNull
@@ -37,6 +43,7 @@ public class FileGalleryAdapter extends RecyclerView.Adapter<FileGalleryAdapter.
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+        super.onBindViewHolder(holder, position);
         File file = files.get(position);
         if (file.getMediaType() == File.TYPE_VIDEO ||
                 file.getMediaType() == File.TYPE_IMAGE) {
@@ -64,6 +71,13 @@ public class FileGalleryAdapter extends RecyclerView.Adapter<FileGalleryAdapter.
         } else {
             holder.fileName.setVisibility(View.GONE);
         }
+
+        holder.fileSelected.setVisibility(isSelected(file) ? View.VISIBLE : View.GONE);
+    }
+
+    @Override
+    public void setOnSelectionListener(OnSelectionListener<ViewHolder> onSelectionListener) {
+        this.onSelectionListener = onSelectionListener;
     }
 
     @Override
@@ -71,7 +85,59 @@ public class FileGalleryAdapter extends RecyclerView.Adapter<FileGalleryAdapter.
         return files.size();
     }
 
-    static class ViewHolder extends RecyclerView.ViewHolder {
+    @Override
+    public void onSelectionBegin() {
+        if (onSelectionListener != null) {
+            onSelectionListener.onSelectionBegin();
+        }
+    }
+
+    @Override
+    public void onSelected(ViewHolder view, int position) {
+        if (onSelectionListener != null) {
+            onSelectionListener.onSelected(view, position);
+        }
+        view.fileSelected.setVisibility(View.VISIBLE);
+    }
+
+    @Override
+    public void onUnSelected(ViewHolder view, int position) {
+        if (onSelectionListener != null) {
+            onSelectionListener.onUnSelected(view, position);
+        }
+        view.fileSelected.setVisibility(View.GONE);
+    }
+
+    @Override
+    public void onSelectAll() {
+        if (onSelectionListener != null) {
+            onSelectionListener.onSelectAll();
+        }
+    }
+
+    @Override
+    public void onUnSelectAll() {
+        if (onSelectionListener != null) {
+            onSelectionListener.onUnSelectAll();
+        }
+    }
+
+    @Override
+    public void onSelectionEnd() {
+        if (onSelectionListener != null) {
+            onSelectionListener.onSelectionEnd();
+        }
+    }
+
+    @Override
+    public void onMaxReached() {
+        if (onSelectionListener != null) {
+            onSelectionListener.onMaxReached();
+        }
+    }
+
+    public static class ViewHolder extends RecyclerView.ViewHolder {
+        private ImageView fileSelected;
         private SquareImage fileThumnail;
         private TextView fileDuration, fileName;
 
@@ -80,6 +146,7 @@ public class FileGalleryAdapter extends RecyclerView.Adapter<FileGalleryAdapter.
             fileThumnail = v.findViewById(R.id.file_thumbnail);
             fileDuration = v.findViewById(R.id.file_duration);
             fileName = v.findViewById(R.id.file_name);
+            fileSelected = v.findViewById(R.id.file_selected);
         }
     }
 }

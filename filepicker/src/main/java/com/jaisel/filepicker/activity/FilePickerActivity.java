@@ -11,16 +11,19 @@ import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.widget.Toast;
 
 import com.jaisel.filepicker.R;
 import com.jaisel.filepicker.adapter.FileGalleryAdapter;
+import com.jaisel.filepicker.adapter.MultiSelectionAdapter;
 import com.jaisel.filepicker.loader.FileLoader;
 import com.jaisel.filepicker.loader.FileResultCallback;
 import com.jaisel.filepicker.model.File;
 
 import java.util.ArrayList;
 
-public class FilePickerActivity extends AppCompatActivity {
+public class FilePickerActivity extends AppCompatActivity
+        implements MultiSelectionAdapter.OnSelectionListener<FileGalleryAdapter.ViewHolder> {
     public static final String FILES = "FILES";
 
     private static final String TAG = "FilePicker";
@@ -44,6 +47,8 @@ public class FilePickerActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         fileGalleryAdapter = new FileGalleryAdapter(this, files);
+        fileGalleryAdapter.enableSingleClickSelection(true);
+        fileGalleryAdapter.setOnSelectionListener(this);
         recyclerView = findViewById(R.id.file_gallery);
         recyclerView.setLayoutManager(new GridLayoutManager(this, 3));
         recyclerView.setAdapter(fileGalleryAdapter);
@@ -68,7 +73,6 @@ public class FilePickerActivity extends AppCompatActivity {
                 fileGalleryAdapter.notifyDataSetChanged();
             }
         }
-
     }
 
     private void loadFiles() {
@@ -102,5 +106,40 @@ public class FilePickerActivity extends AppCompatActivity {
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putParcelableArrayList(FILES, files);
+    }
+
+    @Override
+    public void onSelectionBegin() {
+
+    }
+
+    @Override
+    public void onSelected(FileGalleryAdapter.ViewHolder viewHolder, int position) {
+
+    }
+
+    @Override
+    public void onUnSelected(FileGalleryAdapter.ViewHolder viewHolder, int position) {
+
+    }
+
+    @Override
+    public void onSelectAll() {
+
+    }
+
+    @Override
+    public void onUnSelectAll() {
+
+    }
+
+    @Override
+    public void onSelectionEnd() {
+
+    }
+
+    @Override
+    public void onMaxReached() {
+        Toast.makeText(this, "Max Limit Reached", Toast.LENGTH_SHORT).show();
     }
 }

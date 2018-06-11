@@ -4,4 +4,5 @@
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#FF4081</color>
     <color name="transparent_background">#80000000</color>
+    <color name="open_camera_bg">#1c1c1c</color>
 </resources>

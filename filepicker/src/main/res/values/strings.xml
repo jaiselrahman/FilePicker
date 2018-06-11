@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">FilePicker</string>
-    <string name="file_thumbnail">File Thumnail</string>
+    <string name="file_thumbnail">File Thumbnail</string>
+    <string name="open_camera">Open Camera</string>
 </resources>

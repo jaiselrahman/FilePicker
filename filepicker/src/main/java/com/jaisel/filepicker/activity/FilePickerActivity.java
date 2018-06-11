@@ -1,7 +1,9 @@
 package com.jaisel.filepicker.activity;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -31,7 +33,8 @@ public class FilePickerActivity extends AppCompatActivity
 
     public final String[] permissions = new String[]{
             Manifest.permission.READ_EXTERNAL_STORAGE,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE
+            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            Manifest.permission.CAMERA
     };
 
     private ArrayList<File> files = new ArrayList<>();
@@ -46,9 +49,10 @@ public class FilePickerActivity extends AppCompatActivity
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        fileGalleryAdapter = new FileGalleryAdapter(this, files);
+        fileGalleryAdapter = new FileGalleryAdapter(this, files, true);
         fileGalleryAdapter.enableSingleClickSelection(true);
         fileGalleryAdapter.setOnSelectionListener(this);
+        fileGalleryAdapter.setMaxSelection(10);
         recyclerView = findViewById(R.id.file_gallery);
         recyclerView.setLayoutManager(new GridLayoutManager(this, 3));
         recyclerView.setAdapter(fileGalleryAdapter);
@@ -79,10 +83,6 @@ public class FilePickerActivity extends AppCompatActivity
         FileLoader.loadFiles(this, new FileResultCallback() {
             @Override
             public void onResult(ArrayList<File> filesResults) {
-//                Intent intent = new Intent();
-//                intent.putExtra(FILES, files);
-//                setResult(RESULT_OK, intent);
-//                finish();
                 files.clear();
                 files.addAll(filesResults);
                 fileGalleryAdapter.notifyDataSetChanged();
@@ -98,6 +98,22 @@ public class FilePickerActivity extends AppCompatActivity
             if (grantResults[0] == PackageManager.PERMISSION_GRANTED
                     && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
                 loadFiles();
+            }
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == FileGalleryAdapter.REQUEST_TAKE_PHOTO) {
+            if (resultCode == RESULT_OK) {
+                Uri uri = Uri.fromFile(fileGalleryAdapter.getLastTakenImageFile());
+                Intent intent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+                intent.setData(uri);
+                sendBroadcast(intent);
+                loadFiles();
+            } else {
+                getContentResolver().delete(fileGalleryAdapter.getLastTakenImageUri(), null, null);
             }
         }
     }

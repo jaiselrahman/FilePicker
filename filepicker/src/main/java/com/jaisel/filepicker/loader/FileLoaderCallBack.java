@@ -57,10 +57,11 @@ public class FileLoaderCallBack implements LoaderManager.LoaderCallbacks<Cursor>
         data.moveToFirst();
         do {
             File file = new File();
+            file.setSize(data.getLong(data.getColumnIndex(SIZE)));
+            if (file.getSize() <= 0) continue;
             file.setId(data.getLong(data.getColumnIndex(_ID)));
             file.setName(data.getString(data.getColumnIndex(TITLE)));
             file.setPath(data.getString(data.getColumnIndex(DATA)));
-            file.setSize(data.getLong(data.getColumnIndex(SIZE)));
             file.setDate(data.getLong(data.getColumnIndex(DATE_ADDED)));
             file.setMimeType(data.getString(data.getColumnIndex(MIME_TYPE)));
             file.setMediaType(data.getInt(data.getColumnIndex(MEDIA_TYPE)));

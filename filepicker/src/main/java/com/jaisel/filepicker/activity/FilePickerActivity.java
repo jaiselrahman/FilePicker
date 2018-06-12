@@ -3,6 +3,8 @@ package com.jaisel.filepicker.activity;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
+import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -13,6 +15,7 @@ import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.jaisel.filepicker.R;
@@ -30,16 +33,14 @@ public class FilePickerActivity extends AppCompatActivity
 
     private static final String TAG = "FilePicker";
     private static final int REQUEST_PERMISSION = 1;
-
     public final String[] permissions = new String[]{
             Manifest.permission.READ_EXTERNAL_STORAGE,
             Manifest.permission.WRITE_EXTERNAL_STORAGE,
             Manifest.permission.CAMERA
     };
-
+    int spanCount = 3;
     private ArrayList<File> files = new ArrayList<>();
     private FileGalleryAdapter fileGalleryAdapter;
-    private RecyclerView recyclerView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,12 +50,17 @@ public class FilePickerActivity extends AppCompatActivity
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        fileGalleryAdapter = new FileGalleryAdapter(this, files, true);
+        if (getResources().getConfiguration().orientation
+                == Configuration.ORIENTATION_LANDSCAPE) {
+            spanCount = 5;
+        }
+
+        fileGalleryAdapter = new FileGalleryAdapter(this, files, true, true);
         fileGalleryAdapter.enableSingleClickSelection(true);
         fileGalleryAdapter.setOnSelectionListener(this);
         fileGalleryAdapter.setMaxSelection(10);
-        recyclerView = findViewById(R.id.file_gallery);
-        recyclerView.setLayoutManager(new GridLayoutManager(this, 3));
+        RecyclerView recyclerView = findViewById(R.id.file_gallery);
+        recyclerView.setLayoutManager(new GridLayoutManager(this, spanCount));
         recyclerView.setAdapter(fileGalleryAdapter);
         recyclerView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
         recyclerView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.HORIZONTAL));
@@ -85,8 +91,8 @@ public class FilePickerActivity extends AppCompatActivity
             public void onResult(ArrayList<File> filesResults) {
                 files.clear();
                 files.addAll(filesResults);
+                fileGalleryAdapter.getSelectedItems().clear();
                 fileGalleryAdapter.notifyDataSetChanged();
-
             }
         }, new String[]{"zip", "torrent"});
     }
@@ -105,15 +111,24 @@ public class FilePickerActivity extends AppCompatActivity
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == FileGalleryAdapter.REQUEST_TAKE_PHOTO) {
+        if (requestCode == FileGalleryAdapter.CAPTURE_IMAGE_VIDEO) {
+            Uri uri = fileGalleryAdapter.getLastCapturedFileUri();
             if (resultCode == RESULT_OK) {
-                Uri uri = Uri.fromFile(fileGalleryAdapter.getLastTakenImageFile());
-                Intent intent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
-                intent.setData(uri);
-                sendBroadcast(intent);
-                loadFiles();
+                MediaScannerConnection.scanFile(this, new String[]{uri.getPath()}, null,
+                        new MediaScannerConnection.OnScanCompletedListener() {
+                            @Override
+                            public void onScanCompleted(String path, Uri uri) {
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        loadFiles();
+                                    }
+                                });
+                            }
+                        });
+                Log.d(TAG, "onActivityResult: photo " + uri.getPath());
             } else {
-                getContentResolver().delete(fileGalleryAdapter.getLastTakenImageUri(), null, null);
+                new java.io.File(uri.getPath()).delete();
             }
         }
     }

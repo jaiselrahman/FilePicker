@@ -9,8 +9,7 @@
         android:id="@+id/file_thumbnail"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:contentDescription="@string/file_thumbnail"
-        android:scaleType="centerCrop" />
+        android:contentDescription="@string/file_thumbnail" />
 
     <TextView
         android:id="@+id/file_duration"
@@ -41,7 +40,6 @@
         android:layout_height="match_parent"
         android:background="@color/transparent_background"
         android:padding="20dp"
-        android:visibility="gone"
         app:srcCompat="@drawable/ic_selected" />
 
     <ImageView
@@ -51,5 +49,16 @@
         android:background="@color/open_camera_bg"
         android:contentDescription="@string/open_camera"
         android:padding="20dp"
+        android:visibility="gone"
         app:srcCompat="@drawable/ic_camera" />
+
+    <ImageView
+        android:id="@+id/file_open_video_camera"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/open_camera_bg"
+        android:contentDescription="@string/open_camera"
+        android:padding="20dp"
+        android:visibility="gone"
+        app:srcCompat="@drawable/ic_videocam" />
 </FrameLayout>

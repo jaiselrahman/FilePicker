@@ -1,7 +1,6 @@
 package com.jaisel.filepicker.adapter;
 
 import android.app.Activity;
-import android.content.ContentValues;
 import android.content.Intent;
 import android.net.Uri;
 import android.provider.MediaStore;
@@ -16,6 +15,7 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.RequestManager;
+import com.bumptech.glide.request.RequestOptions;
 import com.jaisel.filepicker.R;
 import com.jaisel.filepicker.model.File;
 import com.jaisel.filepicker.utils.TimeUtils;
@@ -26,36 +26,38 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 
+import static android.os.Environment.DIRECTORY_MOVIES;
 import static android.os.Environment.DIRECTORY_PICTURES;
 import static android.os.Environment.getExternalStoragePublicDirectory;
 
 public class FileGalleryAdapter extends MultiSelectionAdapter<FileGalleryAdapter.ViewHolder>
         implements MultiSelectionAdapter.OnSelectionListener<FileGalleryAdapter.ViewHolder> {
-    public static final int REQUEST_TAKE_PHOTO = 1;
+    public static final int CAPTURE_IMAGE_VIDEO = 1;
     private static final String TAG = "FileGallerAdapter";
     private ArrayList<File> files;
     private Activity activity;
     private RequestManager glideRequest;
     private OnSelectionListener<ViewHolder> onSelectionListener;
     private boolean showCamera;
-    private java.io.File imageFile;
-    private Uri imageUri;
+    private boolean showVideoCamera;
+    private Uri fileUri;
+    private SimpleDateFormat TimeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault());
 
-    public FileGalleryAdapter(Activity activity, ArrayList<File> files, boolean showCamera) {
+    public FileGalleryAdapter(Activity activity, ArrayList<File> files, boolean showCamera, boolean showVideoCamera) {
         super(files);
         this.files = files;
         this.activity = activity;
         this.showCamera = showCamera;
-        glideRequest = Glide.with(this.activity);
+        this.showVideoCamera = showVideoCamera;
+        glideRequest = Glide.with(this.activity)
+                .applyDefaultRequestOptions(RequestOptions
+                        .sizeMultiplierOf(0.70f)
+                        .optionalCenterCrop());
         super.setOnSelectionListener(this);
     }
 
-    public Uri getLastTakenImageUri() {
-        return imageUri;
-    }
-
-    public java.io.File getLastTakenImageFile() {
-        return imageFile;
+    public Uri getLastCapturedFileUri() {
+        return fileUri;
     }
 
     @NonNull
@@ -70,44 +72,28 @@ public class FileGalleryAdapter extends MultiSelectionAdapter<FileGalleryAdapter
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         if (showCamera) {
             if (position == 0) {
-                holder.openCamera.setVisibility(View.VISIBLE);
-                holder.openCamera.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
-                        String imageName = "IMG_" + timeStamp + "_";
-                        imageFile = null;
-                        imageUri = null;
-                        try {
-                            java.io.File pictureDir = getExternalStoragePublicDirectory(DIRECTORY_PICTURES);
-                            if (!pictureDir.exists() && !pictureDir.mkdir()) {
-                                Log.d(TAG, "onClick: openCamera Picture Directory not exists");
-                                return;
-                            }
-                            imageFile = java.io.File.createTempFile(
-                                    imageName,
-                                    ".jpg",
-                                    pictureDir
-                            );
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                        if (imageFile != null) {
-                            ContentValues contentValues = new ContentValues(1);
-                            contentValues.put(MediaStore.Images.Media.DATA, imageFile.getAbsolutePath());
-                            imageUri = activity.getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues);
-                            intent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
-                            activity.startActivityForResult(intent, REQUEST_TAKE_PHOTO);
-                        }
-                    }
-                });
+                handleCamera(holder.openCamera, false);
                 return;
-            } else {
-                holder.openCamera.setVisibility(View.GONE);
+            }
+            if (showVideoCamera) {
+                if (position == 1) {
+                    handleCamera(holder.openVideoCamera, true);
+                    return;
+                }
+                holder.openVideoCamera.setVisibility(View.GONE);
                 position--;
             }
+            holder.openCamera.setVisibility(View.GONE);
+            position--;
+        } else if (showVideoCamera) {
+            if (position == 0) {
+                handleCamera(holder.openVideoCamera, true);
+                return;
+            }
+            holder.openVideoCamera.setVisibility(View.GONE);
+            position--;
         }
+
         super.onBindViewHolder(holder, position);
         File file = files.get(position);
         if (file.getMediaType() == File.TYPE_VIDEO ||
@@ -118,7 +104,7 @@ public class FileGalleryAdapter extends MultiSelectionAdapter<FileGalleryAdapter
             glideRequest.load(file.getThumbnail())
                     .into(holder.fileThumbnail);
         } else {
-            holder.fileThumbnail.setImageDrawable(null);
+            glideRequest.clear(holder.fileThumbnail);
         }
 
         if (file.getMediaType() == File.TYPE_VIDEO ||
@@ -140,6 +126,41 @@ public class FileGalleryAdapter extends MultiSelectionAdapter<FileGalleryAdapter
         holder.fileSelected.setVisibility(isSelected(file) ? View.VISIBLE : View.GONE);
     }
 
+    private void handleCamera(ImageView openCamera, final boolean forVideo) {
+        openCamera.setVisibility(View.VISIBLE);
+        openCamera.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent;
+                String fileName;
+                java.io.File file, dir;
+                fileUri = null;
+                if (forVideo) {
+                    intent = new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
+                    fileName = "VID_" + getTimeStamp() + ".mp4";
+                    dir = getExternalStoragePublicDirectory(DIRECTORY_MOVIES);
+                } else {
+                    intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                    dir = getExternalStoragePublicDirectory(DIRECTORY_PICTURES);
+                    fileName = "IMG_" + getTimeStamp() + ".jpeg";
+                }
+                if (!dir.exists() && !dir.mkdir()) {
+                    Log.d(TAG, "onClick: " +
+                            (forVideo ? "MOVIES" : "PICTURES") + " Directory not exists");
+                    return;
+                }
+                file = new java.io.File(dir.getAbsolutePath() + fileName);
+                fileUri = Uri.fromFile(file);
+                intent.putExtra(MediaStore.EXTRA_OUTPUT, fileUri);
+                activity.startActivityForResult(intent, CAPTURE_IMAGE_VIDEO);
+            }
+        });
+    }
+
+    private String getTimeStamp() {
+        return TimeStamp.format(new Date());
+    }
+
     @Override
     public void setOnSelectionListener(OnSelectionListener<ViewHolder> onSelectionListener) {
         this.onSelectionListener = onSelectionListener;
@@ -148,6 +169,10 @@ public class FileGalleryAdapter extends MultiSelectionAdapter<FileGalleryAdapter
     @Override
     public int getItemCount() {
         if (showCamera) {
+            if (showVideoCamera)
+                return files.size() + 2;
+            return files.size() + 1;
+        } else if (showVideoCamera) {
             return files.size() + 1;
         }
         return files.size();
@@ -205,13 +230,14 @@ public class FileGalleryAdapter extends MultiSelectionAdapter<FileGalleryAdapter
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        private ImageView fileSelected, openCamera;
+        private ImageView fileSelected, openCamera, openVideoCamera;
         private SquareImage fileThumbnail;
         private TextView fileDuration, fileName;
 
         ViewHolder(View v) {
             super(v);
             openCamera = v.findViewById(R.id.file_open_camera);
+            openVideoCamera = v.findViewById(R.id.file_open_video_camera);
             fileThumbnail = v.findViewById(R.id.file_thumbnail);
             fileDuration = v.findViewById(R.id.file_duration);
             fileName = v.findViewById(R.id.file_name);

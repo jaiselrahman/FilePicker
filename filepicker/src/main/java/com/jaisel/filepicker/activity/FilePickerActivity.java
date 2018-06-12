@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
+import android.graphics.Point;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Build;
@@ -55,7 +56,11 @@ public class FilePickerActivity extends AppCompatActivity
             spanCount = 5;
         }
 
-        fileGalleryAdapter = new FileGalleryAdapter(this, files, true, true);
+        Point point = new Point();
+        getWindowManager().getDefaultDisplay().getSize(point);
+        int imageSize = Math.min(point.x, point.y) / 3;
+
+        fileGalleryAdapter = new FileGalleryAdapter(this, files, imageSize, true, true);
         fileGalleryAdapter.enableSingleClickSelection(true);
         fileGalleryAdapter.setOnSelectionListener(this);
         fileGalleryAdapter.setMaxSelection(10);
@@ -80,6 +85,7 @@ public class FilePickerActivity extends AppCompatActivity
             if (files != null) {
                 this.files.clear();
                 this.files.addAll(files);
+                fileGalleryAdapter.getSelectedItems().clear();
                 fileGalleryAdapter.notifyDataSetChanged();
             }
         }

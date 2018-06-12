@@ -43,7 +43,7 @@ public class FileGalleryAdapter extends MultiSelectionAdapter<FileGalleryAdapter
     private Uri fileUri;
     private SimpleDateFormat TimeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault());
 
-    public FileGalleryAdapter(Activity activity, ArrayList<File> files, boolean showCamera, boolean showVideoCamera) {
+    public FileGalleryAdapter(Activity activity, ArrayList<File> files, int imageSize, boolean showCamera, boolean showVideoCamera) {
         super(files);
         this.files = files;
         this.activity = activity;
@@ -52,7 +52,8 @@ public class FileGalleryAdapter extends MultiSelectionAdapter<FileGalleryAdapter
         glideRequest = Glide.with(this.activity)
                 .applyDefaultRequestOptions(RequestOptions
                         .sizeMultiplierOf(0.70f)
-                        .optionalCenterCrop());
+                        .optionalCenterCrop()
+                        .override(imageSize));
         super.setOnSelectionListener(this);
     }
 

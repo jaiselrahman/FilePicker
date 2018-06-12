@@ -32,7 +32,6 @@ import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
@@ -40,6 +39,7 @@ import android.widget.Toast;
 import com.jaisel.filepicker.R;
 import com.jaisel.filepicker.adapter.FileGalleryAdapter;
 import com.jaisel.filepicker.adapter.MultiSelectionAdapter;
+import com.jaisel.filepicker.config.Configurations;
 import com.jaisel.filepicker.loader.FileLoader;
 import com.jaisel.filepicker.loader.FileResultCallback;
 import com.jaisel.filepicker.model.File;
@@ -49,15 +49,15 @@ import java.util.ArrayList;
 public class FilePickerActivity extends AppCompatActivity
         implements MultiSelectionAdapter.OnSelectionListener<FileGalleryAdapter.ViewHolder> {
     public static final String FILES = "FILES";
-
-    private static final String TAG = "FilePicker";
+    public static final String CONFIGS = "CONFIGS";
+    private static final String TAG = "FilePickerActivity";
     private static final int REQUEST_PERMISSION = 1;
     public final String[] permissions = new String[]{
             Manifest.permission.READ_EXTERNAL_STORAGE,
             Manifest.permission.WRITE_EXTERNAL_STORAGE,
             Manifest.permission.CAMERA
     };
-    int spanCount = 3;
+    private Configurations configs;
     private ArrayList<File> files = new ArrayList<>();
     private FileGalleryAdapter fileGalleryAdapter;
 
@@ -69,26 +69,41 @@ public class FilePickerActivity extends AppCompatActivity
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        if (getResources().getConfiguration().orientation
-                == Configuration.ORIENTATION_LANDSCAPE) {
-            spanCount = 5;
+        configs = getIntent().getParcelableExtra(CONFIGS);
+        if (configs == null) {
+            configs = new Configurations.Builder().build();
         }
 
-        Point point = new Point();
-        getWindowManager().getDefaultDisplay().getSize(point);
-        int imageSize = Math.min(point.x, point.y) / 3;
+        int spanCount;
+        if (getResources().getConfiguration().orientation
+                == Configuration.ORIENTATION_LANDSCAPE) {
+            spanCount = configs.getLandscapeSpanCount();
+        } else {
+            spanCount = configs.getPortraitSpanCount();
+        }
 
-        fileGalleryAdapter = new FileGalleryAdapter(this, files, imageSize, true, true);
-        fileGalleryAdapter.enableSingleClickSelection(true);
+        int imageSize = configs.getImageSize();
+        if (imageSize <= 0) {
+            Point point = new Point();
+            getWindowManager().getDefaultDisplay().getSize(point);
+            imageSize = Math.min(point.x, point.y) / configs.getPortraitSpanCount();
+        }
+
+        fileGalleryAdapter = new FileGalleryAdapter(this, files, imageSize,
+                configs.isImageCaptureEnabled(),
+                configs.isVideoCaptureEnabled());
+        fileGalleryAdapter.enableSelection(true);
+        fileGalleryAdapter.enableSingleClickSelection(configs.isSingleClickSelection());
         fileGalleryAdapter.setOnSelectionListener(this);
-        fileGalleryAdapter.setMaxSelection(10);
+        fileGalleryAdapter.setMaxSelection(configs.getMaxSelection());
+        fileGalleryAdapter.setSelectedItems(configs.getSelectedFiles());
         RecyclerView recyclerView = findViewById(R.id.file_gallery);
         recyclerView.setLayoutManager(new GridLayoutManager(this, spanCount));
         recyclerView.setAdapter(fileGalleryAdapter);
         recyclerView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
         recyclerView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.HORIZONTAL));
 
-        if (savedInstanceState == null) {
+        if (configs.isCheckPermission() && savedInstanceState == null) {
             boolean success = false;
             for (String permission : permissions) {
                 success = ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED;
@@ -113,12 +128,13 @@ public class FilePickerActivity extends AppCompatActivity
         FileLoader.loadFiles(this, new FileResultCallback() {
             @Override
             public void onResult(ArrayList<File> filesResults) {
-                files.clear();
-                files.addAll(filesResults);
-                fileGalleryAdapter.getSelectedItems().clear();
-                fileGalleryAdapter.notifyDataSetChanged();
+                if (filesResults != null) {
+                    files.clear();
+                    files.addAll(filesResults);
+                    fileGalleryAdapter.notifyDataSetChanged();
+                }
             }
-        }, new String[]{"zip", "torrent"});
+        }, configs);
     }
 
     @Override
@@ -141,16 +157,17 @@ public class FilePickerActivity extends AppCompatActivity
                 MediaScannerConnection.scanFile(this, new String[]{uri.getPath()}, null,
                         new MediaScannerConnection.OnScanCompletedListener() {
                             @Override
-                            public void onScanCompleted(String path, Uri uri) {
+                            public void onScanCompleted(String path, final Uri uri) {
                                 runOnUiThread(new Runnable() {
                                     @Override
                                     public void run() {
-                                        loadFiles();
+                                        if (uri != null) {
+                                            loadFiles();
+                                        }
                                     }
                                 });
                             }
                         });
-                Log.d(TAG, "onActivityResult: photo " + uri.getPath());
             } else {
                 new java.io.File(uri.getPath()).delete();
             }
@@ -188,7 +205,7 @@ public class FilePickerActivity extends AppCompatActivity
 
     @Override
     public void onSelected(FileGalleryAdapter.ViewHolder viewHolder, int position) {
-        Log.d(TAG, "onSelected: " + position);
+
     }
 
     @Override
@@ -213,6 +230,6 @@ public class FilePickerActivity extends AppCompatActivity
 
     @Override
     public void onMaxReached() {
-        Toast.makeText(this, "Max Limit Reached", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Maximum Limit Reached", Toast.LENGTH_SHORT).show();
     }
 }

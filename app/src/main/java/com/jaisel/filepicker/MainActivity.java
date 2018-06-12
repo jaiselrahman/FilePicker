@@ -7,6 +7,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.View;
 
 import com.jaisel.filepicker.activity.FilePickerActivity;
+import com.jaisel.filepicker.config.Configurations;
 import com.jaisel.filepicker.model.File;
 
 import java.util.ArrayList;
@@ -28,6 +29,14 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(MainActivity.this, FilePickerActivity.class);
+                intent.putExtra(FilePickerActivity.CONFIGS, new Configurations.Builder()
+                        .setCheckPermission(true)
+                        .setSelectedFiles(files)
+                        .setShowImages(true)
+                        .enableImageCapture(true)
+                        .setShowVideos(false)
+                        .setSkipZeroSizeFiles(true)
+                        .build());
                 startActivityForResult(intent, FILE_REQUEST_CODE);
             }
         });

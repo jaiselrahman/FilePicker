@@ -158,12 +158,12 @@ public class FileGalleryAdapter extends MultiSelectionAdapter<FileGalleryAdapter
                 fileUri = null;
                 if (forVideo) {
                     intent = new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
-                    fileName = "VID_" + getTimeStamp() + ".mp4";
+                    fileName = "/VID_" + getTimeStamp() + ".mp4";
                     dir = getExternalStoragePublicDirectory(DIRECTORY_MOVIES);
                 } else {
                     intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                     dir = getExternalStoragePublicDirectory(DIRECTORY_PICTURES);
-                    fileName = "IMG_" + getTimeStamp() + ".jpeg";
+                    fileName = "/IMG_" + getTimeStamp() + ".jpeg";
                 }
                 if (!dir.exists() && !dir.mkdir()) {
                     Log.d(TAG, "onClick: " +
@@ -208,7 +208,6 @@ public class FileGalleryAdapter extends MultiSelectionAdapter<FileGalleryAdapter
 
     @Override
     public void onSelected(ViewHolder view, int position) {
-        Log.d(TAG, "onSelected: " + position);
         if (onSelectionListener != null) {
             onSelectionListener.onSelected(view, position);
         }

@@ -19,7 +19,6 @@ package com.jaisel.filepicker.adapter;
 import android.support.annotation.CallSuper;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.View;
 
 import com.jaisel.filepicker.model.File;
@@ -50,7 +49,6 @@ public abstract class MultiSelectionAdapter<VH extends RecyclerView.ViewHolder> 
 
         @Override
         public void onSelected(VH viewHolder, int position) {
-            Log.d(TAG, "onSelected: " + position);
             if (maxSelection > 0 && selectedItems.size() >= maxSelection) {
                 onMaxReached();
                 return;
@@ -139,6 +137,7 @@ public abstract class MultiSelectionAdapter<VH extends RecyclerView.ViewHolder> 
             }
         });
 
+
         setItemSelected(view, position, selectedItems.contains(files.get(position)));
 
         view.setOnLongClickListener(new View.OnLongClickListener() {
@@ -191,7 +190,11 @@ public abstract class MultiSelectionAdapter<VH extends RecyclerView.ViewHolder> 
     }
 
     public void setSelectedItems(ArrayList<File> selectedItems) {
-        this.selectedItems = selectedItems;
+        if (selectedItems == null) {
+            this.selectedItems = new ArrayList<>();
+        } else {
+            this.selectedItems = selectedItems;
+        }
     }
 
     public int getSelectedItemCount() {

@@ -19,8 +19,11 @@ package com.jaisel.filepicker.loader;
 import android.content.Context;
 import android.content.CursorLoader;
 import android.provider.MediaStore;
-import android.support.annotation.Nullable;
+import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentActivity;
+import android.util.Log;
+
+import com.jaisel.filepicker.config.Configurations;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -32,7 +35,6 @@ public class FileLoader extends CursorLoader {
     private static final ArrayList<String> ImageSelectionArgs = new ArrayList<>();
     private static final ArrayList<String> AudioSelectionArgs = new ArrayList<>();
     private static final ArrayList<String> VideoSelectionArgs = new ArrayList<>();
-    private static final ArrayList<String> FileSelectionArgs = new ArrayList<>();
     private static final String[] FILE_PROJECTION = {
             MediaStore.Files.FileColumns._ID,
             MediaStore.Files.FileColumns.TITLE,
@@ -51,52 +53,63 @@ public class FileLoader extends CursorLoader {
 
     static {
         ImageSelectionArgs.addAll(Arrays.asList("image/jpeg", "image/png", "image/jpg", "image/gif"));
-        AudioSelectionArgs.addAll(Arrays.asList("audio/mpeg", "audio/mp3", "audio/x-ms-wma"));
+        AudioSelectionArgs.addAll(Arrays.asList("audio/mpeg", "audio/mp3", "audio/x-ms-wma", "audio/x-wav", "audio/amr", "audio/3gp"));
         VideoSelectionArgs.addAll(Arrays.asList("video/mpeg", "video/mp4"));
-        FileSelectionArgs.addAll(Arrays.asList("%.txt", "%.pdf"));
     }
 
-    private String selection = MIME_TYPE + "=? or " + MIME_TYPE + "=? or " + MIME_TYPE + "=? or " + MIME_TYPE + "=? or "
-            + MIME_TYPE + "=? or " + MIME_TYPE + "=? or " + MIME_TYPE + "=? or "
-            + MIME_TYPE + "=? or " + MIME_TYPE + "=? or "
-            + DATA + " LIKE ? or " + DATA + " LIKE ?";
-
-    public FileLoader(Context context) {
-        this(context, null);
-    }
-
-    public FileLoader(Context context, @Nullable String[] suffixes) {
+    FileLoader(Context context, @NonNull Configurations configs) {
         super(context);
-        setProjection(FILE_PROJECTION);
-        setUri(MediaStore.Files.getContentUri("external"));
-        setSortOrder(MediaStore.Files.FileColumns.DATE_ADDED + " DESC");
 
         ArrayList<String> selectionArgs = new ArrayList<>();
-        selectionArgs.addAll(ImageSelectionArgs);
-        selectionArgs.addAll(AudioSelectionArgs);
-        selectionArgs.addAll(VideoSelectionArgs);
-        selectionArgs.addAll(FileSelectionArgs);
-        if (suffixes != null) {
-            StringBuilder selectionBuilder = new StringBuilder(selection);
-            for (String suffix : suffixes) {
-                selectionBuilder.append(" or ")
-                        .append(DATA)
-                        .append(" LIKE ?");
-                selectionArgs.add("%." + suffix);
+        if (configs.isShowImages())
+            selectionArgs.addAll(ImageSelectionArgs);
+        if (configs.isShowAudios())
+            selectionArgs.addAll(AudioSelectionArgs);
+        if (configs.isShowVideos())
+            selectionArgs.addAll(VideoSelectionArgs);
+
+        StringBuilder selectionBuilder = null;
+        if (!selectionArgs.isEmpty()) {
+            selectionBuilder = new StringBuilder();
+            selectionBuilder.append(MIME_TYPE).append(" = ?");
+            int size = selectionArgs.size();
+            for (int i = 1; i < size; i++) {
+                selectionBuilder.append(" or ").append(MIME_TYPE).append(" = ?");
             }
-            setSelection(selectionBuilder.toString());
-        } else {
-            setSelection(selection);
         }
-        setSelectionArgs(selectionArgs.toArray(new String[]{}));
+
+        String[] suffixes = configs.getSuffixes();
+        if (configs.isShowFiles() && suffixes != null && suffixes.length > 0) {
+            if (selectionBuilder == null) {
+                selectionBuilder = new StringBuilder();
+            } else {
+                selectionBuilder.append(" or ");
+            }
+            selectionBuilder.append(DATA).append(" LIKE ?");
+            int size = suffixes.length;
+            selectionArgs.add("%." + suffixes[0].replace(".", ""));
+            for (int i = 1; i < size; i++) {
+                selectionBuilder.append(" or ").append(DATA).append(" LIKE ?");
+                suffixes[i] = suffixes[i].replace(".", "");
+                selectionArgs.add("%." + suffixes[i]);
+            }
+        }
+
+        if (selectionBuilder != null) {
+            setProjection(FILE_PROJECTION);
+            setUri(MediaStore.Files.getContentUri("external"));
+            setSortOrder(MediaStore.Files.FileColumns.DATE_ADDED + " DESC");
+            setSelection(selectionBuilder.toString());
+            Log.d("FileLoader", "FileLoader: " + selectionArgs.toString());
+            setSelectionArgs(selectionArgs.toArray(new String[selectionArgs.size()]));
+        }
     }
 
-    public static void loadFiles(FragmentActivity activity, FileResultCallback fileResultCallback) {
-        loadFiles(activity, fileResultCallback, null);
-    }
-
-    public static void loadFiles(FragmentActivity activity, FileResultCallback fileResultCallback, String[] suffixes) {
-        activity.getLoaderManager().initLoader(0, null,
-                new FileLoaderCallBack(activity, fileResultCallback, suffixes));
+    public static void loadFiles(FragmentActivity activity, FileResultCallback fileResultCallback, Configurations configs) {
+        if (configs.isShowFiles() || configs.isShowVideos() || configs.isShowAudios() || configs.isShowImages())
+            activity.getLoaderManager().initLoader(0, null,
+                    new FileLoaderCallBack(activity, fileResultCallback, configs));
+        else
+            fileResultCallback.onResult(null);
     }
 }

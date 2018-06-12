@@ -194,6 +194,18 @@ public class File implements Parcelable {
         this.mediaType = mediaType;
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        boolean status = this == obj
+                || obj instanceof File && this.path.equals(((File) obj).getPath());
+        return status;
+    }
+
+    @Override
+    public int hashCode() {
+        return path.hashCode();
+    }
+
     @IntDef({TYPE_FILE, TYPE_IMAGE, TYPE_AUDIO, TYPE_VIDEO})
     public @interface Type {
     }

@@ -16,10 +16,12 @@
 
 package com.jaisel.filepicker.loader;
 
+import android.support.annotation.Nullable;
+
 import com.jaisel.filepicker.model.File;
 
 import java.util.ArrayList;
 
 public interface FileResultCallback {
-    void onResult(ArrayList<File> files);
+    void onResult(@Nullable ArrayList<File> files);
 }

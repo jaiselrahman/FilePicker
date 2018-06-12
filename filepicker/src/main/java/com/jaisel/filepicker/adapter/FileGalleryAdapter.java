@@ -71,6 +71,10 @@ public class FileGalleryAdapter extends MultiSelectionAdapter<FileGalleryAdapter
                         .optionalCenterCrop()
                         .override(imageSize));
         super.setOnSelectionListener(this);
+        if (showCamera && showVideoCamera)
+            setItemStartPostion(2);
+        else if (showCamera || showVideoCamera)
+            setItemStartPostion(1);
     }
 
     public Uri getLastCapturedFileUri() {
@@ -204,6 +208,7 @@ public class FileGalleryAdapter extends MultiSelectionAdapter<FileGalleryAdapter
 
     @Override
     public void onSelected(ViewHolder view, int position) {
+        Log.d(TAG, "onSelected: " + position);
         if (onSelectionListener != null) {
             onSelectionListener.onSelected(view, position);
         }

@@ -19,6 +19,7 @@ package com.jaisel.filepicker.adapter;
 import android.support.annotation.CallSuper;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.View;
 
 import com.jaisel.filepicker.model.File;
@@ -39,6 +40,7 @@ public abstract class MultiSelectionAdapter<VH extends RecyclerView.ViewHolder> 
     private boolean enabledSelection = false;
     private boolean isSingleClickSelection = false;
     private int maxSelection = -1;
+    private int itemStartPostion = 0;
     private OnSelectionListener<VH> onSelectionListener = new OnSelectionListener<VH>() {
         @Override
         public void onSelectionBegin() {
@@ -48,6 +50,7 @@ public abstract class MultiSelectionAdapter<VH extends RecyclerView.ViewHolder> 
 
         @Override
         public void onSelected(VH viewHolder, int position) {
+            Log.d(TAG, "onSelected: " + position);
             if (maxSelection > 0 && selectedItems.size() >= maxSelection) {
                 onMaxReached();
                 return;
@@ -100,6 +103,10 @@ public abstract class MultiSelectionAdapter<VH extends RecyclerView.ViewHolder> 
         this.files = items;
     }
 
+    public void setItemStartPostion(int itemStartPostion) {
+        this.itemStartPostion = itemStartPostion;
+    }
+
     public int getMaxSelection() {
         return maxSelection;
     }
@@ -116,7 +123,7 @@ public abstract class MultiSelectionAdapter<VH extends RecyclerView.ViewHolder> 
         view.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                int position = holder.getAdapterPosition();
+                int position = holder.getAdapterPosition() - itemStartPostion;
                 if (enabledSelection && (isSelectionStarted || isSingleClickSelection)) {
                     if (selectedItems.contains(files.get(position))) {
                         onSelectionListener.onUnSelected(holder, position);
@@ -137,7 +144,7 @@ public abstract class MultiSelectionAdapter<VH extends RecyclerView.ViewHolder> 
         view.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                int position = holder.getAdapterPosition();
+                int position = holder.getAdapterPosition() - itemStartPostion;
                 if (enabledSelection) {
                     if (!isSelectionStarted) {
                         onSelectionListener.onSelectionBegin();

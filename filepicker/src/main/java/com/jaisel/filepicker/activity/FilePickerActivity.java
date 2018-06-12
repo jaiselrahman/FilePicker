@@ -33,6 +33,8 @@ import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.widget.Toast;
 
 import com.jaisel.filepicker.R;
@@ -156,6 +158,24 @@ public class FilePickerActivity extends AppCompatActivity
     }
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.filegallery_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.done) {
+            Intent intent = new Intent();
+            intent.putExtra(FILES, fileGalleryAdapter.getSelectedItems());
+            setResult(RESULT_OK, intent);
+            finish();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putParcelableArrayList(FILES, files);
@@ -168,7 +188,7 @@ public class FilePickerActivity extends AppCompatActivity
 
     @Override
     public void onSelected(FileGalleryAdapter.ViewHolder viewHolder, int position) {
-
+        Log.d(TAG, "onSelected: " + position);
     }
 
     @Override

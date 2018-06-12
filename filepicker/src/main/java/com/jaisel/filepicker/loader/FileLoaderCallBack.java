@@ -56,9 +56,10 @@ public class FileLoaderCallBack implements LoaderManager.LoaderCallbacks<Cursor>
         ArrayList<File> files = new ArrayList<>();
         data.moveToFirst();
         do {
+            long size = data.getLong(data.getColumnIndex(SIZE));
+            if (size <= 0) continue;
             File file = new File();
-            file.setSize(data.getLong(data.getColumnIndex(SIZE)));
-            if (file.getSize() <= 0) continue;
+            file.setSize(size);
             file.setId(data.getLong(data.getColumnIndex(_ID)));
             file.setName(data.getString(data.getColumnIndex(TITLE)));
             file.setPath(data.getString(data.getColumnIndex(DATA)));

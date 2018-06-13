@@ -18,10 +18,10 @@ package com.jaiselrahman.filepicker.loader;
 
 import android.support.annotation.Nullable;
 
-import com.jaiselrahman.filepicker.model.File;
+import com.jaiselrahman.filepicker.model.MediaFile;
 
 import java.util.ArrayList;
 
 public interface FileResultCallback {
-    void onResult(@Nullable ArrayList<File> files);
+    void onResult(@Nullable ArrayList<MediaFile> mediaFiles);
 }

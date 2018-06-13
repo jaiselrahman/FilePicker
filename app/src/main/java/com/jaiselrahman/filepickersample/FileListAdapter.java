@@ -11,15 +11,15 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
-import com.jaiselrahman.filepicker.model.File;
+import com.jaiselrahman.filepicker.model.MediaFile;
 
 import java.util.ArrayList;
 
 public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.ViewHolder> {
-    private ArrayList<File> files;
+    private ArrayList<MediaFile> mediaFiles;
 
-    public FileListAdapter(ArrayList<File> files) {
-        this.files = files;
+    public FileListAdapter(ArrayList<MediaFile> mediaFiles) {
+        this.mediaFiles = mediaFiles;
     }
 
     @NonNull
@@ -32,16 +32,16 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.ViewHo
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        File file = files.get(position);
+        MediaFile mediaFile = mediaFiles.get(position);
         Context context = holder.itemView.getContext();
-        holder.filePath.setText(context.getString(R.string.path, file.getPath()));
-        holder.fileMime.setText(context.getString(R.string.mime, file.getMimeType()));
-        holder.fileSize.setText(context.getString(R.string.size, file.getSize()));
-        holder.fileBucketName.setText(context.getString(R.string.bucketname, file.getBucketName()));
-        if (file.getMediaType() == File.TYPE_IMAGE
-                || file.getMediaType() == File.TYPE_VIDEO) {
+        holder.filePath.setText(context.getString(R.string.path, mediaFile.getPath()));
+        holder.fileMime.setText(context.getString(R.string.mime, mediaFile.getMimeType()));
+        holder.fileSize.setText(context.getString(R.string.size, mediaFile.getSize()));
+        holder.fileBucketName.setText(context.getString(R.string.bucketname, mediaFile.getBucketName()));
+        if (mediaFile.getMediaType() == MediaFile.TYPE_IMAGE
+                || mediaFile.getMediaType() == MediaFile.TYPE_VIDEO) {
             Glide.with(context)
-                    .load(Uri.parse("file://" + file.getPath()))
+                    .load(Uri.parse("file://" + mediaFile.getPath()))
                     .into(holder.fileThumbnail);
         } else {
             holder.fileThumbnail.setImageDrawable(null);
@@ -50,7 +50,7 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.ViewHo
 
     @Override
     public int getItemCount() {
-        return files.size();
+        return mediaFiles.size();
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {

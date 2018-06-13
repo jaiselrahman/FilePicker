@@ -19,7 +19,7 @@ package com.jaiselrahman.filepicker.config;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-import com.jaiselrahman.filepicker.model.File;
+import com.jaiselrahman.filepicker.model.MediaFile;
 
 import java.util.ArrayList;
 
@@ -47,13 +47,13 @@ public class Configurations implements Parcelable {
     private final int landscapeSpanCount;
     private final int portraitSpanCount;
     private final String[] suffixes;
-    private final ArrayList<File> selectedFiles;
+    private final ArrayList<MediaFile> selectedMediaFiles;
 
     private Configurations(boolean imageCapture, boolean videoCapture,
                            boolean showVideos, boolean showImages, boolean showAudios, boolean showFiles,
                            boolean singleClickSelection, boolean checkPermission, boolean skipZeroSizeFiles,
                            int imageSize, int maxSelection, int landscapeSpanCount, int portraitSpanCount,
-                           String[] suffixes, ArrayList<File> selectedFiles) {
+                           String[] suffixes, ArrayList<MediaFile> selectedMediaFiles) {
         this.imageCaptureEnabled = imageCapture;
         this.videoCaptureEnabled = videoCapture;
         this.showVideos = showVideos;
@@ -68,7 +68,7 @@ public class Configurations implements Parcelable {
         this.landscapeSpanCount = landscapeSpanCount;
         this.portraitSpanCount = portraitSpanCount;
         this.suffixes = suffixes;
-        this.selectedFiles = selectedFiles;
+        this.selectedMediaFiles = selectedMediaFiles;
     }
 
     protected Configurations(Parcel in) {
@@ -86,7 +86,7 @@ public class Configurations implements Parcelable {
         landscapeSpanCount = in.readInt();
         portraitSpanCount = in.readInt();
         suffixes = in.createStringArray();
-        selectedFiles = in.createTypedArrayList(File.CREATOR);
+        selectedMediaFiles = in.createTypedArrayList(MediaFile.CREATOR);
     }
 
     public boolean isShowVideos() {
@@ -109,9 +109,9 @@ public class Configurations implements Parcelable {
         return skipZeroSizeFiles;
     }
 
-    public ArrayList<File> getSelectedFiles() {
+    public ArrayList<MediaFile> getSelectedMediaFiles() {
 
-        return selectedFiles;
+        return selectedMediaFiles;
     }
 
     @Override
@@ -130,7 +130,7 @@ public class Configurations implements Parcelable {
         dest.writeInt(landscapeSpanCount);
         dest.writeInt(portraitSpanCount);
         dest.writeStringArray(suffixes);
-        dest.writeTypedList(selectedFiles);
+        dest.writeTypedList(selectedMediaFiles);
     }
 
     @Override
@@ -188,7 +188,7 @@ public class Configurations implements Parcelable {
                 "doc", "docx", "odt", "ott",
                 "ppt", "pptx", "pps",
                 "xls", "xlsx", "ods", "ots"};
-        private ArrayList<File> selectedFiles = null;
+        private ArrayList<MediaFile> selectedMediaFiles = null;
 
         public Builder setSingleClickSelection(boolean singleClickSelection) {
             this.singleClickSelection = singleClickSelection;
@@ -260,14 +260,14 @@ public class Configurations implements Parcelable {
             return this;
         }
 
-        public Builder setSelectedFiles(ArrayList<File> selectedFiles) {
-            this.selectedFiles = selectedFiles;
+        public Builder setSelectedMediaFiles(ArrayList<MediaFile> selectedMediaFiles) {
+            this.selectedMediaFiles = selectedMediaFiles;
             return this;
         }
 
         public Configurations build() {
             return new Configurations(imageCapture, videoCapture, showVideos, showImages, showAudios, showFiles,
-                    singleClickSelection, checkPermission, skipZeroSizeFiles, imageSize, maxSelection, landscapeSpanCount, portraitSpanCount, suffixes, selectedFiles);
+                    singleClickSelection, checkPermission, skipZeroSizeFiles, imageSize, maxSelection, landscapeSpanCount, portraitSpanCount, suffixes, selectedMediaFiles);
         }
     }
 }

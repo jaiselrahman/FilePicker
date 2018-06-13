@@ -27,7 +27,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 
 import com.jaiselrahman.filepicker.config.Configurations;
-import com.jaiselrahman.filepicker.model.File;
+import com.jaiselrahman.filepicker.model.MediaFile;
 
 import java.util.ArrayList;
 
@@ -65,7 +65,7 @@ class FileLoaderCallBack implements LoaderManager.LoaderCallbacks<Cursor> {
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        ArrayList<File> files = new ArrayList<>();
+        ArrayList<MediaFile> mediaFiles = new ArrayList<>();
         if (data.moveToFirst())
             do {
                 long size = data.getLong(data.getColumnIndex(SIZE));
@@ -75,30 +75,30 @@ class FileLoaderCallBack implements LoaderManager.LoaderCallbacks<Cursor> {
                     if (size <= 0 && configs.isSkipZeroSizeFiles())
                         continue;
                 }
-                File file = new File();
-                file.setSize(size);
-                file.setId(data.getLong(data.getColumnIndex(_ID)));
-                file.setName(data.getString(data.getColumnIndex(TITLE)));
-                file.setPath(data.getString(data.getColumnIndex(DATA)));
-                file.setDate(data.getLong(data.getColumnIndex(DATE_ADDED)));
-                file.setMimeType(data.getString(data.getColumnIndex(MIME_TYPE)));
-                file.setMediaType(data.getInt(data.getColumnIndex(MEDIA_TYPE)));
-                file.setBucketId(data.getString(data.getColumnIndex(BUCKET_ID)));
-                file.setBucketName(data.getString(data.getColumnIndex(BUCKET_DISPLAY_NAME)));
+                MediaFile mediaFile = new MediaFile();
+                mediaFile.setSize(size);
+                mediaFile.setId(data.getLong(data.getColumnIndex(_ID)));
+                mediaFile.setName(data.getString(data.getColumnIndex(TITLE)));
+                mediaFile.setPath(data.getString(data.getColumnIndex(DATA)));
+                mediaFile.setDate(data.getLong(data.getColumnIndex(DATE_ADDED)));
+                mediaFile.setMimeType(data.getString(data.getColumnIndex(MIME_TYPE)));
+                mediaFile.setMediaType(data.getInt(data.getColumnIndex(MEDIA_TYPE)));
+                mediaFile.setBucketId(data.getString(data.getColumnIndex(BUCKET_ID)));
+                mediaFile.setBucketName(data.getString(data.getColumnIndex(BUCKET_DISPLAY_NAME)));
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                    file.setHeight(data.getLong(data.getColumnIndex(HEIGHT)));
-                    file.setWidth(data.getLong(data.getColumnIndex(WIDTH)));
+                    mediaFile.setHeight(data.getLong(data.getColumnIndex(HEIGHT)));
+                    mediaFile.setWidth(data.getLong(data.getColumnIndex(WIDTH)));
                 }
-                file.setDuration(data.getLong(data.getColumnIndex(DURATION)));
+                mediaFile.setDuration(data.getLong(data.getColumnIndex(DURATION)));
                 int albumID = data.getInt(data.getColumnIndex(ALBUM_ID));
                 if (albumID > 0) {
-                    file.setThumbnail(ContentUris
+                    mediaFile.setThumbnail(ContentUris
                             .withAppendedId(Uri.parse("content://media/external/audio/albumart"), albumID));
                 }
-                files.add(file);
+                mediaFiles.add(mediaFile);
             } while (data.moveToNext());
         data.close();
-        fileResultCallback.onResult(files);
+        fileResultCallback.onResult(mediaFiles);
     }
 
     @Override

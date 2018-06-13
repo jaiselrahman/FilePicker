@@ -8,21 +8,21 @@ import android.view.View;
 
 import com.jaiselrahman.filepicker.activity.FilePickerActivity;
 import com.jaiselrahman.filepicker.config.Configurations;
-import com.jaiselrahman.filepicker.model.File;
+import com.jaiselrahman.filepicker.model.MediaFile;
 
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
     private final static int FILE_REQUEST_CODE = 1;
     private FileListAdapter fileListAdapter;
-    private ArrayList<File> files = new ArrayList<>();
+    private ArrayList<MediaFile> mediaFiles = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         RecyclerView recyclerView = findViewById(R.id.file_list);
-        fileListAdapter = new FileListAdapter(files);
+        fileListAdapter = new FileListAdapter(mediaFiles);
         recyclerView.setAdapter(fileListAdapter);
 
         findViewById(R.id.launch_filepicker).setOnClickListener(new View.OnClickListener() {
@@ -31,7 +31,7 @@ public class MainActivity extends AppCompatActivity {
                 Intent intent = new Intent(MainActivity.this, FilePickerActivity.class);
                 intent.putExtra(FilePickerActivity.CONFIGS, new Configurations.Builder()
                         .setCheckPermission(true)
-                        .setSelectedFiles(files)
+                        .setSelectedMediaFiles(mediaFiles)
                         .setShowImages(true)
                         .enableImageCapture(true)
                         .setShowAudios(true)
@@ -48,8 +48,8 @@ public class MainActivity extends AppCompatActivity {
         if (requestCode == FILE_REQUEST_CODE
                 && resultCode == RESULT_OK
                 && data != null) {
-            files.clear();
-            files.addAll(data.<File>getParcelableArrayListExtra(FilePickerActivity.FILES));
+            mediaFiles.clear();
+            mediaFiles.addAll(data.<MediaFile>getParcelableArrayListExtra(FilePickerActivity.MEDIA_FILES));
             fileListAdapter.notifyDataSetChanged();
         }
     }

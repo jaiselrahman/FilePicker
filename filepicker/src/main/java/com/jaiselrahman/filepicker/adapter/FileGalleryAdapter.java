@@ -33,7 +33,7 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.RequestManager;
 import com.bumptech.glide.request.RequestOptions;
 import com.jaiselrahman.filepicker.R;
-import com.jaiselrahman.filepicker.model.File;
+import com.jaiselrahman.filepicker.model.MediaFile;
 import com.jaiselrahman.filepicker.utils.TimeUtils;
 import com.jaiselrahman.filepicker.view.SquareImage;
 
@@ -50,7 +50,7 @@ public class FileGalleryAdapter extends MultiSelectionAdapter<FileGalleryAdapter
         implements MultiSelectionAdapter.OnSelectionListener<FileGalleryAdapter.ViewHolder> {
     public static final int CAPTURE_IMAGE_VIDEO = 1;
     private static final String TAG = "FileGallerAdapter";
-    private ArrayList<File> files;
+    private ArrayList<MediaFile> mediaFiles;
     private Activity activity;
     private RequestManager glideRequest;
     private OnSelectionListener<ViewHolder> onSelectionListener;
@@ -59,9 +59,9 @@ public class FileGalleryAdapter extends MultiSelectionAdapter<FileGalleryAdapter
     private Uri fileUri;
     private SimpleDateFormat TimeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault());
 
-    public FileGalleryAdapter(Activity activity, ArrayList<File> files, int imageSize, boolean showCamera, boolean showVideoCamera) {
-        super(files);
-        this.files = files;
+    public FileGalleryAdapter(Activity activity, ArrayList<MediaFile> mediaFiles, int imageSize, boolean showCamera, boolean showVideoCamera) {
+        super(mediaFiles);
+        this.mediaFiles = mediaFiles;
         this.activity = activity;
         this.showCamera = showCamera;
         this.showVideoCamera = showVideoCamera;
@@ -116,36 +116,36 @@ public class FileGalleryAdapter extends MultiSelectionAdapter<FileGalleryAdapter
         }
 
         super.onBindViewHolder(holder, position);
-        File file = files.get(position);
-        if (file.getMediaType() == File.TYPE_VIDEO ||
-                file.getMediaType() == File.TYPE_IMAGE) {
-            glideRequest.load(file.getPath())
+        MediaFile mediaFile = mediaFiles.get(position);
+        if (mediaFile.getMediaType() == MediaFile.TYPE_VIDEO ||
+                mediaFile.getMediaType() == MediaFile.TYPE_IMAGE) {
+            glideRequest.load(mediaFile.getPath())
                     .into(holder.fileThumbnail);
-        } else if (file.getMediaType() == File.TYPE_AUDIO) {
-            glideRequest.load(file.getThumbnail())
+        } else if (mediaFile.getMediaType() == MediaFile.TYPE_AUDIO) {
+            glideRequest.load(mediaFile.getThumbnail())
                     .apply(RequestOptions.placeholderOf(R.drawable.ic_audio))
                     .into(holder.fileThumbnail);
         } else {
             holder.fileThumbnail.setImageResource(R.drawable.ic_file);
         }
 
-        if (file.getMediaType() == File.TYPE_VIDEO ||
-                file.getMediaType() == File.TYPE_AUDIO) {
+        if (mediaFile.getMediaType() == MediaFile.TYPE_VIDEO ||
+                mediaFile.getMediaType() == MediaFile.TYPE_AUDIO) {
             holder.fileDuration.setVisibility(View.VISIBLE);
-            holder.fileDuration.setText(TimeUtils.getDuration(file.getDuration()));
+            holder.fileDuration.setText(TimeUtils.getDuration(mediaFile.getDuration()));
         } else {
             holder.fileDuration.setVisibility(View.GONE);
         }
 
-        if (file.getMediaType() == File.TYPE_FILE
-                || file.getMediaType() == File.TYPE_AUDIO) {
+        if (mediaFile.getMediaType() == MediaFile.TYPE_FILE
+                || mediaFile.getMediaType() == MediaFile.TYPE_AUDIO) {
             holder.fileName.setVisibility(View.VISIBLE);
-            holder.fileName.setText(file.getName());
+            holder.fileName.setText(mediaFile.getName());
         } else {
             holder.fileName.setVisibility(View.GONE);
         }
 
-        holder.fileSelected.setVisibility(isSelected(file) ? View.VISIBLE : View.GONE);
+        holder.fileSelected.setVisibility(isSelected(mediaFile) ? View.VISIBLE : View.GONE);
     }
 
     private void handleCamera(ImageView openCamera, final boolean forVideo) {
@@ -192,12 +192,12 @@ public class FileGalleryAdapter extends MultiSelectionAdapter<FileGalleryAdapter
     public int getItemCount() {
         if (showCamera) {
             if (showVideoCamera)
-                return files.size() + 2;
-            return files.size() + 1;
+                return mediaFiles.size() + 2;
+            return mediaFiles.size() + 1;
         } else if (showVideoCamera) {
-            return files.size() + 1;
+            return mediaFiles.size() + 1;
         }
-        return files.size();
+        return mediaFiles.size();
     }
 
     @Override

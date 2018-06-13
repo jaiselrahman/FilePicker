@@ -21,7 +21,7 @@ import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 
-import com.jaiselrahman.filepicker.model.File;
+import com.jaiselrahman.filepicker.model.MediaFile;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -29,8 +29,8 @@ import java.util.Collection;
 @SuppressWarnings({"unused", "WeakerAccess"})
 public abstract class MultiSelectionAdapter<VH extends RecyclerView.ViewHolder> extends RecyclerView.Adapter<VH> {
     private static final String TAG = MultiSelectionAdapter.class.getSimpleName();
-    private ArrayList<File> selectedItems = new ArrayList<>();
-    private ArrayList<File> files;
+    private ArrayList<MediaFile> selectedItems = new ArrayList<>();
+    private ArrayList<MediaFile> mediaFiles;
 
     private OnItemClickListener onItemClickListener;
     private OnItemLongClickListener onItemLongClickListener;
@@ -69,7 +69,7 @@ public abstract class MultiSelectionAdapter<VH extends RecyclerView.ViewHolder> 
         public void onSelectAll() {
             isSelectionStarted = true;
             selectedItems.clear();
-            selectedItems.addAll(files);
+            selectedItems.addAll(mediaFiles);
             notifyDataSetChanged();
             if (customOnSelectionListener != null) customOnSelectionListener.onSelectAll();
         }
@@ -77,7 +77,7 @@ public abstract class MultiSelectionAdapter<VH extends RecyclerView.ViewHolder> 
         @Override
         public void onUnSelectAll() {
             for (int i = selectedItems.size() - 1; i >= 0; i--) {
-                int position = files.indexOf(selectedItems.get(i));
+                int position = mediaFiles.indexOf(selectedItems.get(i));
                 removeSelection(position);
                 handleItemChanged(position);
             }
@@ -97,8 +97,8 @@ public abstract class MultiSelectionAdapter<VH extends RecyclerView.ViewHolder> 
         }
     };
 
-    public MultiSelectionAdapter(ArrayList<File> items) {
-        this.files = items;
+    public MultiSelectionAdapter(ArrayList<MediaFile> items) {
+        this.mediaFiles = items;
     }
 
     public void setItemStartPostion(int itemStartPostion) {
@@ -123,7 +123,7 @@ public abstract class MultiSelectionAdapter<VH extends RecyclerView.ViewHolder> 
             public void onClick(View v) {
                 int position = holder.getAdapterPosition() - itemStartPostion;
                 if (enabledSelection && (isSelectionStarted || isSingleClickSelection)) {
-                    if (selectedItems.contains(files.get(position))) {
+                    if (selectedItems.contains(mediaFiles.get(position))) {
                         onSelectionListener.onUnSelected(holder, position);
                         if (selectedItems.isEmpty()) {
                             onSelectionListener.onSelectionEnd();
@@ -138,7 +138,7 @@ public abstract class MultiSelectionAdapter<VH extends RecyclerView.ViewHolder> 
         });
 
 
-        setItemSelected(view, position, selectedItems.contains(files.get(position)));
+        setItemSelected(view, position, selectedItems.contains(mediaFiles.get(position)));
 
         view.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
@@ -149,7 +149,7 @@ public abstract class MultiSelectionAdapter<VH extends RecyclerView.ViewHolder> 
                         onSelectionListener.onSelectionBegin();
                         onSelectionListener.onSelected(holder, position);
                     } else if (selectedItems.size() <= 1
-                            && selectedItems.contains(files.get(position))) {
+                            && selectedItems.contains(mediaFiles.get(position))) {
                         onSelectionListener.onSelectionEnd();
                         onSelectionListener.onUnSelected(holder, position);
                     }
@@ -160,8 +160,8 @@ public abstract class MultiSelectionAdapter<VH extends RecyclerView.ViewHolder> 
         });
     }
 
-    public boolean isSelected(File file) {
-        return selectedItems.contains(file);
+    public boolean isSelected(MediaFile mediaFile) {
+        return selectedItems.contains(mediaFile);
     }
 
     public void enableSelection(boolean enabledSelection) {
@@ -185,11 +185,11 @@ public abstract class MultiSelectionAdapter<VH extends RecyclerView.ViewHolder> 
         this.customOnSelectionListener = onSelectionListener;
     }
 
-    public ArrayList<File> getSelectedItems() {
+    public ArrayList<MediaFile> getSelectedItems() {
         return selectedItems;
     }
 
-    public void setSelectedItems(ArrayList<File> selectedItems) {
+    public void setSelectedItems(ArrayList<MediaFile> selectedItems) {
         if (selectedItems == null) {
             this.selectedItems = new ArrayList<>();
         } else {
@@ -243,10 +243,10 @@ public abstract class MultiSelectionAdapter<VH extends RecyclerView.ViewHolder> 
 
     private void setItemSelected(View view, int position, boolean selected) {
         if (selected) {
-            if (!selectedItems.contains(files.get(position)))
-                selectedItems.add(files.get(position));
+            if (!selectedItems.contains(mediaFiles.get(position)))
+                selectedItems.add(mediaFiles.get(position));
         } else {
-            selectedItems.remove(files.get(position));
+            selectedItems.remove(mediaFiles.get(position));
             if (selectedItems.isEmpty()) {
                 onSelectionListener.onSelectionEnd();
             }
@@ -254,56 +254,56 @@ public abstract class MultiSelectionAdapter<VH extends RecyclerView.ViewHolder> 
     }
 
     private void removeSelection(int position) {
-        selectedItems.remove(files.get(position));
+        selectedItems.remove(mediaFiles.get(position));
         if (selectedItems.isEmpty()) {
             onSelectionListener.onSelectionEnd();
         }
     }
 
-    public boolean add(File file) {
-        if (files.add(file)) {
-            handleItemInserted(files.size() - 1);
+    public boolean add(MediaFile mediaFile) {
+        if (mediaFiles.add(mediaFile)) {
+            handleItemInserted(mediaFiles.size() - 1);
             return true;
         }
         return false;
     }
 
-    public void add(int position, File file) {
-        files.add(position, file);
+    public void add(int position, MediaFile mediaFile) {
+        mediaFiles.add(position, mediaFile);
         handleItemInserted(position);
     }
 
-    public boolean addAll(Collection<File> itemSelection) {
-        int lastPosition = files.size();
-        if (files.addAll(itemSelection)) {
+    public boolean addAll(Collection<MediaFile> itemSelection) {
+        int lastPosition = mediaFiles.size();
+        if (mediaFiles.addAll(itemSelection)) {
             notifyItemRangeInserted(lastPosition, itemSelection.size());
             return true;
         }
         return false;
     }
 
-    public boolean addAll(int position, Collection<File> itemCollection) {
-        int lastPosition = files.size();
-        if (files.addAll(position, itemCollection)) {
-            handleItemRangeInserted(lastPosition, files.size());
+    public boolean addAll(int position, Collection<MediaFile> itemCollection) {
+        int lastPosition = mediaFiles.size();
+        if (mediaFiles.addAll(position, itemCollection)) {
+            handleItemRangeInserted(lastPosition, mediaFiles.size());
             return true;
         }
         return false;
     }
 
-    public void remove(File item) {
-        int position = files.indexOf(item);
+    public void remove(MediaFile item) {
+        int position = mediaFiles.indexOf(item);
         handleItemRemoved(position);
-        files.remove(position);
+        mediaFiles.remove(position);
     }
 
-    public File remove(int position) {
+    public MediaFile remove(int position) {
         handleItemRemoved(position);
-        return files.remove(position);
+        return mediaFiles.remove(position);
     }
 
-    public void removeAll(Collection<File> itemCollection) {
-        ArrayList<File> removeItems = new ArrayList<>(itemCollection);
+    public void removeAll(Collection<MediaFile> itemCollection) {
+        ArrayList<MediaFile> removeItems = new ArrayList<>(itemCollection);
         for (int i = itemCollection.size() - 1; i >= 0; i--) {
             remove(removeItems.get(i));
         }

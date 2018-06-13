@@ -21,20 +21,20 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.IntDef;
 
-public class File implements Parcelable {
+public class MediaFile implements Parcelable {
     public static final int TYPE_FILE = 0;
     public static final int TYPE_IMAGE = 1;
     public static final int TYPE_AUDIO = 2;
     public static final int TYPE_VIDEO = 3;
-    public static final Creator<File> CREATOR = new Creator<File>() {
+    public static final Creator<MediaFile> CREATOR = new Creator<MediaFile>() {
         @Override
-        public File createFromParcel(Parcel in) {
-            return new File(in);
+        public MediaFile createFromParcel(Parcel in) {
+            return new MediaFile(in);
         }
 
         @Override
-        public File[] newArray(int size) {
-            return new File[size];
+        public MediaFile[] newArray(int size) {
+            return new MediaFile[size];
         }
     };
     private long id, size, duration, date;
@@ -48,10 +48,10 @@ public class File implements Parcelable {
     private @Type
     int mediaType;
 
-    public File() {
+    public MediaFile() {
     }
 
-    protected File(Parcel in) {
+    protected MediaFile(Parcel in) {
         id = in.readLong();
         size = in.readLong();
         duration = in.readLong();
@@ -197,7 +197,7 @@ public class File implements Parcelable {
     @Override
     public boolean equals(Object obj) {
         boolean status = this == obj
-                || obj instanceof File && this.path.equals(((File) obj).getPath());
+                || obj instanceof MediaFile && this.path.equals(((MediaFile) obj).getPath());
         return status;
     }
 

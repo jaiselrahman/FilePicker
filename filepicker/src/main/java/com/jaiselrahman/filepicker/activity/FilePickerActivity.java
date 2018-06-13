@@ -42,13 +42,13 @@ import com.jaiselrahman.filepicker.adapter.MultiSelectionAdapter;
 import com.jaiselrahman.filepicker.config.Configurations;
 import com.jaiselrahman.filepicker.loader.FileLoader;
 import com.jaiselrahman.filepicker.loader.FileResultCallback;
-import com.jaiselrahman.filepicker.model.File;
+import com.jaiselrahman.filepicker.model.MediaFile;
 
 import java.util.ArrayList;
 
 public class FilePickerActivity extends AppCompatActivity
         implements MultiSelectionAdapter.OnSelectionListener<FileGalleryAdapter.ViewHolder> {
-    public static final String FILES = "FILES";
+    public static final String MEDIA_FILES = "MEDIA_FILES";
     public static final String CONFIGS = "CONFIGS";
     private static final String TAG = "FilePickerActivity";
     private static final int REQUEST_PERMISSION = 1;
@@ -58,7 +58,7 @@ public class FilePickerActivity extends AppCompatActivity
             Manifest.permission.CAMERA
     };
     private Configurations configs;
-    private ArrayList<File> files = new ArrayList<>();
+    private ArrayList<MediaFile> mediaFiles = new ArrayList<>();
     private FileGalleryAdapter fileGalleryAdapter;
 
     @Override
@@ -89,14 +89,14 @@ public class FilePickerActivity extends AppCompatActivity
             imageSize = Math.min(point.x, point.y) / configs.getPortraitSpanCount();
         }
 
-        fileGalleryAdapter = new FileGalleryAdapter(this, files, imageSize,
+        fileGalleryAdapter = new FileGalleryAdapter(this, mediaFiles, imageSize,
                 configs.isImageCaptureEnabled(),
                 configs.isVideoCaptureEnabled());
         fileGalleryAdapter.enableSelection(true);
         fileGalleryAdapter.enableSingleClickSelection(configs.isSingleClickSelection());
         fileGalleryAdapter.setOnSelectionListener(this);
         fileGalleryAdapter.setMaxSelection(configs.getMaxSelection());
-        fileGalleryAdapter.setSelectedItems(configs.getSelectedFiles());
+        fileGalleryAdapter.setSelectedItems(configs.getSelectedMediaFiles());
         RecyclerView recyclerView = findViewById(R.id.file_gallery);
         recyclerView.setLayoutManager(new GridLayoutManager(this, spanCount));
         recyclerView.setAdapter(fileGalleryAdapter);
@@ -114,10 +114,10 @@ public class FilePickerActivity extends AppCompatActivity
                 requestPermissions(permissions, REQUEST_PERMISSION);
             }
         } else {
-            ArrayList<File> files = savedInstanceState.getParcelableArrayList(FILES);
-            if (files != null) {
-                this.files.clear();
-                this.files.addAll(files);
+            ArrayList<MediaFile> mediaFiles = savedInstanceState.getParcelableArrayList(MEDIA_FILES);
+            if (mediaFiles != null) {
+                this.mediaFiles.clear();
+                this.mediaFiles.addAll(mediaFiles);
                 fileGalleryAdapter.getSelectedItems().clear();
                 fileGalleryAdapter.notifyDataSetChanged();
             }
@@ -127,10 +127,10 @@ public class FilePickerActivity extends AppCompatActivity
     private void loadFiles() {
         FileLoader.loadFiles(this, new FileResultCallback() {
             @Override
-            public void onResult(ArrayList<File> filesResults) {
+            public void onResult(ArrayList<MediaFile> filesResults) {
                 if (filesResults != null) {
-                    files.clear();
-                    files.addAll(filesResults);
+                    mediaFiles.clear();
+                    mediaFiles.addAll(filesResults);
                     fileGalleryAdapter.notifyDataSetChanged();
                 }
             }
@@ -184,7 +184,7 @@ public class FilePickerActivity extends AppCompatActivity
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.done) {
             Intent intent = new Intent();
-            intent.putExtra(FILES, fileGalleryAdapter.getSelectedItems());
+            intent.putExtra(MEDIA_FILES, fileGalleryAdapter.getSelectedItems());
             setResult(RESULT_OK, intent);
             finish();
             return true;
@@ -195,7 +195,7 @@ public class FilePickerActivity extends AppCompatActivity
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putParcelableArrayList(FILES, files);
+        outState.putParcelableArrayList(MEDIA_FILES, mediaFiles);
     }
 
     @Override

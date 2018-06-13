@@ -179,7 +179,7 @@ public class Configurations implements Parcelable {
                 checkPermission = false, showImages = true, showVideos = true,
                 showFiles = false, showAudios = false, singleClickSelection = true,
                 skipZeroSizeFiles = true;
-        private int imageSize = -1, maxSelection = 10;
+        private int imageSize = -1, maxSelection = -1;
         private int landscapeSpanCount = 5;
         private int portraitSpanCount = 3;
         private String[] suffixes = new String[]{

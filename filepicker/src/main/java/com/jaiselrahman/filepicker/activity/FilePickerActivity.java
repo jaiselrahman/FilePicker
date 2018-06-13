@@ -34,7 +34,6 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.Toast;
 
 import com.jaiselrahman.filepicker.R;
 import com.jaiselrahman.filepicker.adapter.FileGalleryAdapter;
@@ -60,6 +59,7 @@ public class FilePickerActivity extends AppCompatActivity
     private Configurations configs;
     private ArrayList<MediaFile> mediaFiles = new ArrayList<>();
     private FileGalleryAdapter fileGalleryAdapter;
+    private int maxCount;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -121,6 +121,11 @@ public class FilePickerActivity extends AppCompatActivity
                 fileGalleryAdapter.getSelectedItems().clear();
                 fileGalleryAdapter.notifyDataSetChanged();
             }
+        }
+
+        maxCount = configs.getMaxSelection();
+        if (maxCount > 0) {
+            setTitle(getResources().getString(R.string.selection_count, fileGalleryAdapter.getSelectedItemCount(), maxCount));
         }
     }
 
@@ -205,12 +210,16 @@ public class FilePickerActivity extends AppCompatActivity
 
     @Override
     public void onSelected(FileGalleryAdapter.ViewHolder viewHolder, int position) {
-
+        if (maxCount > 0) {
+            setTitle(getResources().getString(R.string.selection_count, fileGalleryAdapter.getSelectedItemCount(), maxCount));
+        }
     }
 
     @Override
     public void onUnSelected(FileGalleryAdapter.ViewHolder viewHolder, int position) {
-
+        if (maxCount > 0) {
+            setTitle(getResources().getString(R.string.selection_count, fileGalleryAdapter.getSelectedItemCount(), maxCount));
+        }
     }
 
     @Override
@@ -230,6 +239,5 @@ public class FilePickerActivity extends AppCompatActivity
 
     @Override
     public void onMaxReached() {
-        Toast.makeText(this, "Maximum Limit Reached", Toast.LENGTH_SHORT).show();
     }
 }

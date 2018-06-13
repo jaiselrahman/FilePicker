@@ -36,6 +36,7 @@ public class MainActivity extends AppCompatActivity {
                         .enableImageCapture(true)
                         .setShowAudios(true)
                         .setSkipZeroSizeFiles(true)
+                        .setMaxSelection(10)
                         .build());
                 startActivityForResult(intent, FILE_REQUEST_CODE);
             }

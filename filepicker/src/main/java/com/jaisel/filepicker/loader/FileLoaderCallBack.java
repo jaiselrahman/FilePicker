@@ -97,6 +97,7 @@ class FileLoaderCallBack implements LoaderManager.LoaderCallbacks<Cursor> {
                 }
                 files.add(file);
             } while (data.moveToNext());
+        data.close();
         fileResultCallback.onResult(files);
     }
 

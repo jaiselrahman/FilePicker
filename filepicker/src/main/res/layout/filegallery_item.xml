@@ -26,7 +26,8 @@
         android:id="@+id/file_thumbnail"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:contentDescription="@string/file_thumbnail" />
+        android:contentDescription="@string/file_thumbnail"
+        app:srcCompat="@drawable/ic_file" />
 
     <TextView
         android:id="@+id/file_duration"

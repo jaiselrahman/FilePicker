@@ -34,7 +34,7 @@ public class MainActivity extends AppCompatActivity {
                         .setSelectedFiles(files)
                         .setShowImages(true)
                         .enableImageCapture(true)
-                        .setShowVideos(false)
+                        .setShowAudios(true)
                         .setSkipZeroSizeFiles(true)
                         .build());
                 startActivityForResult(intent, FILE_REQUEST_CODE);

@@ -123,9 +123,10 @@ public class FileGalleryAdapter extends MultiSelectionAdapter<FileGalleryAdapter
                     .into(holder.fileThumbnail);
         } else if (file.getMediaType() == File.TYPE_AUDIO) {
             glideRequest.load(file.getThumbnail())
+                    .apply(RequestOptions.placeholderOf(R.drawable.ic_audio))
                     .into(holder.fileThumbnail);
         } else {
-            glideRequest.clear(holder.fileThumbnail);
+            holder.fileThumbnail.setImageResource(R.drawable.ic_file);
         }
 
         if (file.getMediaType() == File.TYPE_VIDEO ||

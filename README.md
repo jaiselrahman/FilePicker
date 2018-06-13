@@ -1,6 +1,7 @@
 # FilePicker Library for Android
 
 ----
+[![API](https://img.shields.io/badge/API-14%2B-brightgreen.svg?style=flat)](https://android-arsenal.com/api?level=14)
 [![jitPack](https://jitpack.io/v/jaiselrahman/FilePicker.svg)](https://jitpack.io/#jaiselrahman/FilePicker)
 
 A FilePicker libray for Android for selecting multiple types of files and also to capture Images and Videos.
@@ -12,14 +13,34 @@ A FilePicker libray for Android for selecting multiple types of files and also t
 
 ## Usage
 
-Step 1: Start FilePickerActivity using ```startActivityForResult(...)```.
+Step 1: Add it in your root build.gradle at the end of repositories
+
+```gradle
+    allprojects {
+        repositories {
+            ...
+            maven { url 'https://jitpack.io' }
+        }
+    }
+```
+
+Step 2: Add the dependency
+
+```gradle
+    dependencies {
+        ...
+        implementation 'com.github.jaiselrahman:FilePicker:v1.0.0'
+    }
+```
+
+Step 3: Start FilePickerActivity using ```startActivityForResult(...)```.
 
 ```java
     Intent intent = new Intent(this, FilePickerActivity.class);
     startActivityForResult(intent, FILE_REQUEST_CODE);
 ```
 
-Step 2: Receive results in ```onActivityResult(...)```.
+Step 4: Receive results in ```onActivityResult(...)```.
 
 ```java
     case FILE_REQUEST_CODE:
@@ -81,6 +102,10 @@ The FilePickerActivity can be configured by using ```Configurations.Builder``` m
 |long getWidth()|Width of Image, Video files in Px for API>=16, else 0|
 |String getBucketId()|Id of Parent Directory in MediaStore database|
 |String getBucketName()|Name of Parent Directory|
+
+## Credits
+
+* Inspired by [MultiType-FilePicker](https://github.com/fishwjy/MultiType-FilePicker)
 
 ## License
 

@@ -1,6 +1,6 @@
 # FilePicker Library for Android
 
-----
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![API](https://img.shields.io/badge/API-14%2B-brightgreen.svg?style=flat)](https://android-arsenal.com/api?level=14)
 [![jitPack](https://jitpack.io/v/jaiselrahman/FilePicker.svg)](https://jitpack.io/#jaiselrahman/FilePicker)
 
@@ -102,6 +102,14 @@ The FilePickerActivity can be configured by using ```Configurations.Builder``` m
 |long getWidth()|Width of Image, Video files in Px for API>=16, else 0|
 |String getBucketId()|Id of Parent Directory in MediaStore database|
 |String getBucketName()|Name of Parent Directory|
+
+## Contributions
+
+Feel free to contribute to this project. Before creating issues or pull request please take a look at following templates.
+
+* [Bug report template](.github/ISSUE_TEMPLATE/bug_report.md)
+* [Feature request template](.github/ISSUE_TEMPLATE/feature_request.md)
+* [Pull Request template](.github/PULL_REQUEST_TEMPLATE.md)
 
 ## Credits
 

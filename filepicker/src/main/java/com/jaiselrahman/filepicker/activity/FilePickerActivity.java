@@ -28,7 +28,6 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
@@ -42,6 +41,7 @@ import com.jaiselrahman.filepicker.config.Configurations;
 import com.jaiselrahman.filepicker.loader.FileLoader;
 import com.jaiselrahman.filepicker.loader.FileResultCallback;
 import com.jaiselrahman.filepicker.model.MediaFile;
+import com.jaiselrahman.filepicker.view.DividerItemDecoration;
 
 import java.util.ArrayList;
 
@@ -100,8 +100,7 @@ public class FilePickerActivity extends AppCompatActivity
         RecyclerView recyclerView = findViewById(R.id.file_gallery);
         recyclerView.setLayoutManager(new GridLayoutManager(this, spanCount));
         recyclerView.setAdapter(fileGalleryAdapter);
-        recyclerView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
-        recyclerView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.HORIZONTAL));
+        recyclerView.addItemDecoration(new DividerItemDecoration(this));
 
         if (configs.isCheckPermission() && savedInstanceState == null) {
             boolean success = false;

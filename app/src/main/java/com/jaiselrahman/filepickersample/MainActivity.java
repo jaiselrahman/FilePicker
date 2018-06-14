@@ -25,17 +25,63 @@ public class MainActivity extends AppCompatActivity {
         fileListAdapter = new FileListAdapter(mediaFiles);
         recyclerView.setAdapter(fileListAdapter);
 
-        findViewById(R.id.launch_filepicker).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.launch_imagePicker).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(MainActivity.this, FilePickerActivity.class);
                 intent.putExtra(FilePickerActivity.CONFIGS, new Configurations.Builder()
                         .setCheckPermission(true)
                         .setSelectedMediaFiles(mediaFiles)
-                        .setShowImages(true)
                         .enableImageCapture(true)
-                        .setShowAudios(true)
+                        .setShowVideos(false)
                         .setSkipZeroSizeFiles(true)
+                        .setMaxSelection(10)
+                        .build());
+                startActivityForResult(intent, FILE_REQUEST_CODE);
+            }
+        });
+
+        findViewById(R.id.launch_videoPicker).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, FilePickerActivity.class);
+                intent.putExtra(FilePickerActivity.CONFIGS, new Configurations.Builder()
+                        .setCheckPermission(true)
+                        .setSelectedMediaFiles(mediaFiles)
+                        .enableVideoCapture(true)
+                        .setShowImages(false)
+                        .setMaxSelection(10)
+                        .build());
+                startActivityForResult(intent, FILE_REQUEST_CODE);
+            }
+        });
+
+        findViewById(R.id.launch_audioPicker).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, FilePickerActivity.class);
+                intent.putExtra(FilePickerActivity.CONFIGS, new Configurations.Builder()
+                        .setCheckPermission(true)
+                        .setSelectedMediaFiles(mediaFiles)
+                        .setShowImages(false)
+                        .setShowVideos(false)
+                        .setShowAudios(true)
+                        .setMaxSelection(10)
+                        .build());
+                startActivityForResult(intent, FILE_REQUEST_CODE);
+            }
+        });
+
+        findViewById(R.id.launch_filePicker).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, FilePickerActivity.class);
+                intent.putExtra(FilePickerActivity.CONFIGS, new Configurations.Builder()
+                        .setCheckPermission(true)
+                        .setSelectedMediaFiles(mediaFiles)
+                        .setShowFiles(true)
+                        .setShowImages(false)
+                        .setShowVideos(false)
                         .setMaxSelection(10)
                         .build());
                 startActivityForResult(intent, FILE_REQUEST_CODE);

@@ -8,4 +8,7 @@
     <string name="type">Type : %1$d</string>
     <string name="name">Name : %1$s</string>
     <string name="bucketname">BucketName : %1$s</string>
+    <string name="launch_audio_picker">Launch audio picker</string>
+    <string name="launch_video_picker">Launch video picker</string>
+    <string name="launch_image_picker">Launch image picker</string>
 </resources>

@@ -8,15 +8,44 @@
     tools:context=".MainActivity">
 
     <Button
-        android:id="@+id/launch_filepicker"
+        android:id="@+id/launch_imagePicker"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="10dp"
+        android:text="@string/launch_image_picker"
+        app:layout_constraintBottom_toTopOf="@id/launch_videoPicker"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/launch_videoPicker"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/launch_video_picker"
+        app:layout_constraintBottom_toTopOf="@id/launch_audioPicker"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/launch_imagePicker" />
+
+    <Button
+        android:id="@+id/launch_audioPicker"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/launch_audio_picker"
+        app:layout_constraintBottom_toTopOf="@id/launch_filePicker"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/launch_videoPicker" />
+
+    <Button
+        android:id="@+id/launch_filePicker"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:text="@string/launch_file_picker"
         app:layout_constraintBottom_toTopOf="@id/file_list"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/launch_audioPicker" />
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/file_list"
@@ -24,7 +53,7 @@
         android:layout_height="0dp"
         app:layoutManager="android.support.v7.widget.LinearLayoutManager"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/launch_filepicker"
+        app:layout_constraintTop_toBottomOf="@id/launch_filePicker"
         tool:listitem="@layout/file_list_item" />
 
 </android.support.constraint.ConstraintLayout>

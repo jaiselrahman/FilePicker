@@ -21,7 +21,6 @@ import android.content.CursorLoader;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentActivity;
-import android.util.Log;
 
 import com.jaiselrahman.filepicker.config.Configurations;
 
@@ -100,7 +99,6 @@ public class FileLoader extends CursorLoader {
             setUri(MediaStore.Files.getContentUri("external"));
             setSortOrder(MediaStore.Files.FileColumns.DATE_ADDED + " DESC");
             setSelection(selectionBuilder.toString());
-            Log.d("FileLoader", "FileLoader: " + selectionArgs.toString());
             setSelectionArgs(selectionArgs.toArray(new String[selectionArgs.size()]));
         }
     }

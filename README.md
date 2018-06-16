@@ -29,7 +29,7 @@ Step 2: Add the dependency
 ```gradle
     dependencies {
         ...
-        implementation 'com.github.jaiselrahman:FilePicker:v1.0.0'
+        implementation 'com.github.jaiselrahman:FilePicker:1.0.2'
     }
 ```
 

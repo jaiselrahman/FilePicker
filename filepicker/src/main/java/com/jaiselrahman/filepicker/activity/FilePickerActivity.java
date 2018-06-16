@@ -102,15 +102,17 @@ public class FilePickerActivity extends AppCompatActivity
         recyclerView.setAdapter(fileGalleryAdapter);
         recyclerView.addItemDecoration(new DividerItemDecoration(this));
 
-        if (configs.isCheckPermission() && savedInstanceState == null) {
-            boolean success = false;
-            for (String permission : permissions) {
-                success = ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED;
-            }
-            if (success)
-                loadFiles();
-            else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                requestPermissions(permissions, REQUEST_PERMISSION);
+        if (savedInstanceState == null) {
+            if (configs.isCheckPermission()) {
+                boolean success = false;
+                for (String permission : permissions) {
+                    success = ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED;
+                }
+                if (success)
+                    loadFiles();
+                else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    requestPermissions(permissions, REQUEST_PERMISSION);
+                }
             }
         } else {
             ArrayList<MediaFile> mediaFiles = savedInstanceState.getParcelableArrayList(MEDIA_FILES);

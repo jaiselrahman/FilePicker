@@ -4,7 +4,7 @@
 [![API](https://img.shields.io/badge/API-14%2B-brightgreen.svg?style=flat)](https://android-arsenal.com/api?level=14)
 [![jitPack](https://jitpack.io/v/jaiselrahman/FilePicker.svg)](https://jitpack.io/#jaiselrahman/FilePicker)
 
-A FilePicker libray for Android for selecting multiple types of files and also to capture Images and Videos.
+A FilePicker library for Android for selecting multiple types of files and also to capture Images and Videos.
 
 ## Note
 

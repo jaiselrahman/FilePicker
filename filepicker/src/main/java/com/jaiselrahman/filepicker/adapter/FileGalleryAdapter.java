@@ -21,6 +21,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
+import android.support.v4.content.FileProvider;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -49,14 +50,14 @@ import static android.os.Environment.getExternalStoragePublicDirectory;
 public class FileGalleryAdapter extends MultiSelectionAdapter<FileGalleryAdapter.ViewHolder>
         implements MultiSelectionAdapter.OnSelectionListener<FileGalleryAdapter.ViewHolder> {
     public static final int CAPTURE_IMAGE_VIDEO = 1;
-    private static final String TAG = "FileGallerAdapter";
+    private static final String TAG = "FileGalleryAdapter";
     private ArrayList<MediaFile> mediaFiles;
     private Activity activity;
     private RequestManager glideRequest;
     private OnSelectionListener<ViewHolder> onSelectionListener;
     private boolean showCamera;
     private boolean showVideoCamera;
-    private Uri fileUri;
+    private String filePath;
     private SimpleDateFormat TimeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault());
 
     public FileGalleryAdapter(Activity activity, ArrayList<MediaFile> mediaFiles, int imageSize, boolean showCamera, boolean showVideoCamera) {
@@ -77,8 +78,8 @@ public class FileGalleryAdapter extends MultiSelectionAdapter<FileGalleryAdapter
             setItemStartPostion(1);
     }
 
-    public Uri getLastCapturedFileUri() {
-        return fileUri;
+    public String getLastCapturedFilePath() {
+        return filePath;
     }
 
     @NonNull
@@ -156,7 +157,6 @@ public class FileGalleryAdapter extends MultiSelectionAdapter<FileGalleryAdapter
                 Intent intent;
                 String fileName;
                 java.io.File file, dir;
-                fileUri = null;
                 if (forVideo) {
                     intent = new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
                     fileName = "/VID_" + getTimeStamp() + ".mp4";
@@ -172,7 +172,11 @@ public class FileGalleryAdapter extends MultiSelectionAdapter<FileGalleryAdapter
                     return;
                 }
                 file = new java.io.File(dir.getAbsolutePath() + fileName);
-                fileUri = Uri.fromFile(file);
+                filePath = file.getAbsolutePath();
+
+                Uri fileUri = FileProvider.getUriForFile(activity,
+                        "com.jaiselrahman.filepicker.provider",
+                        file);
                 intent.putExtra(MediaStore.EXTRA_OUTPUT, fileUri);
                 activity.startActivityForResult(intent, CAPTURE_IMAGE_VIDEO);
             }

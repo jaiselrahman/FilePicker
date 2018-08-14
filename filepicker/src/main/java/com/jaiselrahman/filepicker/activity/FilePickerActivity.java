@@ -158,9 +158,9 @@ public class FilePickerActivity extends AppCompatActivity
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == FileGalleryAdapter.CAPTURE_IMAGE_VIDEO) {
-            Uri uri = fileGalleryAdapter.getLastCapturedFileUri();
+            String path = fileGalleryAdapter.getLastCapturedFilePath();
             if (resultCode == RESULT_OK) {
-                MediaScannerConnection.scanFile(this, new String[]{uri.getPath()}, null,
+                MediaScannerConnection.scanFile(this, new String[]{path}, null,
                         new MediaScannerConnection.OnScanCompletedListener() {
                             @Override
                             public void onScanCompleted(String path, final Uri uri) {
@@ -175,7 +175,7 @@ public class FilePickerActivity extends AppCompatActivity
                             }
                         });
             } else {
-                new java.io.File(uri.getPath()).delete();
+                new java.io.File(path).delete();
             }
         }
     }

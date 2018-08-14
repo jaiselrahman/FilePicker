@@ -7,6 +7,16 @@
     <uses-permission android:name="android.permission.CAMERA" />
 
     <application>
+        <provider
+            android:name=".utils.FileProvider"
+            android:authorities="com.jaiselrahman.filepicker.provider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/provider_paths" />
+        </provider>
+
         <activity
             android:name=".activity.FilePickerActivity"
             android:theme="@style/AppTheme.NoActionBar" />

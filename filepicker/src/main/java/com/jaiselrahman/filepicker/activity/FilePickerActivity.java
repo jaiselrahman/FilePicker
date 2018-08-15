@@ -43,6 +43,7 @@ import com.jaiselrahman.filepicker.loader.FileResultCallback;
 import com.jaiselrahman.filepicker.model.MediaFile;
 import com.jaiselrahman.filepicker.view.DividerItemDecoration;
 
+import java.io.File;
 import java.util.ArrayList;
 
 public class FilePickerActivity extends AppCompatActivity
@@ -158,28 +159,22 @@ public class FilePickerActivity extends AppCompatActivity
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == FileGalleryAdapter.CAPTURE_IMAGE_VIDEO) {
-            String path = fileGalleryAdapter.getLastCapturedFilePath();
+            File file = fileGalleryAdapter.getLastCapturedFile();
             if (resultCode == RESULT_OK) {
-                MediaScannerConnection.scanFile(this, new String[]{path}, null,
+                MediaScannerConnection.scanFile(this, new String[]{file.getAbsolutePath()}, null,
                         new MediaScannerConnection.OnScanCompletedListener() {
                             @Override
                             public void onScanCompleted(String path, final Uri uri) {
-                                runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        if (uri != null) {
-                                            loadFiles();
-                                        }
-                                    }
-                                });
+                                if (uri != null) {
+                                    loadFiles();
+                                }
                             }
                         });
             } else {
-                new java.io.File(path).delete();
+                file.delete();
             }
         }
     }
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.filegallery_menu, menu);

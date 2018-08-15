@@ -17,6 +17,7 @@
 package com.jaiselrahman.filepicker.adapter;
 
 import android.app.Activity;
+import android.content.ContentValues;
 import android.content.Intent;
 import android.net.Uri;
 import android.provider.MediaStore;
@@ -38,6 +39,7 @@ import com.jaiselrahman.filepicker.model.MediaFile;
 import com.jaiselrahman.filepicker.utils.TimeUtils;
 import com.jaiselrahman.filepicker.view.SquareImage;
 
+import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -57,7 +59,7 @@ public class FileGalleryAdapter extends MultiSelectionAdapter<FileGalleryAdapter
     private OnSelectionListener<ViewHolder> onSelectionListener;
     private boolean showCamera;
     private boolean showVideoCamera;
-    private String filePath;
+    private File lastCapturedFile;
     private SimpleDateFormat TimeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault());
 
     public FileGalleryAdapter(Activity activity, ArrayList<MediaFile> mediaFiles, int imageSize, boolean showCamera, boolean showVideoCamera) {
@@ -78,8 +80,8 @@ public class FileGalleryAdapter extends MultiSelectionAdapter<FileGalleryAdapter
             setItemStartPostion(1);
     }
 
-    public String getLastCapturedFilePath() {
-        return filePath;
+    public File getLastCapturedFile() {
+        return lastCapturedFile;
     }
 
     @NonNull
@@ -156,27 +158,34 @@ public class FileGalleryAdapter extends MultiSelectionAdapter<FileGalleryAdapter
             public void onClick(View v) {
                 Intent intent;
                 String fileName;
-                java.io.File file, dir;
+                File dir;
+                Uri externalContentUri;
                 if (forVideo) {
                     intent = new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
                     fileName = "/VID_" + getTimeStamp() + ".mp4";
                     dir = getExternalStoragePublicDirectory(DIRECTORY_MOVIES);
+                    externalContentUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
                 } else {
                     intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                     dir = getExternalStoragePublicDirectory(DIRECTORY_PICTURES);
                     fileName = "/IMG_" + getTimeStamp() + ".jpeg";
+                    externalContentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
                 }
                 if (!dir.exists() && !dir.mkdir()) {
                     Log.d(TAG, "onClick: " +
                             (forVideo ? "MOVIES" : "PICTURES") + " Directory not exists");
                     return;
                 }
-                file = new java.io.File(dir.getAbsolutePath() + fileName);
-                filePath = file.getAbsolutePath();
+                lastCapturedFile = new File(dir.getAbsolutePath() + fileName);
 
                 Uri fileUri = FileProvider.getUriForFile(activity,
                         "com.jaiselrahman.filepicker.provider",
-                        file);
+                        lastCapturedFile);
+
+                ContentValues values = new ContentValues();
+                values.put(MediaStore.MediaColumns.DATA, lastCapturedFile.getAbsolutePath());
+                activity.getContentResolver().insert(externalContentUri, values);
+
                 intent.putExtra(MediaStore.EXTRA_OUTPUT, fileUri);
                 activity.startActivityForResult(intent, CAPTURE_IMAGE_VIDEO);
             }

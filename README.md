@@ -12,6 +12,10 @@ A FilePicker library for Android for selecting multiple types of files and also 
 * Uses [MediaStore](https://developer.android.com/reference/android/provider/MediaStore) Database for loading files info.
 * Uses [Glide](https://github.com/bumptech/glide) for loading images.
 
+## [Screenshots](pics/)
+
+![pic](pics/pic.gif)
+
 ## Usage
 
 Step 1: Add it in your root build.gradle at the end of repositories

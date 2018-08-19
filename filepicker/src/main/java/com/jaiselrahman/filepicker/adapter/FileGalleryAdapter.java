@@ -184,6 +184,7 @@ public class FileGalleryAdapter extends MultiSelectionAdapter<FileGalleryAdapter
 
                 ContentValues values = new ContentValues();
                 values.put(MediaStore.MediaColumns.DATA, lastCapturedFile.getAbsolutePath());
+                values.put(MediaStore.Images.ImageColumns.DATE_TAKEN, System.currentTimeMillis());
                 activity.getContentResolver().insert(externalContentUri, values);
 
                 intent.putExtra(MediaStore.EXTRA_OUTPUT, fileUri);

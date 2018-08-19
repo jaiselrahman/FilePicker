@@ -166,7 +166,12 @@ public class FilePickerActivity extends AppCompatActivity
                             @Override
                             public void onScanCompleted(String path, final Uri uri) {
                                 if (uri != null) {
-                                    loadFiles();
+                                    runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            loadFiles();
+                                        }
+                                    });
                                 }
                             }
                         });
@@ -175,6 +180,7 @@ public class FilePickerActivity extends AppCompatActivity
             }
         }
     }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.filegallery_menu, menu);

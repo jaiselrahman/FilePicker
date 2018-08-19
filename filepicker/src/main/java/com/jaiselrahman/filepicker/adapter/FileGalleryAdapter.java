@@ -60,6 +60,7 @@ public class FileGalleryAdapter extends MultiSelectionAdapter<FileGalleryAdapter
     private boolean showCamera;
     private boolean showVideoCamera;
     private File lastCapturedFile;
+    private Uri lastCapturedUri;
     private SimpleDateFormat TimeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault());
 
     public FileGalleryAdapter(Activity activity, ArrayList<MediaFile> mediaFiles, int imageSize, boolean showCamera, boolean showVideoCamera) {
@@ -82,6 +83,11 @@ public class FileGalleryAdapter extends MultiSelectionAdapter<FileGalleryAdapter
 
     public File getLastCapturedFile() {
         return lastCapturedFile;
+    }
+
+
+    public Uri getLastCapturedUri() {
+        return lastCapturedUri;
     }
 
     @NonNull
@@ -185,7 +191,7 @@ public class FileGalleryAdapter extends MultiSelectionAdapter<FileGalleryAdapter
                 ContentValues values = new ContentValues();
                 values.put(MediaStore.MediaColumns.DATA, lastCapturedFile.getAbsolutePath());
                 values.put(MediaStore.Images.ImageColumns.DATE_TAKEN, System.currentTimeMillis());
-                activity.getContentResolver().insert(externalContentUri, values);
+                lastCapturedUri = activity.getContentResolver().insert(externalContentUri, values);
 
                 intent.putExtra(MediaStore.EXTRA_OUTPUT, fileUri);
                 activity.startActivityForResult(intent, CAPTURE_IMAGE_VIDEO);

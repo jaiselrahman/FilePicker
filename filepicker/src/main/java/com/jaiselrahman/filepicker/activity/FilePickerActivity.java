@@ -176,7 +176,8 @@ public class FilePickerActivity extends AppCompatActivity
                             }
                         });
             } else {
-                file.delete();
+                getContentResolver().delete(fileGalleryAdapter.getLastCapturedUri(),
+                        null, null);
             }
         }
     }

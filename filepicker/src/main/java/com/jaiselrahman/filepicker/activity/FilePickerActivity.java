@@ -110,7 +110,7 @@ public class FilePickerActivity extends AppCompatActivity
                     success = ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED;
                 }
                 if (success)
-                    loadFiles();
+                    loadFiles(false);
                 else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                     requestPermissions(permissions, REQUEST_PERMISSION);
                 }
@@ -131,7 +131,7 @@ public class FilePickerActivity extends AppCompatActivity
         }
     }
 
-    private void loadFiles() {
+    private void loadFiles(boolean restart) {
         FileLoader.loadFiles(this, new FileResultCallback() {
             @Override
             public void onResult(ArrayList<MediaFile> filesResults) {
@@ -141,7 +141,7 @@ public class FilePickerActivity extends AppCompatActivity
                     fileGalleryAdapter.notifyDataSetChanged();
                 }
             }
-        }, configs);
+        }, configs, restart);
     }
 
     @Override
@@ -150,7 +150,7 @@ public class FilePickerActivity extends AppCompatActivity
         if (requestCode == REQUEST_PERMISSION) {
             if (grantResults[0] == PackageManager.PERMISSION_GRANTED
                     && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
-                loadFiles();
+                loadFiles(false);
             }
         }
     }
@@ -169,7 +169,7 @@ public class FilePickerActivity extends AppCompatActivity
                                     runOnUiThread(new Runnable() {
                                         @Override
                                         public void run() {
-                                            loadFiles();
+                                            loadFiles(true);
                                         }
                                     });
                                 }

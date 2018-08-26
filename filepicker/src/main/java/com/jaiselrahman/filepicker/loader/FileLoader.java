@@ -103,11 +103,16 @@ public class FileLoader extends CursorLoader {
         }
     }
 
-    public static void loadFiles(FragmentActivity activity, FileResultCallback fileResultCallback, Configurations configs) {
-        if (configs.isShowFiles() || configs.isShowVideos() || configs.isShowAudios() || configs.isShowImages())
-            activity.getLoaderManager().initLoader(0, null,
-                    new FileLoaderCallback(activity, fileResultCallback, configs));
-        else
+    public static void loadFiles(FragmentActivity activity, FileResultCallback fileResultCallback, Configurations configs, boolean restart) {
+        if (configs.isShowFiles() || configs.isShowVideos() || configs.isShowAudios() || configs.isShowImages()) {
+            FileLoaderCallback fileLoaderCallBack = new FileLoaderCallback(activity, fileResultCallback, configs);
+            if (!restart) {
+                activity.getLoaderManager().initLoader(0, null, fileLoaderCallBack);
+            } else {
+                activity.getLoaderManager().restartLoader(0, null, fileLoaderCallBack);
+            }
+        } else {
             fileResultCallback.onResult(null);
+        }
     }
 }

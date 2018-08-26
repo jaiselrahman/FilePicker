@@ -45,12 +45,12 @@ import static android.provider.MediaStore.MediaColumns.TITLE;
 import static android.provider.MediaStore.MediaColumns.WIDTH;
 import static android.provider.MediaStore.Video.VideoColumns.DURATION;
 
-class FileLoaderCallBack implements LoaderManager.LoaderCallbacks<Cursor> {
+class FileLoaderCallback implements LoaderManager.LoaderCallbacks<Cursor> {
     private Context context;
     private FileResultCallback fileResultCallback;
     private Configurations configs;
 
-    FileLoaderCallBack(@NonNull Context context,
+    FileLoaderCallback(@NonNull Context context,
                        @NonNull FileResultCallback fileResultCallback,
                        @NonNull Configurations configs) {
         this.context = context;

@@ -106,7 +106,7 @@ public class FileLoader extends CursorLoader {
     public static void loadFiles(FragmentActivity activity, FileResultCallback fileResultCallback, Configurations configs) {
         if (configs.isShowFiles() || configs.isShowVideos() || configs.isShowAudios() || configs.isShowImages())
             activity.getLoaderManager().initLoader(0, null,
-                    new FileLoaderCallBack(activity, fileResultCallback, configs));
+                    new FileLoaderCallback(activity, fileResultCallback, configs));
         else
             fileResultCallback.onResult(null);
     }

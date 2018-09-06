@@ -3,10 +3,15 @@ apply plugin: 'com.android.application'
 android {
     signingConfigs {
         config {
-            keyAlias KEY_ALIAS
-            keyPassword KEY_PASSWORD
-            storeFile file(KEYSTORE_FILE)
-            storePassword KEYSTORE_PASSWORD
+            Properties properties = new Properties()
+            File propertiesFile = project.rootProject.file('app/gradle.propertie')
+            if (propertiesFile.exists()) {
+                properties.load(propertiesFile.newDataInputStream())
+                storeFile file(properties.getProperty('KEYSTORE_FILE'))
+                keyAlias properties.getProperty('KEY_ALIAS')
+                storePassword properties.getProperty('KEYSTORE_PASSWORD')
+                keyPassword properties.getProperty('KEY_PASSWORD')
+            }
         }
     }
     compileSdkVersion 27

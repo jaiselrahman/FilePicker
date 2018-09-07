@@ -85,9 +85,16 @@ public class FileGalleryAdapter extends MultiSelectionAdapter<FileGalleryAdapter
         return lastCapturedFile;
     }
 
+    public void setLastCapturedFile(File file) {
+        lastCapturedFile = file;
+    }
 
     public Uri getLastCapturedUri() {
         return lastCapturedUri;
+    }
+
+    public void setLastCapturedUri(Uri uri) {
+        lastCapturedUri = uri;
     }
 
     @NonNull

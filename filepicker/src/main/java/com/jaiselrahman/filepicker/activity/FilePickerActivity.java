@@ -51,6 +51,8 @@ public class FilePickerActivity extends AppCompatActivity
     public static final String MEDIA_FILES = "MEDIA_FILES";
     public static final String CONFIGS = "CONFIGS";
     private static final String TAG = "FilePickerActivity";
+    private static final String PATH = "PATH";
+    private static final String URI = "URI";
     private static final int REQUEST_PERMISSION = 1;
     public final String[] permissions = new String[]{
             Manifest.permission.READ_EXTERNAL_STORAGE,
@@ -204,6 +206,22 @@ public class FilePickerActivity extends AppCompatActivity
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putParcelableArrayList(MEDIA_FILES, mediaFiles);
+        File file = fileGalleryAdapter.getLastCapturedFile();
+        if (file != null)
+            outState.putString(PATH, file.getAbsolutePath());
+        outState.putParcelable(URI, fileGalleryAdapter.getLastCapturedUri());
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        String path = savedInstanceState.getString(PATH);
+        if (path != null)
+            fileGalleryAdapter.setLastCapturedFile(new File(path));
+
+        Uri uri = savedInstanceState.getParcelable(URI);
+        if (uri != null)
+            fileGalleryAdapter.setLastCapturedUri(uri);
     }
 
     @Override

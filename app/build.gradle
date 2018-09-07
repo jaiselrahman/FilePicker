@@ -4,7 +4,7 @@ android {
     signingConfigs {
         config {
             Properties properties = new Properties()
-            File propertiesFile = project.rootProject.file('app/gradle.propertie')
+            File propertiesFile = project.rootProject.file('app/gradle.properties')
             if (propertiesFile.exists()) {
                 properties.load(propertiesFile.newDataInputStream())
                 storeFile file(properties.getProperty('KEYSTORE_FILE'))

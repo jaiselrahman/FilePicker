@@ -50,7 +50,7 @@ public class FilePickerActivity extends AppCompatActivity
         implements MultiSelectionAdapter.OnSelectionListener<FileGalleryAdapter.ViewHolder> {
     public static final String MEDIA_FILES = "MEDIA_FILES";
     public static final String CONFIGS = "CONFIGS";
-    private static final String TAG = "FilePickerActivity";
+    public static final String TAG = "FilePicker";
     private static final String PATH = "PATH";
     private static final String URI = "URI";
     private static final int REQUEST_PERMISSION = 1;

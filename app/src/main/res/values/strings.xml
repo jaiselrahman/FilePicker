@@ -11,4 +11,5 @@
     <string name="launch_audio_picker">Launch audio picker</string>
     <string name="launch_video_picker">Launch video picker</string>
     <string name="launch_image_picker">Launch image picker</string>
+    <string name="share_log">Share Log</string>
 </resources>

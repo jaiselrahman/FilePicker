@@ -48,11 +48,11 @@ import java.util.Locale;
 import static android.os.Environment.DIRECTORY_MOVIES;
 import static android.os.Environment.DIRECTORY_PICTURES;
 import static android.os.Environment.getExternalStoragePublicDirectory;
+import static com.jaiselrahman.filepicker.activity.FilePickerActivity.TAG;
 
 public class FileGalleryAdapter extends MultiSelectionAdapter<FileGalleryAdapter.ViewHolder>
         implements MultiSelectionAdapter.OnSelectionListener<FileGalleryAdapter.ViewHolder> {
     public static final int CAPTURE_IMAGE_VIDEO = 1;
-    private static final String TAG = "FileGalleryAdapter";
     private ArrayList<MediaFile> mediaFiles;
     private Activity activity;
     private RequestManager glideRequest;

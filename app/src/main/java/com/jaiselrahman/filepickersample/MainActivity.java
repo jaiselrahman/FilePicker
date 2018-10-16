@@ -18,14 +18,19 @@ package com.jaiselrahman.filepickersample;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 
 import com.jaiselrahman.filepicker.activity.FilePickerActivity;
 import com.jaiselrahman.filepicker.config.Configurations;
 import com.jaiselrahman.filepicker.model.MediaFile;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
@@ -114,6 +119,44 @@ public class MainActivity extends AppCompatActivity {
             mediaFiles.clear();
             mediaFiles.addAll(data.<MediaFile>getParcelableArrayListExtra(FilePickerActivity.MEDIA_FILES));
             fileListAdapter.notifyDataSetChanged();
+        }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.share_log) {
+            shareLogFile();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    public void shareLogFile() {
+        File logFile = new File(getExternalCacheDir(), "logcat.txt");
+        try {
+            if (logFile.exists())
+                logFile.delete();
+            logFile.createNewFile();
+            Runtime.getRuntime().exec("logcat -f " + logFile.getAbsolutePath() + " -t 100 *:W Glide:S " + FilePickerActivity.TAG);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        if (logFile.exists()) {
+            Intent intentShareFile = new Intent(Intent.ACTION_SEND);
+            intentShareFile.setType("text/plain");
+            intentShareFile.putExtra(Intent.EXTRA_STREAM, FileProvider.getUriForFile(this,
+                    "com.jaiselrahman.filepicker.provider",
+                    logFile));
+            intentShareFile.putExtra(Intent.EXTRA_SUBJECT, "FilePicker Log File");
+            intentShareFile.putExtra(Intent.EXTRA_TEXT, "FilePicker Log File");
+            startActivity(Intent.createChooser(intentShareFile, "Share"));
         }
     }
 }

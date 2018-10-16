@@ -205,7 +205,6 @@ public class FilePickerActivity extends AppCompatActivity
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putParcelableArrayList(MEDIA_FILES, mediaFiles);
         File file = fileGalleryAdapter.getLastCapturedFile();
         if (file != null)
             outState.putString(PATH, file.getAbsolutePath());

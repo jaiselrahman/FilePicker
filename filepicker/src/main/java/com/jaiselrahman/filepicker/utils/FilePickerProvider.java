@@ -16,6 +16,21 @@
 
 package com.jaiselrahman.filepicker.utils;
 
-public class FileProvider
-        extends android.support.v4.content.FileProvider {
+import android.content.Context;
+import android.net.Uri;
+import android.support.annotation.NonNull;
+import android.support.v4.content.FileProvider;
+
+import java.io.File;
+
+public class FilePickerProvider extends FileProvider {
+    private static final String FILE_PROVIDER = ".filepicker.provider";
+
+    public static String getAuthority(@NonNull Context context) {
+        return context.getPackageName() + FILE_PROVIDER;
+    }
+
+    public static Uri getUriForFile(@NonNull Context context, @NonNull File file) {
+        return getUriForFile(context, getAuthority(context), file);
+    }
 }

@@ -18,7 +18,6 @@ package com.jaiselrahman.filepickersample;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.view.Menu;
@@ -28,6 +27,7 @@ import android.view.View;
 import com.jaiselrahman.filepicker.activity.FilePickerActivity;
 import com.jaiselrahman.filepicker.config.Configurations;
 import com.jaiselrahman.filepicker.model.MediaFile;
+import com.jaiselrahman.filepicker.utils.FilePickerProvider;
 
 import java.io.File;
 import java.io.IOException;
@@ -151,9 +151,8 @@ public class MainActivity extends AppCompatActivity {
         if (logFile.exists()) {
             Intent intentShareFile = new Intent(Intent.ACTION_SEND);
             intentShareFile.setType("text/plain");
-            intentShareFile.putExtra(Intent.EXTRA_STREAM, FileProvider.getUriForFile(this,
-                    "com.jaiselrahman.filepicker.provider",
-                    logFile));
+            intentShareFile.putExtra(Intent.EXTRA_STREAM,
+                    FilePickerProvider.getUriForFile(this, logFile));
             intentShareFile.putExtra(Intent.EXTRA_SUBJECT, "FilePicker Log File");
             intentShareFile.putExtra(Intent.EXTRA_TEXT, "FilePicker Log File");
             startActivity(Intent.createChooser(intentShareFile, "Share"));

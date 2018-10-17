@@ -22,7 +22,6 @@ import android.content.Intent;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
-import android.support.v4.content.FileProvider;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -36,6 +35,7 @@ import com.bumptech.glide.RequestManager;
 import com.bumptech.glide.request.RequestOptions;
 import com.jaiselrahman.filepicker.R;
 import com.jaiselrahman.filepicker.model.MediaFile;
+import com.jaiselrahman.filepicker.utils.FilePickerProvider;
 import com.jaiselrahman.filepicker.utils.TimeUtils;
 import com.jaiselrahman.filepicker.view.SquareImage;
 
@@ -191,9 +191,7 @@ public class FileGalleryAdapter extends MultiSelectionAdapter<FileGalleryAdapter
                 }
                 lastCapturedFile = new File(dir.getAbsolutePath() + fileName);
 
-                Uri fileUri = FileProvider.getUriForFile(activity,
-                        "com.jaiselrahman.filepicker.provider",
-                        lastCapturedFile);
+                Uri fileUri = FilePickerProvider.getUriForFile(activity, lastCapturedFile);
 
                 ContentValues values = new ContentValues();
                 values.put(MediaStore.MediaColumns.DATA, lastCapturedFile.getAbsolutePath());

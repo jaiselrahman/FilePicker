@@ -8,8 +8,8 @@
 
     <application>
         <provider
-            android:name=".utils.FileProvider"
-            android:authorities="com.jaiselrahman.filepicker.provider"
+            android:name=".utils.FilePickerProvider"
+            android:authorities="${applicationId}.filepicker.provider"
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data

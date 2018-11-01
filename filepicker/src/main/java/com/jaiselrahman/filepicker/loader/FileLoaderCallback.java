@@ -95,6 +95,23 @@ class FileLoaderCallback implements LoaderManager.LoaderCallbacks<Cursor> {
                     mediaFile.setThumbnail(ContentUris
                             .withAppendedId(Uri.parse("content://media/external/audio/albumart"), albumID));
                 }
+                if (mediaFile.getMediaType() == MediaFile.TYPE_FILE) {
+                    // 如果是普通文件，则重置其文件类型
+                    String path = mediaFile.getPath();
+                    if (path.endsWith(".doc") || path.endsWith(".docx")) {
+                        mediaFile.setMediaType(MediaFile.TYPE_WORD);
+                    } else if (path.endsWith(".xls") || path.endsWith(".xlsx")) {
+                        mediaFile.setMediaType(MediaFile.TYPE_EXCEL);
+                    } else if (path.endsWith(".ppt") || path.endsWith(".pptx")) {
+                        mediaFile.setMediaType(MediaFile.TYPE_PPT);
+                    } else if (path.endsWith(".pdf")) {
+                        mediaFile.setMediaType(MediaFile.TYPE_PDF);
+                    } else if (path.endsWith(".rar") || path.endsWith(".zip") || path.endsWith(".tar") || path.endsWith(".gz") || path.endsWith(".7z")) {
+                        mediaFile.setMediaType(MediaFile.TYPE_ZIP);
+                    } else if (path.endsWith(".txt") || path.endsWith(".log") || path.endsWith(".txt")) {
+                        mediaFile.setMediaType(MediaFile.TYPE_TXT);
+                    }
+                }
                 mediaFiles.add(mediaFile);
             } while (data.moveToNext());
         fileResultCallback.onResult(mediaFiles);

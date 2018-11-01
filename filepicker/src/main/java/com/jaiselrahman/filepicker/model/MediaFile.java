@@ -26,6 +26,12 @@ public class MediaFile implements Parcelable {
     public static final int TYPE_IMAGE = 1;
     public static final int TYPE_AUDIO = 2;
     public static final int TYPE_VIDEO = 3;
+    public static final int TYPE_WORD = 4;
+    public static final int TYPE_EXCEL = 5;
+    public static final int TYPE_PPT = 6;
+    public static final int TYPE_PDF = 7;
+    public static final int TYPE_TXT = 9;
+    public static final int TYPE_ZIP = 10;
     public static final Creator<MediaFile> CREATOR = new Creator<MediaFile>() {
         @Override
         public MediaFile createFromParcel(Parcel in) {
@@ -206,7 +212,7 @@ public class MediaFile implements Parcelable {
         return path.hashCode();
     }
 
-    @IntDef({TYPE_FILE, TYPE_IMAGE, TYPE_AUDIO, TYPE_VIDEO})
+    @IntDef({TYPE_FILE, TYPE_IMAGE, TYPE_AUDIO, TYPE_VIDEO, TYPE_WORD, TYPE_EXCEL, TYPE_PPT, TYPE_PDF, TYPE_TXT, TYPE_ZIP})
     public @interface Type {
     }
 }

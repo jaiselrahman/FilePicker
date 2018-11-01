@@ -133,6 +133,9 @@ public class FileGalleryAdapter extends MultiSelectionAdapter<FileGalleryAdapter
 
         super.onBindViewHolder(holder, position);
         MediaFile mediaFile = mediaFiles.get(position);
+        setThumbnailPadding(holder.fileThumbnail, !(mediaFile.getMediaType() == MediaFile.TYPE_VIDEO ||
+                mediaFile.getMediaType() == MediaFile.TYPE_IMAGE ||
+                mediaFile.getMediaType() == MediaFile.TYPE_AUDIO));
         if (mediaFile.getMediaType() == MediaFile.TYPE_VIDEO ||
                 mediaFile.getMediaType() == MediaFile.TYPE_IMAGE) {
             glideRequest.load(mediaFile.getPath())
@@ -141,6 +144,18 @@ public class FileGalleryAdapter extends MultiSelectionAdapter<FileGalleryAdapter
             glideRequest.load(mediaFile.getThumbnail())
                     .apply(RequestOptions.placeholderOf(R.drawable.ic_audio))
                     .into(holder.fileThumbnail);
+        } else if (mediaFile.getMediaType() == MediaFile.TYPE_TXT) {
+            holder.fileThumbnail.setImageResource(R.drawable.ic_txt);
+        } else if (mediaFile.getMediaType() == MediaFile.TYPE_WORD) {
+            holder.fileThumbnail.setImageResource(R.drawable.ic_word1);
+        } else if (mediaFile.getMediaType() == MediaFile.TYPE_EXCEL) {
+            holder.fileThumbnail.setImageResource(R.drawable.ic_excel1);
+        } else if (mediaFile.getMediaType() == MediaFile.TYPE_PPT) {
+            holder.fileThumbnail.setImageResource(R.drawable.ic_ppt);
+        } else if (mediaFile.getMediaType() == MediaFile.TYPE_PDF) {
+            holder.fileThumbnail.setImageResource(R.drawable.ic_pdf);
+        } else if (mediaFile.getMediaType() == MediaFile.TYPE_ZIP) {
+            holder.fileThumbnail.setImageResource(R.drawable.ic_zip);
         } else {
             holder.fileThumbnail.setImageResource(R.drawable.ic_file);
         }
@@ -154,7 +169,7 @@ public class FileGalleryAdapter extends MultiSelectionAdapter<FileGalleryAdapter
         }
 
         if (mediaFile.getMediaType() == MediaFile.TYPE_FILE
-                || mediaFile.getMediaType() == MediaFile.TYPE_AUDIO) {
+                || mediaFile.getMediaType() == MediaFile.TYPE_AUDIO || mediaFile.getMediaType() >= MediaFile.TYPE_WORD) {
             holder.fileName.setVisibility(View.VISIBLE);
             holder.fileName.setText(mediaFile.getName());
         } else {
@@ -162,6 +177,11 @@ public class FileGalleryAdapter extends MultiSelectionAdapter<FileGalleryAdapter
         }
 
         holder.fileSelected.setVisibility(isSelected(mediaFile) ? View.VISIBLE : View.GONE);
+    }
+
+    private void setThumbnailPadding(SquareImage image, boolean padding) {
+        int pad = padding ? image.getResources().getDimensionPixelOffset(R.dimen._default_dimen_padding_) : 0;
+        image.setPadding(pad, pad, pad, pad);
     }
 
     private void handleCamera(ImageView openCamera, final boolean forVideo) {

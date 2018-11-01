@@ -1,7 +1,9 @@
 <resources>
-    <string name="app_name">FilePicker</string>
+    <string name="app_name" translatable="false">FilePicker</string>
     <string name="file_thumbnail">File Thumbnail</string>
     <string name="open_camera">Open Camera</string>
     <string name="done">Done</string>
-    <string name="selection_count">%1$d/%2$d</string>
+    <string name="selection_count" translatable="false">%1$d/%2$d</string>
+
+    <dimen name="_default_dimen_padding_">5dp</dimen>
 </resources>

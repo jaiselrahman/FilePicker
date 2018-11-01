@@ -103,6 +103,7 @@ public class MainActivity extends AppCompatActivity {
                         .setShowFiles(true)
                         .setShowImages(false)
                         .setShowVideos(false)
+                        .setSuffixes("pdf", "zip", "tar", "gz", "rar", "7z", "doc", "docx", "ppt", "pptx", "xls", "xlsx")
                         .setMaxSelection(10)
                         .build());
                 startActivityForResult(intent, FILE_REQUEST_CODE);

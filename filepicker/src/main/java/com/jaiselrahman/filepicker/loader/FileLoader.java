@@ -51,8 +51,8 @@ public class FileLoader extends CursorLoader {
     };
 
     static {
-        ImageSelectionArgs.addAll(Arrays.asList("image/jpeg", "image/png", "image/jpg", "image/gif"));
-        AudioSelectionArgs.addAll(Arrays.asList("audio/mpeg", "audio/mp3", "audio/x-ms-wma", "audio/x-wav", "audio/amr", "audio/3gp"));
+        ImageSelectionArgs.addAll(Arrays.asList("image/jpeg", "image/png", "image/jpg", "image/gif", "image/bmp"));
+        AudioSelectionArgs.addAll(Arrays.asList("audio/aac", "audio/mpeg", "audio/mp3", "audio/x-ms-wma", "audio/x-wav", "audio/amr", "audio/3gp"));
         VideoSelectionArgs.addAll(Arrays.asList("video/mpeg", "video/mp4"));
     }
 

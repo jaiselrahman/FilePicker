@@ -18,6 +18,7 @@ package com.jaiselrahman.filepicker.adapter;
 
 import android.support.annotation.CallSuper;
 import android.support.annotation.NonNull;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 
@@ -40,6 +41,16 @@ public abstract class MultiSelectionAdapter<VH extends RecyclerView.ViewHolder> 
     private boolean isSingleClickSelection = false;
     private int maxSelection = -1;
     private int itemStartPostion = 0;
+    private int spanCount = 1;
+
+    public int getSpanCount() {
+        return spanCount;
+    }
+
+    public void setSpanCount(int count) {
+        spanCount = count;
+    }
+
     private OnSelectionListener<VH> onSelectionListener = new OnSelectionListener<VH>() {
         @Override
         public void onSelectionBegin() {
@@ -111,6 +122,37 @@ public abstract class MultiSelectionAdapter<VH extends RecyclerView.ViewHolder> 
 
     public void setMaxSelection(int maxSelection) {
         this.maxSelection = maxSelection;
+    }
+
+    @Override
+    public void onAttachedToRecyclerView(@NonNull RecyclerView recyclerView) {
+        RecyclerView.LayoutManager manager = recyclerView.getLayoutManager();
+        if (manager instanceof GridLayoutManager) {
+            GridLayoutManager gridManager = ((GridLayoutManager) manager);
+            final int spanCount = gridManager.getSpanCount();
+            gridManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
+                @Override
+                public int getSpanSize(int position) {
+                    // 第一个item占满整行
+                    boolean isFullLineSupport = isItemNeedFullLine(position);
+                    if (isFullLineSupport) {
+                        return spanCount;
+                    } else {
+                        int size = getItemSpanSize(position);
+                        // 小于1时默认占1列，大于等于spanCount时也即占满全行
+                        return size < 1 ? 1 : (size >= spanCount ? spanCount : size);
+                    }
+                }
+            });
+        }
+    }
+
+    protected int getItemSpanSize(int position) {
+        return 1;
+    }
+
+    protected boolean isItemNeedFullLine(int position) {
+        return false;
     }
 
     @CallSuper

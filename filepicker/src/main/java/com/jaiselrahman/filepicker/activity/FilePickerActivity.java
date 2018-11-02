@@ -71,7 +71,6 @@ public class FilePickerActivity extends AppCompatActivity
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
         configs = getIntent().getParcelableExtra(CONFIGS);
         if (configs == null) {
             configs = new Configurations.Builder().build();
@@ -100,10 +99,13 @@ public class FilePickerActivity extends AppCompatActivity
         fileGalleryAdapter.setOnSelectionListener(this);
         fileGalleryAdapter.setMaxSelection(configs.getMaxSelection());
         fileGalleryAdapter.setSelectedItems(configs.getSelectedMediaFiles());
+        fileGalleryAdapter.setSpanCount(spanCount);
         RecyclerView recyclerView = findViewById(R.id.file_gallery);
         recyclerView.setLayoutManager(new GridLayoutManager(this, spanCount));
         recyclerView.setAdapter(fileGalleryAdapter);
-        recyclerView.addItemDecoration(new DividerItemDecoration(this));
+        if (configs.isShowImages() || configs.isShowVideos()) {
+            recyclerView.addItemDecoration(new DividerItemDecoration(this));
+        }
 
         if (savedInstanceState == null) {
             if (configs.isCheckPermission()) {

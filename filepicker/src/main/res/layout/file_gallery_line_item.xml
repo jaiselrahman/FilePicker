@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tool="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="3dp"
+    android:layout_marginBottom="3dp"
+    android:background="@android:color/white">
+
+    <com.jaiselrahman.filepicker.view.SquareImage
+        android:id="@+id/file_thumbnail"
+        android:layout_width="45dp"
+        android:layout_height="45dp"
+        android:layout_margin="3dp"
+        android:contentDescription="@string/file_thumbnail"
+        app:srcCompat="@drawable/ic_file" />
+
+    <TextView
+        android:id="@+id/file_duration"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end|top"
+        android:background="@drawable/transparent_background"
+        android:paddingLeft="5dp"
+        android:paddingRight="5dp"
+        android:textColor="@android:color/white"
+        android:textSize="9sp"
+        tool:text="02:10" />
+
+    <TextView
+        android:id="@+id/file_name"
+        android:layout_width="match_parent"
+        android:layout_height="45dp"
+        android:layout_gravity="center_vertical"
+        android:layout_marginLeft="50dp"
+        android:layout_marginRight="30dp"
+        android:ellipsize="end"
+        android:gravity="center_vertical"
+        android:lines="2"
+        android:padding="5dp"
+        android:text="@string/open_camera"
+        android:textSize="12sp" />
+
+    <ImageView
+        android:id="@+id/file_selected"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_gravity="center_vertical|end"
+        android:padding="3dp"
+        app:srcCompat="@drawable/ic_check_box_unchecked" />
+
+    <ImageView
+        android:id="@+id/file_open_camera"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/open_camera_bg"
+        android:contentDescription="@string/open_camera"
+        android:padding="20dp"
+        android:visibility="gone"
+        app:srcCompat="@drawable/ic_camera" />
+
+    <ImageView
+        android:id="@+id/file_open_video_camera"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/open_camera_bg"
+        android:contentDescription="@string/open_camera"
+        android:padding="20dp"
+        android:visibility="gone"
+        app:srcCompat="@drawable/ic_videocam" />
+</FrameLayout>

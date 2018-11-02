@@ -21,6 +21,6 @@
     <item
         android:id="@+id/done"
         android:title="@string/done"
-        android:icon="@drawable/ic_action_confirm"
+        android:icon="@drawable/ic_action_confirm_dark"
         app:showAsAction="always" />
 </menu>

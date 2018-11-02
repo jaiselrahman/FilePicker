@@ -51,6 +51,7 @@ public class MediaFile implements Parcelable {
     private String mimeType;
     private String bucketId;
     private String bucketName;
+    private String suffix;
     private @Type
     int mediaType;
 
@@ -71,6 +72,7 @@ public class MediaFile implements Parcelable {
         bucketId = in.readString();
         bucketName = in.readString();
         mediaType = in.readInt();
+        suffix = in.readString();
     }
 
     @Override
@@ -88,6 +90,7 @@ public class MediaFile implements Parcelable {
         dest.writeString(bucketId);
         dest.writeString(bucketName);
         dest.writeInt(mediaType);
+        dest.writeString(suffix);
     }
 
     @Override
@@ -157,6 +160,15 @@ public class MediaFile implements Parcelable {
 
     public void setPath(String path) {
         this.path = path;
+        int last = this.path.lastIndexOf('.');
+        if (last < 0) {
+            suffix = "";
+        } else {
+            suffix = this.path.substring(last);
+            if (suffix.length() > 10) {
+                suffix = "";
+            }
+        }
     }
 
     public long getDate() {
@@ -189,6 +201,14 @@ public class MediaFile implements Parcelable {
 
     public void setBucketName(String bucketName) {
         this.bucketName = bucketName;
+    }
+
+    public String getSuffix() {
+        return suffix;
+    }
+
+    public void setSuffix(String suffix) {
+        this.suffix = suffix;
     }
 
     public @Type

@@ -1,5 +1,4 @@
 <resources>
-    <string name="app_name" translatable="false">FilePicker</string>
     <string name="file_thumbnail">File Thumbnail</string>
     <string name="open_camera">Open Camera</string>
     <string name="done">Done</string>

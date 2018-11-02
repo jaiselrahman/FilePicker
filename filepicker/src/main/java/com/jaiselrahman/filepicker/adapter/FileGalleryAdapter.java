@@ -97,11 +97,13 @@ public class FileGalleryAdapter extends MultiSelectionAdapter<FileGalleryAdapter
         lastCapturedUri = uri;
     }
 
+    private static final int TYPE_IMAGE = 0, TYPE_FILE = 1;
+
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View v = LayoutInflater.from(activity)
-                .inflate(R.layout.filegallery_item, parent, false);
+                .inflate(viewType == TYPE_IMAGE ? R.layout.filegallery_item : R.layout.file_gallery_line_item, parent, false);
         return new ViewHolder(v);
     }
 
@@ -133,9 +135,9 @@ public class FileGalleryAdapter extends MultiSelectionAdapter<FileGalleryAdapter
 
         super.onBindViewHolder(holder, position);
         MediaFile mediaFile = mediaFiles.get(position);
-        setThumbnailPadding(holder.fileThumbnail, !(mediaFile.getMediaType() == MediaFile.TYPE_VIDEO ||
-                mediaFile.getMediaType() == MediaFile.TYPE_IMAGE ||
-                mediaFile.getMediaType() == MediaFile.TYPE_AUDIO));
+//        setThumbnailPadding(holder.fileThumbnail, !(mediaFile.getMediaType() == MediaFile.TYPE_VIDEO ||
+//                mediaFile.getMediaType() == MediaFile.TYPE_IMAGE ||
+//                mediaFile.getMediaType() == MediaFile.TYPE_AUDIO));
         if (mediaFile.getMediaType() == MediaFile.TYPE_VIDEO ||
                 mediaFile.getMediaType() == MediaFile.TYPE_IMAGE) {
             glideRequest.load(mediaFile.getPath())
@@ -147,9 +149,9 @@ public class FileGalleryAdapter extends MultiSelectionAdapter<FileGalleryAdapter
         } else if (mediaFile.getMediaType() == MediaFile.TYPE_TXT) {
             holder.fileThumbnail.setImageResource(R.drawable.ic_txt);
         } else if (mediaFile.getMediaType() == MediaFile.TYPE_WORD) {
-            holder.fileThumbnail.setImageResource(R.drawable.ic_word1);
+            holder.fileThumbnail.setImageResource(R.drawable.ic_word);
         } else if (mediaFile.getMediaType() == MediaFile.TYPE_EXCEL) {
-            holder.fileThumbnail.setImageResource(R.drawable.ic_excel1);
+            holder.fileThumbnail.setImageResource(R.drawable.ic_excel);
         } else if (mediaFile.getMediaType() == MediaFile.TYPE_PPT) {
             holder.fileThumbnail.setImageResource(R.drawable.ic_ppt);
         } else if (mediaFile.getMediaType() == MediaFile.TYPE_PDF) {
@@ -171,12 +173,41 @@ public class FileGalleryAdapter extends MultiSelectionAdapter<FileGalleryAdapter
         if (mediaFile.getMediaType() == MediaFile.TYPE_FILE
                 || mediaFile.getMediaType() == MediaFile.TYPE_AUDIO || mediaFile.getMediaType() >= MediaFile.TYPE_WORD) {
             holder.fileName.setVisibility(View.VISIBLE);
-            holder.fileName.setText(mediaFile.getName());
+            String name = mediaFile.getName();
+            if (!isImageObject(mediaFile.getMediaType())) {
+                name = name + mediaFile.getSuffix();
+            }
+            holder.fileName.setText(name);
         } else {
             holder.fileName.setVisibility(View.GONE);
         }
+        if (isImageObject(mediaFile.getMediaType())) {
+            holder.fileSelected.setVisibility(isSelected(mediaFile) ? View.VISIBLE : View.GONE);
+        } else {
+            holder.fileSelected.setVisibility(View.VISIBLE);
+            holder.fileSelected.setImageResource(isSelected(mediaFile) ? R.drawable.ic_check_box_checked : R.drawable.ic_check_box_unchecked);
+        }
+    }
 
-        holder.fileSelected.setVisibility(isSelected(mediaFile) ? View.VISIBLE : View.GONE);
+    private boolean isImageObject(int type) {
+        return type == MediaFile.TYPE_VIDEO || type == MediaFile.TYPE_IMAGE;
+    }
+
+    @Override
+    protected boolean isItemNeedFullLine(int position) {
+        if (showCamera || showVideoCamera) {
+            return false;
+        }
+        // 不是具有图片的内容时，沾满全行
+        return !isImageObject(mediaFiles.get(position).getMediaType());
+    }
+
+    @Override
+    protected int getItemSpanSize(int position) {
+        if (showCamera || showVideoCamera) {
+            return 1;
+        }
+        return isImageObject(mediaFiles.get(position).getMediaType()) ? 1 : getSpanCount();
     }
 
     private void setThumbnailPadding(SquareImage image, boolean padding) {
@@ -229,6 +260,22 @@ public class FileGalleryAdapter extends MultiSelectionAdapter<FileGalleryAdapter
     }
 
     @Override
+    public int getItemViewType(int position) {
+        if (showCamera || showVideoCamera) {
+            return TYPE_IMAGE;
+        }
+        MediaFile file = mediaFiles.get(position);
+        switch (file.getMediaType()) {
+            //case MediaFile.TYPE_AUDIO:
+            case MediaFile.TYPE_IMAGE:
+            case MediaFile.TYPE_VIDEO:
+                return TYPE_IMAGE;
+            default:
+                return TYPE_FILE;
+        }
+    }
+
+    @Override
     public void setOnSelectionListener(OnSelectionListener<ViewHolder> onSelectionListener) {
         this.onSelectionListener = onSelectionListener;
     }
@@ -258,6 +305,10 @@ public class FileGalleryAdapter extends MultiSelectionAdapter<FileGalleryAdapter
             onSelectionListener.onSelected(view, position);
         }
         view.fileSelected.setVisibility(View.VISIBLE);
+        MediaFile file = mediaFiles.get(position);
+        if (!isImageObject(file.getMediaType())) {
+            view.fileSelected.setImageResource(R.drawable.ic_check_box_checked);
+        }
     }
 
     @Override
@@ -265,7 +316,13 @@ public class FileGalleryAdapter extends MultiSelectionAdapter<FileGalleryAdapter
         if (onSelectionListener != null) {
             onSelectionListener.onUnSelected(view, position);
         }
-        view.fileSelected.setVisibility(View.GONE);
+        MediaFile file = mediaFiles.get(position);
+        if (!isImageObject(file.getMediaType())) {
+            view.fileSelected.setVisibility(View.VISIBLE);
+            view.fileSelected.setImageResource(R.drawable.ic_check_box_unchecked);
+        } else {
+            view.fileSelected.setVisibility(View.GONE);
+        }
     }
 
     @Override

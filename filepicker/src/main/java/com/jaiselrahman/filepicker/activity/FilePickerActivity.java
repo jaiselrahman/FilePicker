@@ -45,6 +45,7 @@ import com.jaiselrahman.filepicker.view.DividerItemDecoration;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Locale;
 
 public class FilePickerActivity extends AppCompatActivity
         implements MultiSelectionAdapter.OnSelectionListener<FileGalleryAdapter.ViewHolder> {
@@ -131,8 +132,29 @@ public class FilePickerActivity extends AppCompatActivity
 
         maxCount = configs.getMaxSelection();
         if (maxCount > 0) {
-            setTitle(getResources().getString(R.string.selection_count, fileGalleryAdapter.getSelectedItemCount(), maxCount));
+            setCustomTitle();
+            //setTitle(getResources().getString(R.string.selection_count, fileGalleryAdapter.getSelectedItemCount(), maxCount));
         }
+    }
+
+    private void setCustomTitle() {
+        String count = getString(R.string.selection_count, fileGalleryAdapter.getSelectedItemCount(), maxCount);
+        count = String.format(Locale.getDefault(), "%s(%s)", getTitleString(), count);
+        setTitle(count);
+    }
+
+    private String getTitleString() {
+        int res = 0;
+        if (configs.isShowVideos()) {
+            res = R.string.title_text_video_;
+        } else if (configs.isShowImages()) {
+            res = R.string.title_text_image_;
+        } else if (configs.isShowAudios()) {
+            res = R.string.title_text_audio_;
+        } else {
+            res = R.string.title_text_document_;
+        }
+        return getString(res);
     }
 
     private void loadFiles(boolean restart) {
@@ -233,14 +255,16 @@ public class FilePickerActivity extends AppCompatActivity
     @Override
     public void onSelected(FileGalleryAdapter.ViewHolder viewHolder, int position) {
         if (maxCount > 0) {
-            setTitle(getResources().getString(R.string.selection_count, fileGalleryAdapter.getSelectedItemCount(), maxCount));
+            setCustomTitle();
+            //setTitle(getResources().getString(R.string.selection_count, fileGalleryAdapter.getSelectedItemCount(), maxCount));
         }
     }
 
     @Override
     public void onUnSelected(FileGalleryAdapter.ViewHolder viewHolder, int position) {
         if (maxCount > 0) {
-            setTitle(getResources().getString(R.string.selection_count, fileGalleryAdapter.getSelectedItemCount(), maxCount));
+            setCustomTitle();
+            //setTitle(getResources().getString(R.string.selection_count, fileGalleryAdapter.getSelectedItemCount(), maxCount));
         }
     }
 

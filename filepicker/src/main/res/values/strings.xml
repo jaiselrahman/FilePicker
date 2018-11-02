@@ -1,8 +1,13 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="ExtraTranslation">
     <string name="file_thumbnail">File Thumbnail</string>
     <string name="open_camera">Open Camera</string>
     <string name="done">Done</string>
     <string name="selection_count" translatable="false">%1$d/%2$d</string>
 
     <dimen name="_default_dimen_padding_">5dp</dimen>
+
+    <string name="title_text_image_">Image</string>
+    <string name="title_text_video_">Video</string>
+    <string name="title_text_audio_">Audio</string>
+    <string name="title_text_document_">Document</string>
 </resources>

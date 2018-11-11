@@ -42,6 +42,7 @@ public abstract class MultiSelectionAdapter<VH extends RecyclerView.ViewHolder> 
     private int maxSelection = -1;
     private int itemStartPostion = 0;
     private int spanCount = 1;
+    private long maxVideoDuration = 0, maxVideoFileSize = 0;
 
     public int getSpanCount() {
         return spanCount;
@@ -49,6 +50,22 @@ public abstract class MultiSelectionAdapter<VH extends RecyclerView.ViewHolder> 
 
     public void setSpanCount(int count) {
         spanCount = count;
+    }
+
+    public long getMaxVideoDuration() {
+        return maxVideoDuration;
+    }
+
+    public void setMaxVideoDuration(long maxVideoDuration) {
+        this.maxVideoDuration = maxVideoDuration;
+    }
+
+    public long getMaxVideoFileSize() {
+        return maxVideoFileSize;
+    }
+
+    public void setMaxVideoFileSize(long maxVideoFileSize) {
+        this.maxVideoFileSize = maxVideoFileSize;
     }
 
     private OnSelectionListener<VH> onSelectionListener = new OnSelectionListener<VH>() {

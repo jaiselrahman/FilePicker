@@ -71,6 +71,8 @@ public class MainActivity extends AppCompatActivity {
                         .setSelectedMediaFiles(mediaFiles)
                         .enableVideoCapture(true)
                         .setShowImages(false)
+                        //.setMaxVideoDuration(10)
+                        .setMaxVideoFileSize(20 * 1024 * 1024)
                         .setMaxSelection(10)
                         .build());
                 startActivityForResult(intent, FILE_REQUEST_CODE);

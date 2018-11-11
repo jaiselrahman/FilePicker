@@ -229,6 +229,17 @@ public class FileGalleryAdapter extends MultiSelectionAdapter<FileGalleryAdapter
                     fileName = "/VID_" + getTimeStamp() + ".mp4";
                     dir = getExternalStoragePublicDirectory(DIRECTORY_MOVIES);
                     externalContentUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
+                    intent.putExtra(MediaStore.EXTRA_VIDEO_QUALITY, 1);
+                    // 录制时长限制
+                    if (0 < getMaxVideoDuration()) {
+                        // 限制录制时间(10秒=10)
+                        intent.putExtra(MediaStore.EXTRA_DURATION_LIMIT, getMaxVideoDuration());
+                    }
+                    // 文件长度限制
+                    if (0 < getMaxVideoFileSize()) {
+                        // 限制录制大小(10M=10 * 1024 * 1024L)
+                        intent.putExtra(MediaStore.EXTRA_SIZE_LIMIT, getMaxVideoFileSize());
+                    }
                 } else {
                     intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                     dir = getExternalStoragePublicDirectory(DIRECTORY_PICTURES);

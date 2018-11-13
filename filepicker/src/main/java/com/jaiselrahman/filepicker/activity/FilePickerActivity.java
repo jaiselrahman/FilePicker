@@ -101,6 +101,8 @@ public class FilePickerActivity extends AppCompatActivity
         fileGalleryAdapter.setMaxSelection(configs.getMaxSelection());
         fileGalleryAdapter.setSelectedItems(configs.getSelectedMediaFiles());
         fileGalleryAdapter.setSpanCount(spanCount);
+        fileGalleryAdapter.setMaxVideoDuration(configs.getVideoMaxDuration());
+        fileGalleryAdapter.setMaxVideoFileSize(configs.getVideoMaxFileSize());
         RecyclerView recyclerView = findViewById(R.id.file_gallery);
         recyclerView.setLayoutManager(new GridLayoutManager(this, spanCount));
         recyclerView.setAdapter(fileGalleryAdapter);

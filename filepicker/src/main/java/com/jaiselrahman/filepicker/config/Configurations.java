@@ -46,6 +46,7 @@ public class Configurations implements Parcelable {
     private final int imageSize, maxSelection;
     private final int landscapeSpanCount;
     private final int portraitSpanCount;
+    private final long videoMaxFileSize, videoMaxDuration;
     private final String[] suffixes;
     private final ArrayList<MediaFile> selectedMediaFiles;
 
@@ -53,6 +54,7 @@ public class Configurations implements Parcelable {
                            boolean showVideos, boolean showImages, boolean showAudios, boolean showFiles,
                            boolean singleClickSelection, boolean checkPermission, boolean skipZeroSizeFiles, boolean skipHiddenFiles,
                            int imageSize, int maxSelection, int landscapeSpanCount, int portraitSpanCount,
+                           long videoMaxDuration, long videoMaxFileSize,
                            String[] suffixes, ArrayList<MediaFile> selectedMediaFiles) {
         this.imageCaptureEnabled = imageCapture;
         this.videoCaptureEnabled = videoCapture;
@@ -68,6 +70,8 @@ public class Configurations implements Parcelable {
         this.maxSelection = maxSelection;
         this.landscapeSpanCount = landscapeSpanCount;
         this.portraitSpanCount = portraitSpanCount;
+        this.videoMaxDuration = videoMaxDuration;
+        this.videoMaxFileSize = videoMaxFileSize;
         this.suffixes = suffixes;
         this.selectedMediaFiles = selectedMediaFiles;
     }
@@ -87,6 +91,8 @@ public class Configurations implements Parcelable {
         maxSelection = in.readInt();
         landscapeSpanCount = in.readInt();
         portraitSpanCount = in.readInt();
+        videoMaxDuration = in.readLong();
+        videoMaxFileSize = in.readLong();
         suffixes = in.createStringArray();
         selectedMediaFiles = in.createTypedArrayList(MediaFile.CREATOR);
     }
@@ -136,6 +142,8 @@ public class Configurations implements Parcelable {
         dest.writeInt(maxSelection);
         dest.writeInt(landscapeSpanCount);
         dest.writeInt(portraitSpanCount);
+        dest.writeLong(videoMaxDuration);
+        dest.writeLong(videoMaxFileSize);
         dest.writeStringArray(suffixes);
         dest.writeTypedList(selectedMediaFiles);
     }
@@ -181,6 +189,14 @@ public class Configurations implements Parcelable {
         return suffixes;
     }
 
+    public long getVideoMaxFileSize() {
+        return videoMaxFileSize;
+    }
+
+    public long getVideoMaxDuration() {
+        return videoMaxDuration;
+    }
+
     public static class Builder {
         private boolean imageCapture = false, videoCapture = false,
                 checkPermission = false, showImages = true, showVideos = true,
@@ -189,6 +205,7 @@ public class Configurations implements Parcelable {
         private int imageSize = -1, maxSelection = -1;
         private int landscapeSpanCount = 5;
         private int portraitSpanCount = 3;
+        private long maxVideoDuration = 0, maxVideoFileSize = 0;
         private String[] suffixes = new String[]{
                 "txt", "pdf", "html", "rtf", "csv", "xml",
                 "zip", "tar", "gz", "rar", "7z", "torrent",
@@ -277,10 +294,26 @@ public class Configurations implements Parcelable {
             return this;
         }
 
+        /**
+         * Set the limited maximum duration in second, 0(default) to unlimited.
+         */
+        public Builder setMaxVideoDuration(long duration) {
+            this.maxVideoDuration = duration;
+            return this;
+        }
+
+        /**
+         * Set the limited maximum video file size, 0(default) to unlimited.
+         */
+        public Builder setMaxVideoFileSize(long size) {
+            this.maxVideoFileSize = size;
+            return this;
+        }
+
         public Configurations build() {
             return new Configurations(imageCapture, videoCapture, showVideos, showImages, showAudios, showFiles,
-                    singleClickSelection, checkPermission, skipZeroSizeFiles, skipHiddenFiles,
-                    imageSize, maxSelection, landscapeSpanCount, portraitSpanCount, suffixes, selectedMediaFiles);
+                    singleClickSelection, checkPermission, skipZeroSizeFiles, imageSize, maxSelection, landscapeSpanCount,
+                    portraitSpanCount, maxVideoDuration, maxVideoFileSize, suffixes, selectedMediaFiles);
         }
     }
 }

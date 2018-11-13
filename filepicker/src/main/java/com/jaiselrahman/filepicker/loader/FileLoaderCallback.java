@@ -137,19 +137,6 @@ class FileLoaderCallback implements LoaderManager.LoaderCallbacks<Cursor> {
         return false;
     }
 
-    private boolean isPathHandled(String path) {
-        if (handledPaths.contains(path)) {
-            return true;
-        } else {
-            for (String string : handledPaths) {
-                if (path.contains(string)) {
-                    return true;
-                }
-            }
-            return false;
-        }
-    }
-
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         ArrayList<MediaFile> mediaFiles = new ArrayList<>();

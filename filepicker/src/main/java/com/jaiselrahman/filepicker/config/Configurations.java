@@ -312,7 +312,8 @@ public class Configurations implements Parcelable {
 
         public Configurations build() {
             return new Configurations(imageCapture, videoCapture, showVideos, showImages, showAudios, showFiles,
-                    singleClickSelection, checkPermission, skipZeroSizeFiles, imageSize, maxSelection, landscapeSpanCount,
+                    singleClickSelection, checkPermission, skipZeroSizeFiles, skipHiddenFiles,
+                    imageSize, maxSelection, landscapeSpanCount,
                     portraitSpanCount, maxVideoDuration, maxVideoFileSize, suffixes, selectedMediaFiles);
         }
     }

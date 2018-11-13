@@ -33,6 +33,7 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 
 import com.jaiselrahman.filepicker.R;
 import com.jaiselrahman.filepicker.adapter.FileGalleryAdapter;
@@ -64,6 +65,7 @@ public class FilePickerActivity extends AppCompatActivity
     private ArrayList<MediaFile> mediaFiles = new ArrayList<>();
     private FileGalleryAdapter fileGalleryAdapter;
     private int maxCount;
+    private View loadingView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,6 +74,7 @@ public class FilePickerActivity extends AppCompatActivity
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        loadingView = findViewById(R.id.loading);
         configs = getIntent().getParcelableExtra(CONFIGS);
         if (configs == null) {
             configs = new Configurations.Builder().build();
@@ -116,9 +119,9 @@ public class FilePickerActivity extends AppCompatActivity
                 for (String permission : permissions) {
                     success = ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED;
                 }
-                if (success)
+                if (success) {
                     loadFiles(false);
-                else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                     requestPermissions(permissions, REQUEST_PERMISSION);
                 }
             }
@@ -160,6 +163,7 @@ public class FilePickerActivity extends AppCompatActivity
     }
 
     private void loadFiles(boolean restart) {
+        loadingView.setVisibility(View.VISIBLE);
         FileLoader.loadFiles(this, new FileResultCallback() {
             @Override
             public void onResult(ArrayList<MediaFile> filesResults) {
@@ -168,6 +172,7 @@ public class FilePickerActivity extends AppCompatActivity
                     mediaFiles.addAll(filesResults);
                     fileGalleryAdapter.notifyDataSetChanged();
                 }
+                loadingView.setVisibility(View.GONE);
             }
         }, configs, restart);
     }

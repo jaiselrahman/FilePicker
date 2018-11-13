@@ -23,6 +23,7 @@ import android.net.Uri;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -36,6 +37,7 @@ import com.bumptech.glide.request.RequestOptions;
 import com.jaiselrahman.filepicker.R;
 import com.jaiselrahman.filepicker.model.MediaFile;
 import com.jaiselrahman.filepicker.utils.FilePickerProvider;
+import com.jaiselrahman.filepicker.utils.FileUtils;
 import com.jaiselrahman.filepicker.utils.TimeUtils;
 import com.jaiselrahman.filepicker.view.SquareImage;
 
@@ -140,12 +142,9 @@ public class FileGalleryAdapter extends MultiSelectionAdapter<FileGalleryAdapter
 //                mediaFile.getMediaType() == MediaFile.TYPE_AUDIO));
         if (mediaFile.getMediaType() == MediaFile.TYPE_VIDEO ||
                 mediaFile.getMediaType() == MediaFile.TYPE_IMAGE) {
-            glideRequest.load(mediaFile.getPath())
-                    .into(holder.fileThumbnail);
+            glideRequest.load(mediaFile.getPath()).into(holder.fileThumbnail);
         } else if (mediaFile.getMediaType() == MediaFile.TYPE_AUDIO) {
-            glideRequest.load(mediaFile.getThumbnail())
-                    .apply(RequestOptions.placeholderOf(R.drawable.ic_audio))
-                    .into(holder.fileThumbnail);
+            glideRequest.load(mediaFile.getThumbnail()).apply(RequestOptions.placeholderOf(R.drawable.ic_audio)).into(holder.fileThumbnail);
         } else if (mediaFile.getMediaType() == MediaFile.TYPE_TXT) {
             holder.fileThumbnail.setImageResource(R.drawable.ic_txt);
         } else if (mediaFile.getMediaType() == MediaFile.TYPE_WORD) {
@@ -159,7 +158,24 @@ public class FileGalleryAdapter extends MultiSelectionAdapter<FileGalleryAdapter
         } else if (mediaFile.getMediaType() == MediaFile.TYPE_ZIP) {
             holder.fileThumbnail.setImageResource(R.drawable.ic_zip);
         } else {
-            holder.fileThumbnail.setImageResource(R.drawable.ic_file);
+            String mime = FileUtils.getMimeTypeByFullPath(mediaFile.getPath());
+            if (!TextUtils.isEmpty(mime)) {
+                if (mime.contains("video")) {
+                    mediaFile.setMediaType(MediaFile.TYPE_VIDEO);
+                    holder.fileThumbnail.setImageResource(R.drawable.ic_video);
+                } else if (mime.contains("audio")) {
+                    mediaFile.setMediaType(MediaFile.TYPE_AUDIO);
+                    holder.fileThumbnail.setImageResource(R.drawable.ic_audio);
+                } else if (mime.contains("image")) {
+                    mediaFile.setMediaType(MediaFile.TYPE_IMAGE);
+                    glideRequest.load(mediaFile.getPath()).into(holder.fileThumbnail);
+                    //holder.fileThumbnail.setImageResource(R.drawable.ic_image);
+                } else {
+                    holder.fileThumbnail.setImageResource(R.drawable.ic_file);
+                }
+            } else {
+                holder.fileThumbnail.setImageResource(R.drawable.ic_file);
+            }
         }
 
         if (mediaFile.getMediaType() == MediaFile.TYPE_VIDEO ||

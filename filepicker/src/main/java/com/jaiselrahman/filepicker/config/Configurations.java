@@ -42,7 +42,7 @@ public class Configurations implements Parcelable {
     private final boolean showAudios;
     private final boolean showFiles;
     private final boolean singleClickSelection;
-    private final boolean checkPermission, skipZeroSizeFiles;
+    private final boolean checkPermission, skipZeroSizeFiles, skipHiddenFiles;
     private final int imageSize, maxSelection;
     private final int landscapeSpanCount;
     private final int portraitSpanCount;
@@ -51,7 +51,7 @@ public class Configurations implements Parcelable {
 
     private Configurations(boolean imageCapture, boolean videoCapture,
                            boolean showVideos, boolean showImages, boolean showAudios, boolean showFiles,
-                           boolean singleClickSelection, boolean checkPermission, boolean skipZeroSizeFiles,
+                           boolean singleClickSelection, boolean checkPermission, boolean skipZeroSizeFiles, boolean skipHiddenFiles,
                            int imageSize, int maxSelection, int landscapeSpanCount, int portraitSpanCount,
                            String[] suffixes, ArrayList<MediaFile> selectedMediaFiles) {
         this.imageCaptureEnabled = imageCapture;
@@ -63,6 +63,7 @@ public class Configurations implements Parcelable {
         this.singleClickSelection = singleClickSelection;
         this.checkPermission = checkPermission;
         this.skipZeroSizeFiles = skipZeroSizeFiles;
+        this.skipHiddenFiles = skipHiddenFiles;
         this.imageSize = imageSize;
         this.maxSelection = maxSelection;
         this.landscapeSpanCount = landscapeSpanCount;
@@ -81,6 +82,7 @@ public class Configurations implements Parcelable {
         singleClickSelection = in.readByte() != 0;
         checkPermission = in.readByte() != 0;
         skipZeroSizeFiles = in.readByte() != 0;
+        skipHiddenFiles = in.readByte() != 0;
         imageSize = in.readInt();
         maxSelection = in.readInt();
         landscapeSpanCount = in.readInt();
@@ -109,6 +111,10 @@ public class Configurations implements Parcelable {
         return skipZeroSizeFiles;
     }
 
+    public boolean isSkipHiddenFiles() {
+        return skipHiddenFiles;
+    }
+
     public ArrayList<MediaFile> getSelectedMediaFiles() {
 
         return selectedMediaFiles;
@@ -125,6 +131,7 @@ public class Configurations implements Parcelable {
         dest.writeByte((byte) (singleClickSelection ? 1 : 0));
         dest.writeByte((byte) (checkPermission ? 1 : 0));
         dest.writeByte((byte) (skipZeroSizeFiles ? 1 : 0));
+        dest.writeByte((byte) (skipHiddenFiles ? 1 : 0));
         dest.writeInt(imageSize);
         dest.writeInt(maxSelection);
         dest.writeInt(landscapeSpanCount);
@@ -178,7 +185,7 @@ public class Configurations implements Parcelable {
         private boolean imageCapture = false, videoCapture = false,
                 checkPermission = false, showImages = true, showVideos = true,
                 showFiles = false, showAudios = false, singleClickSelection = true,
-                skipZeroSizeFiles = true;
+                skipZeroSizeFiles = true, skipHiddenFiles = true;
         private int imageSize = -1, maxSelection = -1;
         private int landscapeSpanCount = 5;
         private int portraitSpanCount = 3;
@@ -260,6 +267,11 @@ public class Configurations implements Parcelable {
             return this;
         }
 
+        public Builder setSkipHiddenFiles(boolean skipHiddenFiles) {
+            this.skipHiddenFiles = skipHiddenFiles;
+            return this;
+        }
+
         public Builder setSelectedMediaFiles(ArrayList<MediaFile> selectedMediaFiles) {
             this.selectedMediaFiles = selectedMediaFiles;
             return this;
@@ -267,7 +279,8 @@ public class Configurations implements Parcelable {
 
         public Configurations build() {
             return new Configurations(imageCapture, videoCapture, showVideos, showImages, showAudios, showFiles,
-                    singleClickSelection, checkPermission, skipZeroSizeFiles, imageSize, maxSelection, landscapeSpanCount, portraitSpanCount, suffixes, selectedMediaFiles);
+                    singleClickSelection, checkPermission, skipZeroSizeFiles, skipHiddenFiles,
+                    imageSize, maxSelection, landscapeSpanCount, portraitSpanCount, suffixes, selectedMediaFiles);
         }
     }
 }

@@ -24,6 +24,7 @@ import android.support.v4.app.FragmentActivity;
 
 import com.jaiselrahman.filepicker.config.Configurations;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -58,8 +59,16 @@ public class FileLoader extends CursorLoader {
 
     FileLoader(Context context, @NonNull Configurations configs) {
         super(context);
-
         ArrayList<String> selectionArgs = new ArrayList<>();
+        StringBuilder selectionBuilder = new StringBuilder();
+
+        String rootPath = configs.getRootPath();
+        if (rootPath != null) {
+            selectionBuilder.append(DATA).append(" LIKE ?");
+            if (!rootPath.endsWith(File.separator)) rootPath += File.separator;
+            selectionArgs.add(rootPath + "%");
+        }
+
         if (configs.isShowImages())
             selectionArgs.addAll(ImageSelectionArgs);
         if (configs.isShowAudios())
@@ -67,9 +76,12 @@ public class FileLoader extends CursorLoader {
         if (configs.isShowVideos())
             selectionArgs.addAll(VideoSelectionArgs);
 
-        StringBuilder selectionBuilder = null;
+        if (selectionBuilder.length() != 0)
+            selectionBuilder.append(" and ");
+
+        selectionBuilder.append("(");
+
         if (!selectionArgs.isEmpty()) {
-            selectionBuilder = new StringBuilder();
             selectionBuilder.append(MIME_TYPE).append(" = ?");
             int size = selectionArgs.size();
             for (int i = 1; i < size; i++) {
@@ -79,9 +91,7 @@ public class FileLoader extends CursorLoader {
 
         String[] suffixes = configs.getSuffixes();
         if (configs.isShowFiles() && suffixes != null && suffixes.length > 0) {
-            if (selectionBuilder == null) {
-                selectionBuilder = new StringBuilder();
-            } else {
+            if (!selectionArgs.isEmpty()) {
                 selectionBuilder.append(" or ");
             }
             selectionBuilder.append(DATA).append(" LIKE ?");
@@ -94,12 +104,14 @@ public class FileLoader extends CursorLoader {
             }
         }
 
-        if (selectionBuilder != null) {
+        selectionBuilder.append(")");
+
+        if (selectionBuilder.length() != 0) {
             setProjection(FILE_PROJECTION);
             setUri(MediaStore.Files.getContentUri("external"));
             setSortOrder(MediaStore.Files.FileColumns.DATE_ADDED + " DESC");
             setSelection(selectionBuilder.toString());
-            setSelectionArgs(selectionArgs.toArray(new String[selectionArgs.size()]));
+            setSelectionArgs(selectionArgs.toArray(new String[0]));
         }
     }
 

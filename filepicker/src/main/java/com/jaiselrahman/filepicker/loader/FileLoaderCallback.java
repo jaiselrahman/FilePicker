@@ -83,6 +83,11 @@ class FileLoaderCallback implements LoaderManager.LoaderCallbacks<Cursor> {
                 mediaFile.setDate(data.getLong(data.getColumnIndex(DATE_ADDED)));
                 mediaFile.setMimeType(data.getString(data.getColumnIndex(MIME_TYPE)));
                 mediaFile.setMediaType(data.getInt(data.getColumnIndex(MEDIA_TYPE)));
+                if (mediaFile.getMediaType() == MediaFile.TYPE_FILE
+                        && mediaFile.getMimeType() != null) {
+                    //Double check correct MediaType
+                    mediaFile.setMediaType(getMediaType(mediaFile.getMimeType()));
+                }
                 mediaFile.setBucketId(data.getString(data.getColumnIndex(BUCKET_ID)));
                 mediaFile.setBucketName(data.getString(data.getColumnIndex(BUCKET_DISPLAY_NAME)));
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
@@ -98,6 +103,19 @@ class FileLoaderCallback implements LoaderManager.LoaderCallbacks<Cursor> {
                 mediaFiles.add(mediaFile);
             } while (data.moveToNext());
         fileResultCallback.onResult(mediaFiles);
+    }
+
+    private static @MediaFile.Type
+    int getMediaType(String mime) {
+        if (mime.startsWith("image/")) {
+            return MediaFile.TYPE_IMAGE;
+        } else if (mime.startsWith("video/")) {
+            return MediaFile.TYPE_VIDEO;
+        } else if (mime.startsWith("audio/")) {
+            return MediaFile.TYPE_AUDIO;
+        } else {
+            return MediaFile.TYPE_FILE;
+        }
     }
 
     @Override

@@ -46,6 +46,7 @@ public class Configurations implements Parcelable {
     private final int imageSize, maxSelection;
     private final int landscapeSpanCount;
     private final int portraitSpanCount;
+    private final String rootPath;
     private final String[] suffixes;
     private final ArrayList<MediaFile> selectedMediaFiles;
 
@@ -53,7 +54,7 @@ public class Configurations implements Parcelable {
                            boolean showVideos, boolean showImages, boolean showAudios, boolean showFiles,
                            boolean singleClickSelection, boolean checkPermission, boolean skipZeroSizeFiles,
                            int imageSize, int maxSelection, int landscapeSpanCount, int portraitSpanCount,
-                           String[] suffixes, ArrayList<MediaFile> selectedMediaFiles) {
+                           String root, String[] suffixes, ArrayList<MediaFile> selectedMediaFiles) {
         this.imageCaptureEnabled = imageCapture;
         this.videoCaptureEnabled = videoCapture;
         this.showVideos = showVideos;
@@ -67,6 +68,7 @@ public class Configurations implements Parcelable {
         this.maxSelection = maxSelection;
         this.landscapeSpanCount = landscapeSpanCount;
         this.portraitSpanCount = portraitSpanCount;
+        this.rootPath = root;
         this.suffixes = suffixes;
         this.selectedMediaFiles = selectedMediaFiles;
     }
@@ -85,6 +87,7 @@ public class Configurations implements Parcelable {
         maxSelection = in.readInt();
         landscapeSpanCount = in.readInt();
         portraitSpanCount = in.readInt();
+        rootPath = in.readString();
         suffixes = in.createStringArray();
         selectedMediaFiles = in.createTypedArrayList(MediaFile.CREATOR);
     }
@@ -129,6 +132,7 @@ public class Configurations implements Parcelable {
         dest.writeInt(maxSelection);
         dest.writeInt(landscapeSpanCount);
         dest.writeInt(portraitSpanCount);
+        dest.writeString(rootPath);
         dest.writeStringArray(suffixes);
         dest.writeTypedList(selectedMediaFiles);
     }
@@ -170,6 +174,10 @@ public class Configurations implements Parcelable {
         return imageSize;
     }
 
+    public String getRootPath() {
+        return rootPath;
+    }
+
     public String[] getSuffixes() {
         return suffixes;
     }
@@ -182,6 +190,7 @@ public class Configurations implements Parcelable {
         private int imageSize = -1, maxSelection = -1;
         private int landscapeSpanCount = 5;
         private int portraitSpanCount = 3;
+        private String rootPath;
         private String[] suffixes = new String[]{
                 "txt", "pdf", "html", "rtf", "csv", "xml",
                 "zip", "tar", "gz", "rar", "7z", "torrent",
@@ -255,6 +264,11 @@ public class Configurations implements Parcelable {
             return this;
         }
 
+        public Builder setRootPath(String rootPath) {
+            this.rootPath = rootPath;
+            return this;
+        }
+
         public Builder setSuffixes(String... suffixes) {
             this.suffixes = suffixes;
             return this;
@@ -267,7 +281,7 @@ public class Configurations implements Parcelable {
 
         public Configurations build() {
             return new Configurations(imageCapture, videoCapture, showVideos, showImages, showAudios, showFiles,
-                    singleClickSelection, checkPermission, skipZeroSizeFiles, imageSize, maxSelection, landscapeSpanCount, portraitSpanCount, suffixes, selectedMediaFiles);
+                    singleClickSelection, checkPermission, skipZeroSizeFiles, imageSize, maxSelection, landscapeSpanCount, portraitSpanCount, rootPath, suffixes, selectedMediaFiles);
         }
     }
 }

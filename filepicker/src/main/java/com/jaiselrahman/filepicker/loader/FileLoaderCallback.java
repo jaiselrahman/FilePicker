@@ -177,10 +177,6 @@ class FileLoaderCallback implements LoaderManager.LoaderCallbacks<Cursor> {
                             handledPaths.add(parent);
                         }
                     }
-                    if (duration == 0 && mediaType == MediaFile.TYPE_FILE && adjustedType == MediaFile.TYPE_VIDEO) {
-                        // 隐藏的视频文件，时长为0
-                        continue;
-                    }
                 }
                 if (mediaType == MediaFile.TYPE_FILE && adjustedType == MediaFile.TYPE_IMAGE) {
                     // 修正图片

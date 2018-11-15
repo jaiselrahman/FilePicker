@@ -10,4 +10,8 @@
     <string name="title_text_video_">Video</string>
     <string name="title_text_audio_">Audio</string>
     <string name="title_text_document_">Document</string>
+
+    <string name="toast_text_no_feature_for_camera">No feature for camera.</string>
+    <string name="toast_text_no_feature_for_capture_image">No feature for capture image.</string>
+    <string name="toast_text_no_feature_for_capture_video">No feature for capture video.</string>
 </resources>

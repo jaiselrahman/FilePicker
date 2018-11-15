@@ -19,6 +19,7 @@ package com.jaiselrahman.filepicker.adapter;
 import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
@@ -30,6 +31,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.RequestManager;
@@ -236,6 +238,14 @@ public class FileGalleryAdapter extends MultiSelectionAdapter<FileGalleryAdapter
         openCamera.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                PackageManager packageManager = v.getContext().getPackageManager();
+                if (null == packageManager) {
+                    return;
+                }
+                if (!packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA)) {
+                    Toast.makeText(v.getContext(), R.string.toast_text_no_feature_for_camera, Toast.LENGTH_LONG).show();
+                    return;
+                }
                 Intent intent;
                 String fileName;
                 File dir;
@@ -277,7 +287,11 @@ public class FileGalleryAdapter extends MultiSelectionAdapter<FileGalleryAdapter
                 lastCapturedUri = activity.getContentResolver().insert(externalContentUri, values);
 
                 intent.putExtra(MediaStore.EXTRA_OUTPUT, fileUri);
-                activity.startActivityForResult(intent, CAPTURE_IMAGE_VIDEO);
+                try {
+                    activity.startActivityForResult(intent, CAPTURE_IMAGE_VIDEO);
+                } catch (Exception ignore) {
+                    Toast.makeText(v.getContext(), forVideo ? R.string.toast_text_no_feature_for_capture_video : R.string.toast_text_no_feature_for_capture_image, Toast.LENGTH_LONG).show();
+                }
             }
         });
     }

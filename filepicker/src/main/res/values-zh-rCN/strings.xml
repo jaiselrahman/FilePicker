@@ -7,4 +7,7 @@
     <string name="title_text_video_">视频</string>
     <string name="title_text_audio_">音频</string>
     <string name="title_text_document_">文档</string>
+    <string name="toast_text_no_feature_for_camera">不支持相机</string>
+    <string name="toast_text_no_feature_for_capture_image">无法打开相机拍照</string>
+    <string name="toast_text_no_feature_for_capture_video">无法打开相机摄像</string>
 </resources>

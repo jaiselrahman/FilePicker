@@ -46,13 +46,18 @@ public abstract class MultiSelectionAdapter<VH extends RecyclerView.ViewHolder> 
         @Override
         public void onSelectionBegin() {
             isSelectionStarted = true;
-            if (customOnSelectionListener != null) customOnSelectionListener.onSelectionBegin();
+            if (!singleChoiceMode && customOnSelectionListener != null)
+                customOnSelectionListener.onSelectionBegin();
         }
 
         @Override
         public void onSelected(VH viewHolder, int position) {
-            if (singleChoiceMode) {
-                onSelectionListener.onUnSelectAll();
+            if (singleChoiceMode && selectedItems.size() > 0) {
+                int pos = mediaFiles.indexOf(selectedItems.get(0));
+                if (pos >= 0) {
+                    removeSelection(pos);
+                    handleItemChanged(pos);
+                }
             }
             if (maxSelection > 0 && selectedItems.size() >= maxSelection) {
                 onMaxReached();
@@ -76,7 +81,8 @@ public abstract class MultiSelectionAdapter<VH extends RecyclerView.ViewHolder> 
             selectedItems.clear();
             selectedItems.addAll(mediaFiles);
             notifyDataSetChanged();
-            if (customOnSelectionListener != null) customOnSelectionListener.onSelectAll();
+            if (customOnSelectionListener != null)
+                customOnSelectionListener.onSelectAll();
         }
 
         @Override
@@ -88,18 +94,21 @@ public abstract class MultiSelectionAdapter<VH extends RecyclerView.ViewHolder> 
                 handleItemChanged(position);
             }
             isSelectionStarted = false;
-            if (customOnSelectionListener != null) customOnSelectionListener.onUnSelectAll();
+            if (customOnSelectionListener != null)
+                customOnSelectionListener.onUnSelectAll();
         }
 
         @Override
         public void onSelectionEnd() {
             isSelectionStarted = false;
-            if (customOnSelectionListener != null) customOnSelectionListener.onSelectionEnd();
+            if (!singleChoiceMode && customOnSelectionListener != null)
+                customOnSelectionListener.onSelectionEnd();
         }
 
         @Override
         public void onMaxReached() {
-            if (customOnSelectionListener != null) customOnSelectionListener.onMaxReached();
+            if (!singleChoiceMode && customOnSelectionListener != null)
+                customOnSelectionListener.onMaxReached();
         }
     };
 
@@ -261,17 +270,16 @@ public abstract class MultiSelectionAdapter<VH extends RecyclerView.ViewHolder> 
             if (!selectedItems.contains(mediaFiles.get(position)))
                 selectedItems.add(mediaFiles.get(position));
         } else {
-            selectedItems.remove(mediaFiles.get(position));
-            if (selectedItems.isEmpty()) {
+            if (selectedItems.remove(mediaFiles.get(position))
+                    && selectedItems.isEmpty()) {
                 onSelectionListener.onSelectionEnd();
             }
         }
     }
 
     private void removeSelection(int position) {
-        if (position < 0) return;
-        selectedItems.remove(mediaFiles.get(position));
-        if (selectedItems.isEmpty()) {
+        if (selectedItems.remove(mediaFiles.get(position))
+                && selectedItems.isEmpty()) {
             onSelectionListener.onSelectionEnd();
         }
     }

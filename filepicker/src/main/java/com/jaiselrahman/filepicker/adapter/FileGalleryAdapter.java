@@ -76,9 +76,9 @@ public class FileGalleryAdapter extends MultiSelectionAdapter<FileGalleryAdapter
                         .override(imageSize));
         super.setOnSelectionListener(this);
         if (showCamera && showVideoCamera)
-            setItemStartPostion(2);
+            setItemStartPosition(2);
         else if (showCamera || showVideoCamera)
-            setItemStartPostion(1);
+            setItemStartPosition(1);
     }
 
     public File getLastCapturedFile() {

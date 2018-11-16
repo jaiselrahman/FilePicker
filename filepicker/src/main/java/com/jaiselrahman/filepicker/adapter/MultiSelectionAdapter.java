@@ -25,6 +25,7 @@ import com.jaiselrahman.filepicker.model.MediaFile;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 @SuppressWarnings({"unused", "WeakerAccess"})
 public abstract class MultiSelectionAdapter<VH extends RecyclerView.ViewHolder> extends RecyclerView.Adapter<VH> {
@@ -38,8 +39,9 @@ public abstract class MultiSelectionAdapter<VH extends RecyclerView.ViewHolder> 
     private boolean isSelectionStarted = false;
     private boolean enabledSelection = false;
     private boolean isSingleClickSelection = false;
+    private boolean singleChoiceMode = false;
     private int maxSelection = -1;
-    private int itemStartPostion = 0;
+    private int itemStartPosition = 0;
     private OnSelectionListener<VH> onSelectionListener = new OnSelectionListener<VH>() {
         @Override
         public void onSelectionBegin() {
@@ -49,6 +51,9 @@ public abstract class MultiSelectionAdapter<VH extends RecyclerView.ViewHolder> 
 
         @Override
         public void onSelected(VH viewHolder, int position) {
+            if (singleChoiceMode) {
+                onSelectionListener.onUnSelectAll();
+            }
             if (maxSelection > 0 && selectedItems.size() >= maxSelection) {
                 onMaxReached();
                 return;
@@ -78,6 +83,7 @@ public abstract class MultiSelectionAdapter<VH extends RecyclerView.ViewHolder> 
         public void onUnSelectAll() {
             for (int i = selectedItems.size() - 1; i >= 0; i--) {
                 int position = mediaFiles.indexOf(selectedItems.get(i));
+                if (position < 0) continue;
                 removeSelection(position);
                 handleItemChanged(position);
             }
@@ -101,8 +107,8 @@ public abstract class MultiSelectionAdapter<VH extends RecyclerView.ViewHolder> 
         this.mediaFiles = items;
     }
 
-    public void setItemStartPostion(int itemStartPostion) {
-        this.itemStartPostion = itemStartPostion;
+    public void setItemStartPosition(int itemStartPosition) {
+        this.itemStartPosition = itemStartPosition;
     }
 
     public int getMaxSelection() {
@@ -121,7 +127,7 @@ public abstract class MultiSelectionAdapter<VH extends RecyclerView.ViewHolder> 
         view.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                int position = holder.getAdapterPosition() - itemStartPostion;
+                int position = holder.getAdapterPosition() - itemStartPosition;
                 if (enabledSelection && (isSelectionStarted || isSingleClickSelection)) {
                     if (selectedItems.contains(mediaFiles.get(position))) {
                         onSelectionListener.onUnSelected(holder, position);
@@ -143,7 +149,7 @@ public abstract class MultiSelectionAdapter<VH extends RecyclerView.ViewHolder> 
         view.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                int position = holder.getAdapterPosition() - itemStartPostion;
+                int position = holder.getAdapterPosition() - itemStartPosition;
                 if (enabledSelection) {
                     if (!isSelectionStarted) {
                         onSelectionListener.onSelectionBegin();
@@ -160,6 +166,11 @@ public abstract class MultiSelectionAdapter<VH extends RecyclerView.ViewHolder> 
         });
     }
 
+    @Override
+    public void onBindViewHolder(@NonNull VH holder, int position, @NonNull List<Object> payloads) {
+        super.onBindViewHolder(holder, position, payloads);
+    }
+
     public boolean isSelected(MediaFile mediaFile) {
         return selectedItems.contains(mediaFile);
     }
@@ -171,6 +182,10 @@ public abstract class MultiSelectionAdapter<VH extends RecyclerView.ViewHolder> 
     public void enableSingleClickSelection(boolean enableSingleClickSelection) {
         this.enabledSelection = enableSingleClickSelection || enabledSelection;
         this.isSingleClickSelection = enableSingleClickSelection;
+    }
+
+    public void setSingleChoiceMode(boolean singleChoiceMode) {
+        this.singleChoiceMode = singleChoiceMode;
     }
 
     public void setOnItemClickListener(OnItemClickListener onClickListener) {
@@ -254,6 +269,7 @@ public abstract class MultiSelectionAdapter<VH extends RecyclerView.ViewHolder> 
     }
 
     private void removeSelection(int position) {
+        if (position < 0) return;
         selectedItems.remove(mediaFiles.get(position));
         if (selectedItems.isEmpty()) {
             onSelectionListener.onSelectionEnd();
@@ -314,7 +330,7 @@ public abstract class MultiSelectionAdapter<VH extends RecyclerView.ViewHolder> 
     }
 
     public interface OnItemLongClickListener {
-        boolean onLongClick(View v, int postion);
+        boolean onLongClick(View v, int position);
     }
 
     public interface OnSelectionListener<VH> {

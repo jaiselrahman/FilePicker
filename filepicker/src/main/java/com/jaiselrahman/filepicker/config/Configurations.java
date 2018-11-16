@@ -18,6 +18,7 @@ package com.jaiselrahman.filepicker.config;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.support.annotation.Nullable;
 
 import com.jaiselrahman.filepicker.model.MediaFile;
 
@@ -42,6 +43,7 @@ public class Configurations implements Parcelable {
     private final boolean showAudios;
     private final boolean showFiles;
     private final boolean singleClickSelection;
+    private final boolean singleChoiceMode;
     private final boolean checkPermission, skipZeroSizeFiles;
     private final int imageSize, maxSelection;
     private final int landscapeSpanCount;
@@ -52,7 +54,7 @@ public class Configurations implements Parcelable {
 
     private Configurations(boolean imageCapture, boolean videoCapture,
                            boolean showVideos, boolean showImages, boolean showAudios, boolean showFiles,
-                           boolean singleClickSelection, boolean checkPermission, boolean skipZeroSizeFiles,
+                           boolean singleClickSelection, boolean singleChoiceMode, boolean checkPermission, boolean skipZeroSizeFiles,
                            int imageSize, int maxSelection, int landscapeSpanCount, int portraitSpanCount,
                            String root, String[] suffixes, ArrayList<MediaFile> selectedMediaFiles) {
         this.imageCaptureEnabled = imageCapture;
@@ -62,6 +64,7 @@ public class Configurations implements Parcelable {
         this.showAudios = showAudios;
         this.showFiles = showFiles;
         this.singleClickSelection = singleClickSelection;
+        this.singleChoiceMode = singleChoiceMode;
         this.checkPermission = checkPermission;
         this.skipZeroSizeFiles = skipZeroSizeFiles;
         this.imageSize = imageSize;
@@ -81,6 +84,7 @@ public class Configurations implements Parcelable {
         showAudios = in.readByte() != 0;
         showFiles = in.readByte() != 0;
         singleClickSelection = in.readByte() != 0;
+        singleChoiceMode = in.readByte() != 0;
         checkPermission = in.readByte() != 0;
         skipZeroSizeFiles = in.readByte() != 0;
         imageSize = in.readInt();
@@ -113,7 +117,6 @@ public class Configurations implements Parcelable {
     }
 
     public ArrayList<MediaFile> getSelectedMediaFiles() {
-
         return selectedMediaFiles;
     }
 
@@ -126,6 +129,7 @@ public class Configurations implements Parcelable {
         dest.writeByte((byte) (showAudios ? 1 : 0));
         dest.writeByte((byte) (showFiles ? 1 : 0));
         dest.writeByte((byte) (singleClickSelection ? 1 : 0));
+        dest.writeByte((byte) (singleChoiceMode ? 1 : 0));
         dest.writeByte((byte) (checkPermission ? 1 : 0));
         dest.writeByte((byte) (skipZeroSizeFiles ? 1 : 0));
         dest.writeInt(imageSize);
@@ -144,6 +148,10 @@ public class Configurations implements Parcelable {
 
     public boolean isSingleClickSelection() {
         return singleClickSelection;
+    }
+
+    public boolean isSingleChoiceMode() {
+        return singleChoiceMode;
     }
 
     public int getMaxSelection() {
@@ -186,7 +194,7 @@ public class Configurations implements Parcelable {
         private boolean imageCapture = false, videoCapture = false,
                 checkPermission = false, showImages = true, showVideos = true,
                 showFiles = false, showAudios = false, singleClickSelection = true,
-                skipZeroSizeFiles = true;
+                singleChoiceMode = false, skipZeroSizeFiles = true;
         private int imageSize = -1, maxSelection = -1;
         private int landscapeSpanCount = 5;
         private int portraitSpanCount = 3;
@@ -201,6 +209,13 @@ public class Configurations implements Parcelable {
 
         public Builder setSingleClickSelection(boolean singleClickSelection) {
             this.singleClickSelection = singleClickSelection;
+            return this;
+        }
+
+        public Builder setSingleChoiceMode(boolean singleChoiceMode) {
+            this.singleChoiceMode = singleChoiceMode;
+            this.maxSelection = 1;
+            this.selectedMediaFiles = null;
             return this;
         }
 
@@ -225,7 +240,8 @@ public class Configurations implements Parcelable {
         }
 
         public Builder setMaxSelection(int maxSelection) {
-            this.maxSelection = maxSelection;
+            if (!singleChoiceMode)
+                this.maxSelection = maxSelection;
             return this;
         }
 
@@ -275,13 +291,22 @@ public class Configurations implements Parcelable {
         }
 
         public Builder setSelectedMediaFiles(ArrayList<MediaFile> selectedMediaFiles) {
-            this.selectedMediaFiles = selectedMediaFiles;
+            if (!singleChoiceMode)
+                this.selectedMediaFiles = selectedMediaFiles;
+            return this;
+        }
+
+        public Builder setSelectedMediaFile(@Nullable MediaFile selectedMediaFile) {
+            if (selectedMediaFile != null) {
+                this.selectedMediaFiles = new ArrayList<>();
+                this.selectedMediaFiles.add(selectedMediaFile);
+            }
             return this;
         }
 
         public Configurations build() {
             return new Configurations(imageCapture, videoCapture, showVideos, showImages, showAudios, showFiles,
-                    singleClickSelection, checkPermission, skipZeroSizeFiles, imageSize, maxSelection, landscapeSpanCount, portraitSpanCount, rootPath, suffixes, selectedMediaFiles);
+                    singleClickSelection, singleChoiceMode, checkPermission, skipZeroSizeFiles, imageSize, maxSelection, landscapeSpanCount, portraitSpanCount, rootPath, suffixes, selectedMediaFiles);
         }
     }
 }

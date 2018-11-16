@@ -92,18 +92,21 @@ public class FilePickerActivity extends AppCompatActivity
             imageSize = Math.min(point.x, point.y) / configs.getPortraitSpanCount();
         }
 
+        boolean isSingleChoice = configs.isSingleChoiceMode();
         fileGalleryAdapter = new FileGalleryAdapter(this, mediaFiles, imageSize,
                 configs.isImageCaptureEnabled(),
                 configs.isVideoCaptureEnabled());
         fileGalleryAdapter.enableSelection(true);
         fileGalleryAdapter.enableSingleClickSelection(configs.isSingleClickSelection());
         fileGalleryAdapter.setOnSelectionListener(this);
-        fileGalleryAdapter.setMaxSelection(configs.getMaxSelection());
+        fileGalleryAdapter.setSingleChoiceMode(isSingleChoice);
+        fileGalleryAdapter.setMaxSelection(isSingleChoice ? 1 : configs.getMaxSelection());
         fileGalleryAdapter.setSelectedItems(configs.getSelectedMediaFiles());
         RecyclerView recyclerView = findViewById(R.id.file_gallery);
         recyclerView.setLayoutManager(new GridLayoutManager(this, spanCount));
         recyclerView.setAdapter(fileGalleryAdapter);
         recyclerView.addItemDecoration(new DividerItemDecoration(this));
+        recyclerView.setItemAnimator(null);
 
         if (savedInstanceState == null) {
             if (configs.isCheckPermission()) {

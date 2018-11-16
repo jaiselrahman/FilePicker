@@ -18,6 +18,7 @@ package com.jaiselrahman.filepickersample;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.view.Menu;
@@ -81,13 +82,19 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(MainActivity.this, FilePickerActivity.class);
+                MediaFile file = null;
+                for (int i = 0; i < mediaFiles.size(); i++) {
+                    if (mediaFiles.get(i).getMediaType() == MediaFile.TYPE_AUDIO) {
+                        file = mediaFiles.get(i);
+                    }
+                }
                 intent.putExtra(FilePickerActivity.CONFIGS, new Configurations.Builder()
                         .setCheckPermission(true)
-                        .setSelectedMediaFiles(mediaFiles)
                         .setShowImages(false)
                         .setShowVideos(false)
                         .setShowAudios(true)
-                        .setMaxSelection(10)
+                        .setSingleChoiceMode(true)
+                        .setSelectedMediaFile(file)
                         .build());
                 startActivityForResult(intent, FILE_REQUEST_CODE);
             }
@@ -104,6 +111,7 @@ public class MainActivity extends AppCompatActivity {
                         .setShowImages(false)
                         .setShowVideos(false)
                         .setMaxSelection(10)
+                        .setRootPath(Environment.getExternalStorageDirectory().getPath() + "/Download")
                         .build());
                 startActivityForResult(intent, FILE_REQUEST_CODE);
             }

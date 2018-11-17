@@ -50,6 +50,7 @@ import java.util.ArrayList;
 public class FilePickerActivity extends AppCompatActivity
         implements MultiSelectionAdapter.OnSelectionListener<FileGalleryAdapter.ViewHolder> {
     public static final String MEDIA_FILES = "MEDIA_FILES";
+    public static final String SELECTED_MEDIA_FILES = "SELECTED_MEDIA_FILES";
     public static final String CONFIGS = "CONFIGS";
     public static final String TAG = "FilePicker";
     private static final String PATH = "PATH";
@@ -211,6 +212,7 @@ public class FilePickerActivity extends AppCompatActivity
         if (file != null)
             outState.putString(PATH, file.getAbsolutePath());
         outState.putParcelable(URI, fileGalleryAdapter.getLastCapturedUri());
+        outState.putParcelableArrayList(SELECTED_MEDIA_FILES, fileGalleryAdapter.getSelectedItems());
     }
 
     @Override
@@ -223,6 +225,12 @@ public class FilePickerActivity extends AppCompatActivity
         Uri uri = savedInstanceState.getParcelable(URI);
         if (uri != null)
             fileGalleryAdapter.setLastCapturedUri(uri);
+
+        ArrayList<MediaFile> mediaFiles = savedInstanceState.getParcelableArrayList(SELECTED_MEDIA_FILES);
+        if (mediaFiles != null) {
+            fileGalleryAdapter.setSelectedItems(mediaFiles);
+            fileGalleryAdapter.notifyDataSetChanged();
+        }
     }
 
     @Override

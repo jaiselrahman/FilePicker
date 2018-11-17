@@ -36,7 +36,7 @@ Step 2: Add the dependency
 ```gradle
     dependencies {
         ...
-        implementation 'com.github.jaiselrahman:FilePicker:1.0.5'
+        implementation 'com.github.jaiselrahman:FilePicker:1.1.0'
     }
 ```
 
@@ -85,12 +85,15 @@ The FilePickerActivity can be configured by using ```Configurations.Builder``` m
 |setCheckPermission(boolean)|false|Whether to request permissions on runtime for API >= 23 if not granted|
 |setSuffixes(String...)|"txt", "pdf", "html", "rtf", "csv", "xml",<br/>"zip", "tar", "gz", "rar", "7z","torrent",<br/>"doc", "docx", "odt", "ott",<br/>"ppt", "pptx", "pps",<br/>"xls", "xlsx", "ods", "ots"|Suffixes for file to be loaded, overrides default value|
 |setMaxSelection(int)|-1|Maximum no of items to be selected, -1 for no limits|
+|setSingleChoiceMode(boolean)|false|Can select only one file, overrides `setMaxSelection(int)` <br/> use `setSelectedMediaFile(MediaFile)` to set default selection|
+|setSelectedMediaFile(MediaFile)|null|Default file selection in singleChoiceMode|
 |setSelectedMediaFiles(ArrayList\<MediaFile\>)|null|Default files to be marked as selected|
 |setSingleClickSelection(boolean)|true|Start selection mode on single click else on long click|
 |setSkipZeroSizeFiles(boolean)|true|Whether to load zero byte sized files|
 |setLandscapeSpanCount(int)|5|Grid items in landscape mode|
 |setPortraitSpanCount(int)|3|Grid items in portrait mode|
 |setImageSize(int)|Screen width/portraitSpanCount |Size of height, width of image to be loaded in Px|
+|setRootPath(String)|External storage|Set custom directory path to load files from|
 
 ## MediaFile methods
 

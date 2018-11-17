@@ -33,6 +33,7 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import com.jaiselrahman.filepicker.R;
 import com.jaiselrahman.filepicker.adapter.FileGalleryAdapter;
@@ -109,25 +110,23 @@ public class FilePickerActivity extends AppCompatActivity
         recyclerView.setItemAnimator(null);
 
         if (savedInstanceState == null) {
-            if (configs.isCheckPermission()) {
-                boolean success = false;
-                for (String permission : permissions) {
-                    success = ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED;
-                }
-                if (success)
-                    loadFiles(false);
-                else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            boolean success = false;
+            for (String permission : permissions) {
+                success = ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED;
+                if (!success) break;
+            }
+            if (success)
+                loadFiles(false);
+            else if (configs.isCheckPermission()) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                     requestPermissions(permissions, REQUEST_PERMISSION);
                 }
+            } else {
+                Toast.makeText(this, R.string.permission_not_given, Toast.LENGTH_SHORT).show();
+                finish();
             }
         } else {
-            ArrayList<MediaFile> mediaFiles = savedInstanceState.getParcelableArrayList(MEDIA_FILES);
-            if (mediaFiles != null) {
-                this.mediaFiles.clear();
-                this.mediaFiles.addAll(mediaFiles);
-                fileGalleryAdapter.getSelectedItems().clear();
-                fileGalleryAdapter.notifyDataSetChanged();
-            }
+            loadFiles(false);
         }
 
         maxCount = configs.getMaxSelection();

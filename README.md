@@ -7,7 +7,7 @@
 
 A FilePicker library for Android for selecting multiple types of files and also to capture Images and Videos.
 
-[Sample Apk](https://github.com/jaiselrahman/FilePicker/releases/download/1.0.5/app-release.apk)
+[Sample Apk](https://github.com/jaiselrahman/FilePicker/releases/download/1.1.0/app-release.apk)
 
 ## Note
 

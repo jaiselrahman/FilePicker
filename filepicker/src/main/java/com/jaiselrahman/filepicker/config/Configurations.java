@@ -55,32 +55,27 @@ public class Configurations implements Parcelable {
     private final boolean ignoreNoMedia;
     private final boolean ignoreHiddenFile;
 
-    private Configurations(boolean imageCapture, boolean videoCapture,
-                           boolean showVideos, boolean showImages, boolean showAudios, boolean showFiles,
-                           boolean singleClickSelection, boolean singleChoiceMode, boolean checkPermission, boolean skipZeroSizeFiles,
-                           int imageSize, int maxSelection, int landscapeSpanCount, int portraitSpanCount,
-                           String root, String[] suffixes, ArrayList<MediaFile> selectedMediaFiles,
-                           String[] ignorePaths, boolean ignoreNoMedia, boolean ignoreHiddenFile) {
-        this.imageCaptureEnabled = imageCapture;
-        this.videoCaptureEnabled = videoCapture;
-        this.showVideos = showVideos;
-        this.showImages = showImages;
-        this.showAudios = showAudios;
-        this.showFiles = showFiles;
-        this.singleClickSelection = singleClickSelection;
-        this.singleChoiceMode = singleChoiceMode;
-        this.checkPermission = checkPermission;
-        this.skipZeroSizeFiles = skipZeroSizeFiles;
-        this.imageSize = imageSize;
-        this.maxSelection = maxSelection;
-        this.landscapeSpanCount = landscapeSpanCount;
-        this.portraitSpanCount = portraitSpanCount;
-        this.rootPath = root;
-        this.suffixes = suffixes;
-        this.selectedMediaFiles = selectedMediaFiles;
-        this.ignorePaths = ignorePaths;
-        this.ignoreNoMedia = ignoreNoMedia;
-        this.ignoreHiddenFile = ignoreHiddenFile;
+    private Configurations(Builder builder) {
+        this.imageCaptureEnabled = builder.imageCapture;
+        this.videoCaptureEnabled = builder.videoCapture;
+        this.showVideos = builder.showVideos;
+        this.showImages = builder.showImages;
+        this.showAudios = builder.showAudios;
+        this.showFiles = builder.showFiles;
+        this.singleClickSelection = builder.singleClickSelection;
+        this.singleChoiceMode = builder.singleChoiceMode;
+        this.checkPermission = builder.checkPermission;
+        this.skipZeroSizeFiles = builder.skipZeroSizeFiles;
+        this.imageSize = builder.imageSize;
+        this.maxSelection = builder.maxSelection;
+        this.landscapeSpanCount = builder.landscapeSpanCount;
+        this.portraitSpanCount = builder.portraitSpanCount;
+        this.rootPath = builder.rootPath;
+        this.suffixes = builder.suffixes;
+        this.selectedMediaFiles = builder.selectedMediaFiles;
+        this.ignorePaths = builder.ignorePaths;
+        this.ignoreNoMedia = builder.ignoreNoMedia;
+        this.ignoreHiddenFile = builder.ignoreHiddenFile;
     }
 
     protected Configurations(Parcel in) {
@@ -348,9 +343,7 @@ public class Configurations implements Parcelable {
         }
 
         public Configurations build() {
-            return new Configurations(imageCapture, videoCapture, showVideos, showImages, showAudios, showFiles,
-                    singleClickSelection, singleChoiceMode, checkPermission, skipZeroSizeFiles, imageSize, maxSelection, landscapeSpanCount, portraitSpanCount, rootPath, suffixes, selectedMediaFiles,
-                    ignorePaths, ignoreNoMedia, ignoreHiddenFile);
+            return new Configurations(this);
         }
     }
 }

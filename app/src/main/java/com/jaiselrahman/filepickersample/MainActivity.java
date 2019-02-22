@@ -73,6 +73,7 @@ public class MainActivity extends AppCompatActivity {
                         .enableVideoCapture(true)
                         .setShowImages(false)
                         .setMaxSelection(10)
+                        .setIgnorePaths(".*WhatsApp.*")
                         .build());
                 startActivityForResult(intent, FILE_REQUEST_CODE);
             }

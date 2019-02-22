@@ -51,12 +51,16 @@ public class Configurations implements Parcelable {
     private final String rootPath;
     private final String[] suffixes;
     private final ArrayList<MediaFile> selectedMediaFiles;
+    private final String[] ignorePaths;
+    private final boolean ignoreNoMedia;
+    private final boolean ignoreHiddenFile;
 
     private Configurations(boolean imageCapture, boolean videoCapture,
                            boolean showVideos, boolean showImages, boolean showAudios, boolean showFiles,
                            boolean singleClickSelection, boolean singleChoiceMode, boolean checkPermission, boolean skipZeroSizeFiles,
                            int imageSize, int maxSelection, int landscapeSpanCount, int portraitSpanCount,
-                           String root, String[] suffixes, ArrayList<MediaFile> selectedMediaFiles) {
+                           String root, String[] suffixes, ArrayList<MediaFile> selectedMediaFiles,
+                           String[] ignorePaths, boolean ignoreNoMedia, boolean ignoreHiddenFile) {
         this.imageCaptureEnabled = imageCapture;
         this.videoCaptureEnabled = videoCapture;
         this.showVideos = showVideos;
@@ -74,6 +78,9 @@ public class Configurations implements Parcelable {
         this.rootPath = root;
         this.suffixes = suffixes;
         this.selectedMediaFiles = selectedMediaFiles;
+        this.ignorePaths = ignorePaths;
+        this.ignoreNoMedia = ignoreNoMedia;
+        this.ignoreHiddenFile = ignoreHiddenFile;
     }
 
     protected Configurations(Parcel in) {
@@ -94,6 +101,9 @@ public class Configurations implements Parcelable {
         rootPath = in.readString();
         suffixes = in.createStringArray();
         selectedMediaFiles = in.createTypedArrayList(MediaFile.CREATOR);
+        ignorePaths = in.createStringArray();
+        ignoreNoMedia = in.readByte() != 0;
+        ignoreHiddenFile = in.readByte() != 0;
     }
 
     public boolean isShowVideos() {
@@ -139,6 +149,9 @@ public class Configurations implements Parcelable {
         dest.writeString(rootPath);
         dest.writeStringArray(suffixes);
         dest.writeTypedList(selectedMediaFiles);
+        dest.writeStringArray(ignorePaths);
+        dest.writeByte((byte) (ignoreNoMedia ? 1 : 0));
+        dest.writeByte((byte) (ignoreHiddenFile ? 1 : 0));
     }
 
     @Override
@@ -190,6 +203,18 @@ public class Configurations implements Parcelable {
         return suffixes;
     }
 
+    public String[] getIgnorePaths() {
+        return ignorePaths;
+    }
+
+    public boolean isIgnoreNoMediaDir() {
+        return ignoreNoMedia;
+    }
+
+    public boolean isIgnoreHiddenFile() {
+        return ignoreHiddenFile;
+    }
+
     public static class Builder {
         private boolean imageCapture = false, videoCapture = false,
                 checkPermission = false, showImages = true, showVideos = true,
@@ -206,6 +231,9 @@ public class Configurations implements Parcelable {
                 "ppt", "pptx", "pps",
                 "xls", "xlsx", "ods", "ots"};
         private ArrayList<MediaFile> selectedMediaFiles = null;
+        private String[] ignorePaths = null;
+        private boolean ignoreNoMedia = true;
+        private boolean ignoreHiddenFile = true;
 
         public Builder setSingleClickSelection(boolean singleClickSelection) {
             this.singleClickSelection = singleClickSelection;
@@ -304,9 +332,25 @@ public class Configurations implements Parcelable {
             return this;
         }
 
+        public Builder setIgnorePaths(String... ignorePaths) {
+            this.ignorePaths = ignorePaths;
+            return this;
+        }
+
+        public Builder setIgnoreNoMedia(boolean ignoreNoMedia) {
+            this.ignoreNoMedia = ignoreNoMedia;
+            return this;
+        }
+
+        public Builder setIgnoreHiddenFile(boolean ignoreHiddenFile) {
+            this.ignoreHiddenFile = ignoreHiddenFile;
+            return this;
+        }
+
         public Configurations build() {
             return new Configurations(imageCapture, videoCapture, showVideos, showImages, showAudios, showFiles,
-                    singleClickSelection, singleChoiceMode, checkPermission, skipZeroSizeFiles, imageSize, maxSelection, landscapeSpanCount, portraitSpanCount, rootPath, suffixes, selectedMediaFiles);
+                    singleClickSelection, singleChoiceMode, checkPermission, skipZeroSizeFiles, imageSize, maxSelection, landscapeSpanCount, portraitSpanCount, rootPath, suffixes, selectedMediaFiles,
+                    ignorePaths, ignoreNoMedia, ignoreHiddenFile);
         }
     }
 }

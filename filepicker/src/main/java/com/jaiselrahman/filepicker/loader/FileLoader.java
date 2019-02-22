@@ -18,18 +18,26 @@ package com.jaiselrahman.filepicker.loader;
 
 import android.content.Context;
 import android.content.CursorLoader;
+import android.database.Cursor;
+import android.net.Uri;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentActivity;
+import android.util.Log;
 
 import com.jaiselrahman.filepicker.config.Configurations;
+import com.jaiselrahman.filepicker.utils.FileUtils;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
+import static android.provider.MediaStore.Images.ImageColumns.BUCKET_ID;
 import static android.provider.MediaStore.MediaColumns.DATA;
+import static android.provider.MediaStore.MediaColumns.DATE_ADDED;
 import static android.provider.MediaStore.MediaColumns.MIME_TYPE;
+import static com.jaiselrahman.filepicker.activity.FilePickerActivity.TAG;
 
 public class FileLoader extends CursorLoader {
     private static final ArrayList<String> ImageSelectionArgs = new ArrayList<>();
@@ -57,8 +65,11 @@ public class FileLoader extends CursorLoader {
         VideoSelectionArgs.addAll(Arrays.asList("video/mpeg", "video/mp4"));
     }
 
+    private Configurations configs;
+
     FileLoader(Context context, @NonNull Configurations configs) {
         super(context);
+        this.configs = configs;
         ArrayList<String> selectionArgs = new ArrayList<>();
         StringBuilder selectionBuilder = new StringBuilder();
 
@@ -104,15 +115,60 @@ public class FileLoader extends CursorLoader {
             }
         }
 
+        List<String> folders = getFoldersToIgnore();
+        if (folders.size() > 0) {
+            selectionBuilder.append(") and (").append(DATA).append(" NOT LIKE ? ");
+            selectionArgs.add(folders.get(0) + "%");
+            int size = folders.size();
+            for (int i = 0; i < size; i++) {
+                selectionBuilder.append(" and ").append(DATA).append(" NOT LIKE ? ");
+                selectionArgs.add(folders.get(i) + "%");
+            }
+        }
         selectionBuilder.append(")");
 
         if (selectionBuilder.length() != 0) {
             setProjection(FILE_PROJECTION);
             setUri(MediaStore.Files.getContentUri("external"));
-            setSortOrder(MediaStore.Files.FileColumns.DATE_ADDED + " DESC");
+            setSortOrder(DATE_ADDED + " DESC");
             setSelection(selectionBuilder.toString());
             setSelectionArgs(selectionArgs.toArray(new String[0]));
         }
+    }
+
+    private List<String> getFoldersToIgnore() {
+        Uri uri = MediaStore.Files.getContentUri("external");
+        String[] projection = new String[]{DATA};
+        String selection = BUCKET_ID + " IS NOT NULL) GROUP BY (" + BUCKET_ID;
+        String sortOrder = DATA + " ASC";
+        Cursor cursor = getContext().getContentResolver().query(uri, projection, selection, null, sortOrder);
+        if (cursor == null) {
+            Log.e(TAG, "IgnoreFolders Cursor NULL");
+            return new ArrayList<>();
+        }
+        ArrayList<String> folders = new ArrayList<>();
+        try {
+            if (cursor.moveToFirst()) {
+                do {
+                    String path = cursor.getString(cursor.getColumnIndex(DATA));
+                    String parent = FileUtils.getParent(path);
+                    if (!isExcluded(parent, folders) && FileUtils.toIgnoreFolder(path, configs)) {
+                        folders.add(parent);
+                    }
+                } while (cursor.moveToNext());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        cursor.close();
+        return folders;
+    }
+
+    private boolean isExcluded(String path, List<String> ignoredPaths) {
+        for (String p : ignoredPaths) {
+            if (path.startsWith(p)) return true;
+        }
+        return false;
     }
 
     public static void loadFiles(FragmentActivity activity, FileResultCallback fileResultCallback, Configurations configs, boolean restart) {

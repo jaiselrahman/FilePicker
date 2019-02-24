@@ -7,7 +7,7 @@
 
 A FilePicker library for Android for selecting multiple types of files and also to capture Images and Videos.
 
-[Sample Apk](https://github.com/jaiselrahman/FilePicker/releases/download/1.1.0/app-release.apk)
+[Sample Apk](https://github.com/jaiselrahman/FilePicker/releases/download/1.2.0/app-release.apk)
 
 ## Note
 
@@ -36,7 +36,7 @@ Step 2: Add the dependency
 ```gradle
     dependencies {
         ...
-        implementation 'com.github.jaiselrahman:FilePicker:1.1.1'
+        implementation 'com.github.jaiselrahman:FilePicker:1.2.0'
     }
 ```
 
@@ -94,6 +94,9 @@ The FilePickerActivity can be configured by using ```Configurations.Builder``` m
 |setPortraitSpanCount(int)|3|Grid items in portrait mode|
 |setImageSize(int)|Screen width/portraitSpanCount |Size of height, width of image to be loaded in Px|
 |setRootPath(String)|External storage|Set custom directory path to load files from|
+|setIgnorePaths(String... ignorePaths)|null|Regex patterns of paths to ignore|
+|setIgnoreNoMedia(boolean)|true|Whether to ignore `.nomedia` file|
+|setIgnoreHiddenFile(boolean)|true|Whether to ignore hidden file|
 
 ## MediaFile methods
 

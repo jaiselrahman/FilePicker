@@ -16,9 +16,9 @@
 
 package com.jaiselrahman.filepicker.adapter;
 
-import android.support.annotation.CallSuper;
-import android.support.annotation.NonNull;
-import android.support.v7.widget.RecyclerView;
+import androidx.annotation.CallSuper;
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
 import android.view.View;
 
 import com.jaiselrahman.filepicker.model.MediaFile;

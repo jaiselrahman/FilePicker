@@ -16,7 +16,7 @@
 
 package com.jaiselrahman.filepicker.loader;
 
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 
 import com.jaiselrahman.filepicker.model.MediaFile;
 

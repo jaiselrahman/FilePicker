@@ -19,8 +19,6 @@ package com.jaiselrahman.filepickersample;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Environment;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.RecyclerView;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -33,6 +31,9 @@ import com.jaiselrahman.filepicker.utils.FilePickerProvider;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.RecyclerView;
 
 public class MainActivity extends AppCompatActivity {
     private final static int FILE_REQUEST_CODE = 1;

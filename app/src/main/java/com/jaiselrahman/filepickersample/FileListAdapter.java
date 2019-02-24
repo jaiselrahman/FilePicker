@@ -26,7 +26,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.request.RequestOptions;
 import com.jaiselrahman.filepicker.model.MediaFile;
 
 import java.util.ArrayList;
@@ -62,7 +61,7 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.ViewHo
         } else if (mediaFile.getMediaType() == MediaFile.TYPE_AUDIO) {
             Glide.with(context)
                     .load(mediaFile.getThumbnail())
-                    .apply(RequestOptions.placeholderOf(R.drawable.ic_audio))
+                    .placeholder(R.drawable.ic_audio)
                     .into(holder.fileThumbnail);
         } else {
             holder.fileThumbnail.setImageResource(R.drawable.ic_file);

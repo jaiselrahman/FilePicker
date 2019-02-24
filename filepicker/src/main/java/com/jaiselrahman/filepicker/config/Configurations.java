@@ -18,11 +18,14 @@ package com.jaiselrahman.filepicker.config;
 
 import android.os.Parcel;
 import android.os.Parcelable;
-import androidx.annotation.Nullable;
 
 import com.jaiselrahman.filepicker.model.MediaFile;
 
 import java.util.ArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import androidx.annotation.Nullable;
 
 public class Configurations implements Parcelable {
     public static final Creator<Configurations> CREATOR = new Creator<Configurations>() {
@@ -51,7 +54,7 @@ public class Configurations implements Parcelable {
     private final String rootPath;
     private final String[] suffixes;
     private final ArrayList<MediaFile> selectedMediaFiles;
-    private final String[] ignorePaths;
+    private Matcher[] ignorePathMatchers;
     private final boolean ignoreNoMedia;
     private final boolean ignoreHiddenFile;
 
@@ -73,7 +76,7 @@ public class Configurations implements Parcelable {
         this.rootPath = builder.rootPath;
         this.suffixes = builder.suffixes;
         this.selectedMediaFiles = builder.selectedMediaFiles;
-        this.ignorePaths = builder.ignorePaths;
+        setIgnorePathMatchers(builder.ignorePaths);
         this.ignoreNoMedia = builder.ignoreNoMedia;
         this.ignoreHiddenFile = builder.ignoreHiddenFile;
     }
@@ -96,7 +99,7 @@ public class Configurations implements Parcelable {
         rootPath = in.readString();
         suffixes = in.createStringArray();
         selectedMediaFiles = in.createTypedArrayList(MediaFile.CREATOR);
-        ignorePaths = in.createStringArray();
+        setIgnorePathMatchers(in.createStringArray());
         ignoreNoMedia = in.readByte() != 0;
         ignoreHiddenFile = in.readByte() != 0;
     }
@@ -144,7 +147,7 @@ public class Configurations implements Parcelable {
         dest.writeString(rootPath);
         dest.writeStringArray(suffixes);
         dest.writeTypedList(selectedMediaFiles);
-        dest.writeStringArray(ignorePaths);
+        dest.writeStringArray(getIgnorePaths());
         dest.writeByte((byte) (ignoreNoMedia ? 1 : 0));
         dest.writeByte((byte) (ignoreHiddenFile ? 1 : 0));
     }
@@ -198,8 +201,8 @@ public class Configurations implements Parcelable {
         return suffixes;
     }
 
-    public String[] getIgnorePaths() {
-        return ignorePaths;
+    public Matcher[] getIgnorePathMatchers() {
+        return ignorePathMatchers;
     }
 
     public boolean isIgnoreNoMediaDir() {
@@ -208,6 +211,27 @@ public class Configurations implements Parcelable {
 
     public boolean isIgnoreHiddenFile() {
         return ignoreHiddenFile;
+    }
+
+    private void setIgnorePathMatchers(String ignorePaths[]) {
+        if (ignorePaths != null && ignorePaths.length > 0) {
+            ignorePathMatchers = new Matcher[ignorePaths.length];
+            for (int i = 0; i < ignorePaths.length; i++) {
+                ignorePathMatchers[i] = Pattern.compile(ignorePaths[i]).matcher("");
+            }
+        }
+    }
+
+    @Nullable
+    private String[] getIgnorePaths() {
+        if (ignorePathMatchers != null && ignorePathMatchers.length > 0) {
+            String ignorePaths[] = new String[ignorePathMatchers.length];
+            for (int i = 0; i < ignorePaths.length; i++) {
+                ignorePaths[i] = ignorePathMatchers[i].pattern().pattern();
+            }
+            return ignorePaths;
+        }
+        return null;
     }
 
     public static class Builder {

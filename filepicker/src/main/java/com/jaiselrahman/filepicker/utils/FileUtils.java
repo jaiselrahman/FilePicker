@@ -21,6 +21,7 @@ import android.provider.MediaStore;
 import com.jaiselrahman.filepicker.config.Configurations;
 
 import java.io.File;
+import java.util.regex.Matcher;
 
 import static java.io.File.separatorChar;
 
@@ -28,9 +29,9 @@ public class FileUtils {
     public static boolean toIgnoreFolder(String path, Configurations configs) {
         String parent = getParent(path);
         if (configs.isIgnoreHiddenFile() && getName(parent).startsWith(".")) return true;
-        if (configs.getIgnorePaths() != null) {
-            for (String pattern : configs.getIgnorePaths()) {
-                if (path.matches(pattern)) {
+        if (configs.getIgnorePathMatchers() != null) {
+            for (Matcher matcher : configs.getIgnorePathMatchers()) {
+                if (matcher.reset(path).matches()) {
                     return true;
                 }
             }

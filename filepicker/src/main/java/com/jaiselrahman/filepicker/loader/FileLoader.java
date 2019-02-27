@@ -93,7 +93,7 @@ public class FileLoader extends CursorLoader {
 
         selectionBuilder.append("(");
 
-        boolean hasMime = (rootPath == null && !selectionArgs.isEmpty()) || selectionArgs.size() == 0;
+        boolean hasMime = (rootPath == null) ? !selectionArgs.isEmpty() : selectionArgs.size() > 1;
         if (hasMime) {
             selectionBuilder.append(MIME_TYPE).append(" = ?");
             int size = selectionArgs.size();

@@ -25,19 +25,14 @@ import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import androidx.annotation.NonNull;
-import androidx.core.content.ContextCompat;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.GridLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-import androidx.appcompat.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
 import com.jaiselrahman.filepicker.R;
 import com.jaiselrahman.filepicker.adapter.FileGalleryAdapter;
-import com.jaiselrahman.filepicker.adapter.MultiSelectionAdapter;
+import com.jaiselrahman.filepicker.adapter.FileGalleryAdapter.OnCameraClickListener;
+import com.jaiselrahman.filepicker.adapter.MultiSelectionAdapter.OnSelectionListener;
 import com.jaiselrahman.filepicker.config.Configurations;
 import com.jaiselrahman.filepicker.loader.FileLoader;
 import com.jaiselrahman.filepicker.loader.FileResultCallback;
@@ -47,20 +42,24 @@ import com.jaiselrahman.filepicker.view.DividerItemDecoration;
 import java.io.File;
 import java.util.ArrayList;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 public class FilePickerActivity extends AppCompatActivity
-        implements MultiSelectionAdapter.OnSelectionListener<FileGalleryAdapter.ViewHolder> {
+        implements OnSelectionListener<FileGalleryAdapter.ViewHolder>, OnCameraClickListener {
     public static final String MEDIA_FILES = "MEDIA_FILES";
     public static final String SELECTED_MEDIA_FILES = "SELECTED_MEDIA_FILES";
     public static final String CONFIGS = "CONFIGS";
     public static final String TAG = "FilePicker";
     private static final String PATH = "PATH";
     private static final String URI = "URI";
-    private static final int REQUEST_PERMISSION = 1;
-    public final String[] permissions = new String[]{
-            Manifest.permission.READ_EXTERNAL_STORAGE,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE,
-            Manifest.permission.CAMERA
-    };
+    private static final int REQUEST_WRITE_PERMISSION = 1;
+    private static final int REQUEST_CAMERA_PERMISSION_FOR_CAMERA = 2;
+    private static final int REQUEST_CAMERA_PERMISSION_FOR_VIDEO = 3;
     private Configurations configs;
     private ArrayList<MediaFile> mediaFiles = new ArrayList<>();
     private FileGalleryAdapter fileGalleryAdapter;
@@ -104,6 +103,7 @@ public class FilePickerActivity extends AppCompatActivity
         fileGalleryAdapter.setSingleChoiceMode(isSingleChoice);
         fileGalleryAdapter.setMaxSelection(isSingleChoice ? 1 : configs.getMaxSelection());
         fileGalleryAdapter.setSelectedItems(configs.getSelectedMediaFiles());
+        fileGalleryAdapter.setOnCameraClickListener(this);
         RecyclerView recyclerView = findViewById(R.id.file_gallery);
         recyclerView.setLayoutManager(new GridLayoutManager(this, spanCount));
         recyclerView.setAdapter(fileGalleryAdapter);
@@ -111,20 +111,8 @@ public class FilePickerActivity extends AppCompatActivity
         recyclerView.setItemAnimator(null);
 
         if (savedInstanceState == null) {
-            boolean success = false;
-            for (String permission : permissions) {
-                success = ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED;
-                if (!success) break;
-            }
-            if (success)
+            if (requestPermission(Manifest.permission.READ_EXTERNAL_STORAGE, REQUEST_WRITE_PERMISSION)) {
                 loadFiles(false);
-            else if (configs.isCheckPermission()) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    requestPermissions(permissions, REQUEST_PERMISSION);
-                }
-            } else {
-                Toast.makeText(this, R.string.permission_not_given, Toast.LENGTH_SHORT).show();
-                finish();
             }
         } else {
             loadFiles(false);
@@ -152,10 +140,18 @@ public class FilePickerActivity extends AppCompatActivity
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == REQUEST_PERMISSION) {
-            if (grantResults[0] == PackageManager.PERMISSION_GRANTED
-                    && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
+        if (requestCode == REQUEST_WRITE_PERMISSION) {
+            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 loadFiles(false);
+            } else {
+                Toast.makeText(this, R.string.permission_not_given, Toast.LENGTH_SHORT).show();
+                finish();
+            }
+        } else if (requestCode == REQUEST_CAMERA_PERMISSION_FOR_CAMERA || requestCode == REQUEST_CAMERA_PERMISSION_FOR_VIDEO) {
+            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                fileGalleryAdapter.openCamera(requestCode == REQUEST_CAMERA_PERMISSION_FOR_VIDEO);
+            } else {
+                Toast.makeText(this, R.string.permission_not_given, Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -231,6 +227,29 @@ public class FilePickerActivity extends AppCompatActivity
             fileGalleryAdapter.setSelectedItems(mediaFiles);
             fileGalleryAdapter.notifyDataSetChanged();
         }
+    }
+
+    @Override
+    public boolean onCameraClick(boolean forVideo) {
+        return requestPermission(
+                Manifest.permission.CAMERA,
+                forVideo ? REQUEST_CAMERA_PERMISSION_FOR_VIDEO : REQUEST_CAMERA_PERMISSION_FOR_CAMERA
+        );
+    }
+
+    public boolean requestPermission(String permission, int requestCode) {
+        if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
+            if (configs.isCheckPermission()) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    requestPermissions(new String[]{permission}, requestCode);
+                }
+            } else {
+                Toast.makeText(this, R.string.permission_not_given, Toast.LENGTH_SHORT).show();
+                finish();
+            }
+            return false;
+        }
+        return true;
     }
 
     @Override

@@ -58,6 +58,7 @@ public class FileGalleryAdapter extends MultiSelectionAdapter<FileGalleryAdapter
     private Activity activity;
     private RequestManager glideRequest;
     private OnSelectionListener<ViewHolder> onSelectionListener;
+    private OnCameraClickListener onCameraClickListener;
     private boolean showCamera;
     private boolean showVideoCamera;
     private File lastCapturedFile;
@@ -165,44 +166,50 @@ public class FileGalleryAdapter extends MultiSelectionAdapter<FileGalleryAdapter
         holder.fileSelected.setVisibility(isSelected(mediaFile) ? View.VISIBLE : View.GONE);
     }
 
-    private void handleCamera(ImageView openCamera, final boolean forVideo) {
+    private void handleCamera(final ImageView openCamera, final boolean forVideo) {
         openCamera.setVisibility(View.VISIBLE);
         openCamera.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent;
-                String fileName;
-                File dir;
-                Uri externalContentUri;
-                if (forVideo) {
-                    intent = new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
-                    fileName = "/VID_" + getTimeStamp() + ".mp4";
-                    dir = getExternalStoragePublicDirectory(DIRECTORY_MOVIES);
-                    externalContentUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
-                } else {
-                    intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                    dir = getExternalStoragePublicDirectory(DIRECTORY_PICTURES);
-                    fileName = "/IMG_" + getTimeStamp() + ".jpeg";
-                    externalContentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
-                }
-                if (!dir.exists() && !dir.mkdir()) {
-                    Log.d(TAG, "onClick: " +
-                            (forVideo ? "MOVIES" : "PICTURES") + " Directory not exists");
+                if (onCameraClickListener != null && !onCameraClickListener.onCameraClick(forVideo))
                     return;
-                }
-                lastCapturedFile = new File(dir.getAbsolutePath() + fileName);
-
-                Uri fileUri = FilePickerProvider.getUriForFile(activity, lastCapturedFile);
-
-                ContentValues values = new ContentValues();
-                values.put(MediaStore.MediaColumns.DATA, lastCapturedFile.getAbsolutePath());
-                values.put(MediaStore.Images.ImageColumns.DATE_TAKEN, System.currentTimeMillis());
-                lastCapturedUri = activity.getContentResolver().insert(externalContentUri, values);
-
-                intent.putExtra(MediaStore.EXTRA_OUTPUT, fileUri);
-                activity.startActivityForResult(intent, CAPTURE_IMAGE_VIDEO);
+                openCamera(forVideo);
             }
         });
+    }
+
+    public void openCamera(boolean forVideo) {
+        Intent intent;
+        String fileName;
+        File dir;
+        Uri externalContentUri;
+        if (forVideo) {
+            intent = new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
+            fileName = "/VID_" + getTimeStamp() + ".mp4";
+            dir = getExternalStoragePublicDirectory(DIRECTORY_MOVIES);
+            externalContentUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
+        } else {
+            intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+            dir = getExternalStoragePublicDirectory(DIRECTORY_PICTURES);
+            fileName = "/IMG_" + getTimeStamp() + ".jpeg";
+            externalContentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+        }
+        if (!dir.exists() && !dir.mkdir()) {
+            Log.d(TAG, "onClick: " +
+                    (forVideo ? "MOVIES" : "PICTURES") + " Directory not exists");
+            return;
+        }
+        lastCapturedFile = new File(dir.getAbsolutePath() + fileName);
+
+        Uri fileUri = FilePickerProvider.getUriForFile(activity, lastCapturedFile);
+
+        ContentValues values = new ContentValues();
+        values.put(MediaStore.MediaColumns.DATA, lastCapturedFile.getAbsolutePath());
+        values.put(MediaStore.Images.ImageColumns.DATE_TAKEN, System.currentTimeMillis());
+        lastCapturedUri = activity.getContentResolver().insert(externalContentUri, values);
+
+        intent.putExtra(MediaStore.EXTRA_OUTPUT, fileUri);
+        activity.startActivityForResult(intent, CAPTURE_IMAGE_VIDEO);
     }
 
     private String getTimeStamp() {
@@ -212,6 +219,10 @@ public class FileGalleryAdapter extends MultiSelectionAdapter<FileGalleryAdapter
     @Override
     public void setOnSelectionListener(OnSelectionListener<ViewHolder> onSelectionListener) {
         this.onSelectionListener = onSelectionListener;
+    }
+
+    public void setOnCameraClickListener(OnCameraClickListener onCameraClickListener) {
+        this.onCameraClickListener = onCameraClickListener;
     }
 
     @Override
@@ -291,5 +302,9 @@ public class FileGalleryAdapter extends MultiSelectionAdapter<FileGalleryAdapter
             fileName = v.findViewById(R.id.file_name);
             fileSelected = v.findViewById(R.id.file_selected);
         }
+    }
+
+    public interface OnCameraClickListener {
+        boolean onCameraClick(boolean forVideo);
     }
 }

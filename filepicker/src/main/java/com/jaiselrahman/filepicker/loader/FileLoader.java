@@ -93,18 +93,17 @@ public class FileLoader extends CursorLoader {
 
         selectionBuilder.append("(");
 
-        boolean hasMime = (rootPath == null) ? !selectionArgs.isEmpty() : selectionArgs.size() > 1;
-        if (hasMime) {
+        int mimeSize = rootPath == null ? selectionArgs.size() : selectionArgs.size() - 1;
+        if (mimeSize > 0) {
             selectionBuilder.append(MIME_TYPE).append(" = ?");
-            int size = selectionArgs.size();
-            for (int i = 1; i < size; i++) {
+            for (int i = 1; i < mimeSize; i++) {
                 selectionBuilder.append(" or ").append(MIME_TYPE).append(" = ?");
             }
         }
 
         String[] suffixes = configs.getSuffixes();
         if (configs.isShowFiles() && suffixes != null && suffixes.length > 0) {
-            if (hasMime) {
+            if (mimeSize > 0) {
                 selectionBuilder.append(" or ");
             }
             selectionBuilder.append(DATA).append(" LIKE ?");

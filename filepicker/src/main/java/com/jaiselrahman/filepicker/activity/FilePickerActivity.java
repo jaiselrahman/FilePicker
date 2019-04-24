@@ -111,7 +111,7 @@ public class FilePickerActivity extends AppCompatActivity
         recyclerView.setItemAnimator(null);
 
         if (savedInstanceState == null) {
-            if (requestPermission(Manifest.permission.READ_EXTERNAL_STORAGE, REQUEST_WRITE_PERMISSION)) {
+            if (requestPermission(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_WRITE_PERMISSION)) {
                 loadFiles(false);
             }
         } else {
@@ -232,16 +232,23 @@ public class FilePickerActivity extends AppCompatActivity
     @Override
     public boolean onCameraClick(boolean forVideo) {
         return requestPermission(
-                Manifest.permission.CAMERA,
+                new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE},
                 forVideo ? REQUEST_CAMERA_PERMISSION_FOR_VIDEO : REQUEST_CAMERA_PERMISSION_FOR_CAMERA
         );
     }
 
-    public boolean requestPermission(String permission, int requestCode) {
-        if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
+    public boolean requestPermission(String[] permissions, int requestCode) {
+        int checkResult = PackageManager.PERMISSION_GRANTED;
+        for (String permission : permissions) {
+            if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
+                checkResult = PackageManager.PERMISSION_DENIED;
+                break;
+            }
+        }
+        if (checkResult != PackageManager.PERMISSION_GRANTED) {
             if (configs.isCheckPermission()) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    requestPermissions(new String[]{permission}, requestCode);
+                    requestPermissions(permissions, requestCode);
                 }
             } else {
                 Toast.makeText(this, R.string.permission_not_given, Toast.LENGTH_SHORT).show();

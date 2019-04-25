@@ -110,11 +110,7 @@ public class FilePickerActivity extends AppCompatActivity
         recyclerView.addItemDecoration(new DividerItemDecoration(this));
         recyclerView.setItemAnimator(null);
 
-        if (savedInstanceState == null) {
-            if (requestPermission(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_WRITE_PERMISSION)) {
-                loadFiles(false);
-            }
-        } else {
+        if (requestPermission(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_WRITE_PERMISSION)) {
             loadFiles(false);
         }
 

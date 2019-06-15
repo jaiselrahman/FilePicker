@@ -29,6 +29,13 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.jaiselrahman.filepicker.R;
 import com.jaiselrahman.filepicker.adapter.FileGalleryAdapter;
 import com.jaiselrahman.filepicker.adapter.FileGalleryAdapter.OnCameraClickListener;
@@ -41,13 +48,6 @@ import com.jaiselrahman.filepicker.view.DividerItemDecoration;
 
 import java.io.File;
 import java.util.ArrayList;
-
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-import androidx.core.content.ContextCompat;
-import androidx.recyclerview.widget.GridLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
 public class FilePickerActivity extends AppCompatActivity
         implements OnSelectionListener<FileGalleryAdapter.ViewHolder>, OnCameraClickListener {
@@ -107,7 +107,7 @@ public class FilePickerActivity extends AppCompatActivity
         RecyclerView recyclerView = findViewById(R.id.file_gallery);
         recyclerView.setLayoutManager(new GridLayoutManager(this, spanCount));
         recyclerView.setAdapter(fileGalleryAdapter);
-        recyclerView.addItemDecoration(new DividerItemDecoration(this));
+        recyclerView.addItemDecoration(new DividerItemDecoration(getResources().getDimensionPixelSize(R.dimen.grid_spacing), spanCount));
         recyclerView.setItemAnimator(null);
 
         if (requestPermission(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_WRITE_PERMISSION)) {

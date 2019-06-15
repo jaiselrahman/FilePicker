@@ -26,6 +26,7 @@
         android:id="@+id/file_thumbnail"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="-1px"
         android:contentDescription="@string/file_thumbnail"
         app:srcCompat="@drawable/ic_file" />
 

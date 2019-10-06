@@ -238,22 +238,22 @@ public abstract class MultiSelectionAdapter<VH extends RecyclerView.ViewHolder> 
     }
 
     public void handleItemChanged(int position) {
-        notifyItemChanged(position);
+        notifyItemChanged(position + itemStartPosition);
     }
 
     public void handleItemInserted(int position) {
-        notifyItemInserted(position);
+        notifyItemInserted(position + itemStartPosition);
     }
 
     public void handleItemRangeInserted(int positionStart, int itemCount) {
-        notifyItemRangeInserted(positionStart, itemCount);
+        notifyItemRangeInserted(positionStart + itemStartPosition, itemCount);
     }
 
     public void handleItemRemoved(int position) {
         if (enabledSelection) {
             removeSelection(position);
         }
-        notifyItemRemoved(position);
+        notifyItemRemoved(position + itemStartPosition);
     }
 
     public void handleItemRangeRemoved(int positionStart, int itemCount) {
@@ -262,7 +262,7 @@ public abstract class MultiSelectionAdapter<VH extends RecyclerView.ViewHolder> 
                 removeSelection(i);
             }
         }
-        notifyItemRangeRemoved(positionStart, itemCount);
+        notifyItemRangeRemoved(positionStart + itemStartPosition, itemCount);
     }
 
     private void setItemSelected(View view, int position, boolean selected) {
@@ -300,16 +300,15 @@ public abstract class MultiSelectionAdapter<VH extends RecyclerView.ViewHolder> 
     public boolean addAll(Collection<MediaFile> itemSelection) {
         int lastPosition = mediaFiles.size();
         if (mediaFiles.addAll(itemSelection)) {
-            notifyItemRangeInserted(lastPosition, itemSelection.size());
+            handleItemRangeInserted(lastPosition, itemSelection.size());
             return true;
         }
         return false;
     }
 
     public boolean addAll(int position, Collection<MediaFile> itemCollection) {
-        int lastPosition = mediaFiles.size();
         if (mediaFiles.addAll(position, itemCollection)) {
-            handleItemRangeInserted(lastPosition, mediaFiles.size());
+            handleItemRangeInserted(position, itemCollection.size());
             return true;
         }
         return false;

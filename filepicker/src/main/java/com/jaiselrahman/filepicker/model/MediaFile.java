@@ -40,6 +40,7 @@ public class MediaFile implements Parcelable {
     private long id, size, duration, date;
     private long height, width;
     private String name;
+    private Uri uri;
     private Uri thumbnail;
     private String path;
     private String mimeType;
@@ -59,6 +60,7 @@ public class MediaFile implements Parcelable {
         height = in.readLong();
         width = in.readLong();
         name = in.readString();
+        uri = in.readParcelable(Uri.class.getClassLoader());
         thumbnail = in.readParcelable(Uri.class.getClassLoader());
         path = in.readString();
         mimeType = in.readString();
@@ -76,6 +78,7 @@ public class MediaFile implements Parcelable {
         dest.writeLong(height);
         dest.writeLong(width);
         dest.writeString(name);
+        dest.writeParcelable(uri, flags);
         dest.writeParcelable(thumbnail, flags);
         dest.writeString(path);
         dest.writeString(mimeType);
@@ -91,6 +94,14 @@ public class MediaFile implements Parcelable {
 
     public Uri getThumbnail() {
         return thumbnail;
+    }
+
+    public Uri getUri() {
+        return uri;
+    }
+
+    public void setUri(Uri uri) {
+        this.uri = uri;
     }
 
     public void setThumbnail(Uri thumbnail) {

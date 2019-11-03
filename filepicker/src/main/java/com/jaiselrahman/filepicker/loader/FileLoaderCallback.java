@@ -82,23 +82,34 @@ class FileLoaderCallback implements LoaderManager.LoaderCallbacks<Cursor> {
                 mediaFile.setPath(data.getString(data.getColumnIndex(DATA)));
                 mediaFile.setDate(data.getLong(data.getColumnIndex(DATE_ADDED)));
                 mediaFile.setMimeType(data.getString(data.getColumnIndex(MIME_TYPE)));
-                mediaFile.setMediaType(data.getInt(data.getColumnIndex(MEDIA_TYPE)));
+                mediaFile.setBucketId(data.getString(data.getColumnIndex(BUCKET_ID)));
+                mediaFile.setBucketName(data.getString(data.getColumnIndex(BUCKET_DISPLAY_NAME)));
+                mediaFile.setUri(ContentUris.withAppendedId(FileLoader.getContentUri(configs), mediaFile.getId()));
+                mediaFile.setDuration(data.getLong(data.getColumnIndex(DURATION)));
+
                 if (mediaFile.getMediaType() == MediaFile.TYPE_FILE
                         && mediaFile.getMimeType() != null) {
                     //Double check correct MediaType
                     mediaFile.setMediaType(getMediaType(mediaFile.getMimeType()));
                 }
-                mediaFile.setBucketId(data.getString(data.getColumnIndex(BUCKET_ID)));
-                mediaFile.setBucketName(data.getString(data.getColumnIndex(BUCKET_DISPLAY_NAME)));
+
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
                     mediaFile.setHeight(data.getLong(data.getColumnIndex(HEIGHT)));
                     mediaFile.setWidth(data.getLong(data.getColumnIndex(WIDTH)));
                 }
-                mediaFile.setDuration(data.getLong(data.getColumnIndex(DURATION)));
-                int albumID = data.getInt(data.getColumnIndex(ALBUM_ID));
-                if (albumID > 0) {
-                    mediaFile.setThumbnail(ContentUris
-                            .withAppendedId(Uri.parse("content://media/external/audio/albumart"), albumID));
+
+                int mediaTypeIndex = data.getColumnIndex(MEDIA_TYPE);
+                if (mediaTypeIndex >= 0) {
+                    mediaFile.setMediaType(data.getInt(mediaTypeIndex));
+                }
+
+                int albumIdIndex = data.getColumnIndex(ALBUM_ID);
+                if (albumIdIndex >= 0) {
+                    int albumId = data.getInt(albumIdIndex);
+                    if(albumId >= 0) {
+                        mediaFile.setThumbnail(ContentUris
+                                .withAppendedId(Uri.parse("content://media/external/audio/albumart"), albumId));
+                    }
                 }
                 mediaFiles.add(mediaFile);
             } while (data.moveToNext());

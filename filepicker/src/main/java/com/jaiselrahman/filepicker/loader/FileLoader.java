@@ -20,6 +20,7 @@ import android.content.Context;
 import android.content.CursorLoader;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.provider.MediaStore;
 import android.util.Log;
 
@@ -44,21 +45,19 @@ public class FileLoader extends CursorLoader {
     private static final ArrayList<String> ImageSelectionArgs = new ArrayList<>();
     private static final ArrayList<String> AudioSelectionArgs = new ArrayList<>();
     private static final ArrayList<String> VideoSelectionArgs = new ArrayList<>();
-    private static final String[] FILE_PROJECTION = {
+    private final List<String> FILE_PROJECTION = new ArrayList<>(Arrays.asList(
             MediaStore.Files.FileColumns._ID,
             MediaStore.Files.FileColumns.TITLE,
             MediaStore.Files.FileColumns.DATA,
             MediaStore.Files.FileColumns.SIZE,
             MediaStore.Files.FileColumns.DATE_ADDED,
             MediaStore.Files.FileColumns.MIME_TYPE,
-            MediaStore.Files.FileColumns.MEDIA_TYPE,
             MediaStore.Images.Media.BUCKET_ID,
             MediaStore.Images.Media.BUCKET_DISPLAY_NAME,
             MediaStore.Files.FileColumns.HEIGHT,
             MediaStore.Files.FileColumns.WIDTH,
-            MediaStore.Video.Media.DURATION,
-            MediaStore.Audio.AudioColumns.ALBUM_ID
-    };
+            MediaStore.Video.Media.DURATION
+    ));
 
     static {
         ImageSelectionArgs.addAll(Arrays.asList("image/jpeg", "image/png", "image/jpg", "image/gif"));
@@ -129,18 +128,48 @@ public class FileLoader extends CursorLoader {
         selectionBuilder.append(")");
 
         if (selectionBuilder.length() != 0) {
-            setProjection(FILE_PROJECTION);
-            setUri(MediaStore.Files.getContentUri("external"));
+            if (canUseAlbumId(configs)) {
+                FILE_PROJECTION.add(MediaStore.Audio.AudioColumns.ALBUM_ID);
+            }
+            if (canUseMediaType(configs)) {
+                FILE_PROJECTION.add(MediaStore.Files.FileColumns.MEDIA_TYPE);
+            }
+            setProjection(FILE_PROJECTION.toArray(new String[0]));
+            setUri(getContentUri(configs));
             setSortOrder(DATE_ADDED + " DESC");
             setSelection(selectionBuilder.toString());
             setSelectionArgs(selectionArgs.toArray(new String[0]));
         }
     }
 
+    static Uri getContentUri(Configurations configs) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q &&
+                (configs.isShowAudios() && !(configs.isShowFiles() || configs.isShowImages() || configs.isShowVideos()))) {
+            return MediaStore.Audio.Media.getContentUri("external");
+        } else {
+            return MediaStore.Files.getContentUri("external");
+        }
+    }
+
+    private static boolean canUseAlbumId(Configurations configs) {
+        return Build.VERSION.SDK_INT < Build.VERSION_CODES.Q ||
+                (configs.isShowAudios() && !(configs.isShowFiles() || configs.isShowImages() || configs.isShowVideos()));
+    }
+
+    private static boolean canUseMediaType(Configurations configs) {
+        return Build.VERSION.SDK_INT < Build.VERSION_CODES.Q ||
+                (!configs.isShowAudios() && (configs.isShowFiles() || configs.isShowImages() || configs.isShowVideos()));
+    }
+
     private List<String> getFoldersToIgnore() {
         Uri uri = MediaStore.Files.getContentUri("external");
         String[] projection = new String[]{DATA};
-        String selection = BUCKET_ID + " IS NOT NULL) GROUP BY (" + BUCKET_ID;
+        String selection;
+        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            selection = BUCKET_ID + " IS NOT NULL) GROUP BY (" + BUCKET_ID;
+        } else {
+            selection = BUCKET_ID + " IS NOT NULL";
+        }
         String sortOrder = DATA + " ASC";
         Cursor cursor = getContext().getContentResolver().query(uri, projection, selection, null, sortOrder);
         if (cursor == null) {

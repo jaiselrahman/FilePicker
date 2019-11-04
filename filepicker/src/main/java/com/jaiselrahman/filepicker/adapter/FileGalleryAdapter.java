@@ -137,7 +137,7 @@ public class FileGalleryAdapter extends MultiSelectionAdapter<FileGalleryAdapter
         MediaFile mediaFile = mediaFiles.get(position);
         if (mediaFile.getMediaType() == MediaFile.TYPE_VIDEO ||
                 mediaFile.getMediaType() == MediaFile.TYPE_IMAGE) {
-            glideRequest.load(mediaFile.getPath())
+            glideRequest.load(mediaFile.getUri())
                     .into(holder.fileThumbnail);
         } else if (mediaFile.getMediaType() == MediaFile.TYPE_AUDIO) {
             glideRequest.load(mediaFile.getThumbnail())

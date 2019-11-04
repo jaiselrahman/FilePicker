@@ -56,7 +56,7 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.ViewHo
         if (mediaFile.getMediaType() == MediaFile.TYPE_IMAGE
                 || mediaFile.getMediaType() == MediaFile.TYPE_VIDEO) {
             Glide.with(context)
-                    .load(mediaFile.getPath())
+                    .load(mediaFile.getUri())
                     .into(holder.fileThumbnail);
         } else if (mediaFile.getMediaType() == MediaFile.TYPE_AUDIO) {
             Glide.with(context)

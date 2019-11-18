@@ -19,13 +19,13 @@ package com.jaiselrahman.filepicker.config;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import androidx.annotation.Nullable;
+
 import com.jaiselrahman.filepicker.model.MediaFile;
 
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import androidx.annotation.Nullable;
 
 public class Configurations implements Parcelable {
     public static final Creator<Configurations> CREATOR = new Creator<Configurations>() {

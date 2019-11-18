@@ -22,11 +22,12 @@ import android.content.CursorLoader;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
-import android.provider.DocumentsContract;
-import android.provider.DocumentsProvider;
 import android.provider.MediaStore;
-import android.provider.OpenableColumns;
 import android.util.Log;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.FragmentActivity;
 
 import com.jaiselrahman.filepicker.config.Configurations;
 import com.jaiselrahman.filepicker.model.MediaFile;
@@ -36,12 +37,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.core.content.FileProvider;
-import androidx.fragment.app.FragmentActivity;
-import androidx.loader.app.LoaderManager;
 
 import static android.provider.MediaStore.Images.ImageColumns.BUCKET_ID;
 import static android.provider.MediaStore.MediaColumns.DATA;
@@ -175,7 +170,7 @@ public class FileLoader extends CursorLoader {
         Uri uri = MediaStore.Files.getContentUri("external");
         String[] projection = new String[]{DATA};
         String selection;
-        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
             selection = BUCKET_ID + " IS NOT NULL) GROUP BY (" + BUCKET_ID;
         } else {
             selection = BUCKET_ID + " IS NOT NULL";
@@ -227,7 +222,7 @@ public class FileLoader extends CursorLoader {
     @Nullable
     public static MediaFile asMediaFile(ContentResolver contentResolver, Uri uri, Configurations configs) {
         Cursor data = contentResolver.query(uri, FILE_PROJECTION.toArray(new String[0]), null, null, null);
-        if(data != null && data.moveToFirst()) {
+        if (data != null && data.moveToFirst()) {
             return FileLoaderCallback.asMediaFile(data, configs);
         }
         return null;

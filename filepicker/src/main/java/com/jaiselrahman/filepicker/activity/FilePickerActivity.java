@@ -210,6 +210,10 @@ public class FilePickerActivity extends AppCompatActivity
         } else if (requestCode == REQUEST_DOCUMENT) {
             ContentResolver contentResolver = getContentResolver();
             ArrayList<MediaFile> mediaFiles = new ArrayList<>();
+            if (data == null) {
+                finish();
+                return;
+            }
             Uri uri = data.getData();
             if (uri == null) {
                 ClipData clipData = data.getClipData();

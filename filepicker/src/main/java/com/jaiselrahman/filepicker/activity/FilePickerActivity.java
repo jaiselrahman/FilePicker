@@ -17,6 +17,9 @@
 package com.jaiselrahman.filepicker.activity;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
+import android.content.ClipData;
+import android.content.ContentResolver;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
@@ -27,6 +30,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.webkit.MimeTypeMap;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -60,6 +64,7 @@ public class FilePickerActivity extends AppCompatActivity
     private static final int REQUEST_WRITE_PERMISSION = 1;
     private static final int REQUEST_CAMERA_PERMISSION_FOR_CAMERA = 2;
     private static final int REQUEST_CAMERA_PERMISSION_FOR_VIDEO = 3;
+    private static final int REQUEST_DOCUMENT = 4;
     private Configurations configs;
     private ArrayList<MediaFile> mediaFiles = new ArrayList<>();
     private FileGalleryAdapter fileGalleryAdapter;
@@ -68,15 +73,34 @@ public class FilePickerActivity extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.filepicker_gallery);
-
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
 
         configs = getIntent().getParcelableExtra(CONFIGS);
         if (configs == null) {
             configs = new Configurations.Builder().build();
         }
+
+        if (useDocumentUi()) {
+            MimeTypeMap mimeType = MimeTypeMap.getSingleton();
+            String[] suffixes = configs.getSuffixes();
+            String[] mime = new String[suffixes.length];
+            for (int i = 0; i < suffixes.length; i++) {
+                mime[i] = mimeType.getMimeTypeFromExtension(
+                        suffixes[i].replace(".", "")
+                );
+            }
+
+            Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT)
+                    .setType("*/*")
+                    .putExtra(Intent.EXTRA_ALLOW_MULTIPLE, configs.getMaxSelection() > 1)
+                    .putExtra(Intent.EXTRA_MIME_TYPES, mime);
+            startActivityForResult(intent, REQUEST_DOCUMENT);
+            return;
+        }
+
+        setContentView(R.layout.filepicker_gallery);
+
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
 
         int spanCount;
         if (getResources().getConfiguration().orientation
@@ -120,6 +144,12 @@ public class FilePickerActivity extends AppCompatActivity
         }
     }
 
+    private boolean useDocumentUi() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
+                && configs.isShowFiles()
+                && !(configs.isShowImages() || configs.isShowVideos() || configs.isShowAudios());
+    }
+
     private void loadFiles(boolean restart) {
         FileLoader.loadFiles(this, new FileResultCallback() {
             @Override
@@ -152,6 +182,7 @@ public class FilePickerActivity extends AppCompatActivity
         }
     }
 
+    @SuppressLint("NewApi")
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -176,6 +207,23 @@ public class FilePickerActivity extends AppCompatActivity
                 getContentResolver().delete(fileGalleryAdapter.getLastCapturedUri(),
                         null, null);
             }
+        } else if (requestCode == REQUEST_DOCUMENT) {
+            ContentResolver contentResolver = getContentResolver();
+            ArrayList<MediaFile> mediaFiles = new ArrayList<>();
+            Uri uri = data.getData();
+            if (uri == null) {
+                ClipData clipData = data.getClipData();
+                for (int i = 0; i < clipData.getItemCount(); i++) {
+                    uri = clipData.getItemAt(i).getUri();
+                    mediaFiles.add(FileLoader.asMediaFile(contentResolver, uri, configs));
+                }
+            } else {
+                mediaFiles.add(FileLoader.asMediaFile(contentResolver, uri, configs));
+            }
+            Intent intent = new Intent();
+            intent.putExtra(MEDIA_FILES, mediaFiles);
+            setResult(RESULT_OK, intent);
+            finish();
         }
     }
 
@@ -200,6 +248,7 @@ public class FilePickerActivity extends AppCompatActivity
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
+        if (useDocumentUi()) return;
         File file = fileGalleryAdapter.getLastCapturedFile();
         if (file != null)
             outState.putString(PATH, file.getAbsolutePath());
@@ -210,6 +259,7 @@ public class FilePickerActivity extends AppCompatActivity
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
+        if (useDocumentUi()) return;
         String path = savedInstanceState.getString(PATH);
         if (path != null)
             fileGalleryAdapter.setLastCapturedFile(new File(path));

@@ -16,15 +16,20 @@
 
 package com.jaiselrahman.filepicker.loader;
 
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.CursorLoader;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
+import android.provider.DocumentsContract;
+import android.provider.DocumentsProvider;
 import android.provider.MediaStore;
+import android.provider.OpenableColumns;
 import android.util.Log;
 
 import com.jaiselrahman.filepicker.config.Configurations;
+import com.jaiselrahman.filepicker.model.MediaFile;
 import com.jaiselrahman.filepicker.utils.FileUtils;
 
 import java.io.File;
@@ -33,7 +38,10 @@ import java.util.Arrays;
 import java.util.List;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.core.content.FileProvider;
 import androidx.fragment.app.FragmentActivity;
+import androidx.loader.app.LoaderManager;
 
 import static android.provider.MediaStore.Images.ImageColumns.BUCKET_ID;
 import static android.provider.MediaStore.MediaColumns.DATA;
@@ -45,7 +53,7 @@ public class FileLoader extends CursorLoader {
     private static final ArrayList<String> ImageSelectionArgs = new ArrayList<>();
     private static final ArrayList<String> AudioSelectionArgs = new ArrayList<>();
     private static final ArrayList<String> VideoSelectionArgs = new ArrayList<>();
-    private final List<String> FILE_PROJECTION = new ArrayList<>(Arrays.asList(
+    private static final List<String> FILE_PROJECTION = Arrays.asList(
             MediaStore.Files.FileColumns._ID,
             MediaStore.Files.FileColumns.TITLE,
             MediaStore.Files.FileColumns.DATA,
@@ -57,7 +65,7 @@ public class FileLoader extends CursorLoader {
             MediaStore.Files.FileColumns.HEIGHT,
             MediaStore.Files.FileColumns.WIDTH,
             MediaStore.Video.Media.DURATION
-    ));
+    );
 
     static {
         ImageSelectionArgs.addAll(Arrays.asList("image/jpeg", "image/png", "image/jpg", "image/gif"));
@@ -127,14 +135,16 @@ public class FileLoader extends CursorLoader {
         }
         selectionBuilder.append(")");
 
+        List<String> projection = new ArrayList<>(FILE_PROJECTION);
+
         if (selectionBuilder.length() != 0) {
             if (canUseAlbumId(configs)) {
-                FILE_PROJECTION.add(MediaStore.Audio.AudioColumns.ALBUM_ID);
+                projection.add(MediaStore.Audio.AudioColumns.ALBUM_ID);
             }
             if (canUseMediaType(configs)) {
-                FILE_PROJECTION.add(MediaStore.Files.FileColumns.MEDIA_TYPE);
+                projection.add(MediaStore.Files.FileColumns.MEDIA_TYPE);
             }
-            setProjection(FILE_PROJECTION.toArray(new String[0]));
+            setProjection(projection.toArray(new String[0]));
             setUri(getContentUri(configs));
             setSortOrder(DATE_ADDED + " DESC");
             setSelection(selectionBuilder.toString());
@@ -212,5 +222,14 @@ public class FileLoader extends CursorLoader {
         } else {
             fileResultCallback.onResult(null);
         }
+    }
+
+    @Nullable
+    public static MediaFile asMediaFile(ContentResolver contentResolver, Uri uri, Configurations configs) {
+        Cursor data = contentResolver.query(uri, FILE_PROJECTION.toArray(new String[0]), null, null, null);
+        if(data != null && data.moveToFirst()) {
+            return FileLoaderCallback.asMediaFile(data, configs);
+        }
+        return null;
     }
 }

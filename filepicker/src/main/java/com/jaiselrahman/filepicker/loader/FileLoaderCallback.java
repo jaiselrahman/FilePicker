@@ -24,6 +24,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+
 import androidx.annotation.NonNull;
 
 import com.jaiselrahman.filepicker.config.Configurations;
@@ -68,50 +69,10 @@ class FileLoaderCallback implements LoaderManager.LoaderCallbacks<Cursor> {
         ArrayList<MediaFile> mediaFiles = new ArrayList<>();
         if (data.moveToFirst())
             do {
-                long size = data.getLong(data.getColumnIndex(SIZE));
-                if (size == 0) {
-                    //Check if File size is really zero
-                    size = new java.io.File(data.getString(data.getColumnIndex(DATA))).length();
-                    if (size <= 0 && configs.isSkipZeroSizeFiles())
-                        continue;
+                MediaFile mediaFile = asMediaFile(data, configs);
+                if (mediaFile != null) {
+                    mediaFiles.add(mediaFile);
                 }
-                MediaFile mediaFile = new MediaFile();
-                mediaFile.setSize(size);
-                mediaFile.setId(data.getLong(data.getColumnIndex(_ID)));
-                mediaFile.setName(data.getString(data.getColumnIndex(TITLE)));
-                mediaFile.setPath(data.getString(data.getColumnIndex(DATA)));
-                mediaFile.setDate(data.getLong(data.getColumnIndex(DATE_ADDED)));
-                mediaFile.setMimeType(data.getString(data.getColumnIndex(MIME_TYPE)));
-                mediaFile.setBucketId(data.getString(data.getColumnIndex(BUCKET_ID)));
-                mediaFile.setBucketName(data.getString(data.getColumnIndex(BUCKET_DISPLAY_NAME)));
-                mediaFile.setUri(ContentUris.withAppendedId(FileLoader.getContentUri(configs), mediaFile.getId()));
-                mediaFile.setDuration(data.getLong(data.getColumnIndex(DURATION)));
-
-                if (mediaFile.getMediaType() == MediaFile.TYPE_FILE
-                        && mediaFile.getMimeType() != null) {
-                    //Double check correct MediaType
-                    mediaFile.setMediaType(getMediaType(mediaFile.getMimeType()));
-                }
-
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                    mediaFile.setHeight(data.getLong(data.getColumnIndex(HEIGHT)));
-                    mediaFile.setWidth(data.getLong(data.getColumnIndex(WIDTH)));
-                }
-
-                int mediaTypeIndex = data.getColumnIndex(MEDIA_TYPE);
-                if (mediaTypeIndex >= 0) {
-                    mediaFile.setMediaType(data.getInt(mediaTypeIndex));
-                }
-
-                int albumIdIndex = data.getColumnIndex(ALBUM_ID);
-                if (albumIdIndex >= 0) {
-                    int albumId = data.getInt(albumIdIndex);
-                    if(albumId >= 0) {
-                        mediaFile.setThumbnail(ContentUris
-                                .withAppendedId(Uri.parse("content://media/external/audio/albumart"), albumId));
-                    }
-                }
-                mediaFiles.add(mediaFile);
             } while (data.moveToNext());
         fileResultCallback.onResult(mediaFiles);
     }
@@ -131,5 +92,55 @@ class FileLoaderCallback implements LoaderManager.LoaderCallbacks<Cursor> {
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
+    }
+
+    static MediaFile asMediaFile(@NonNull Cursor data, Configurations configs) {
+        MediaFile mediaFile = new MediaFile();
+        mediaFile.setPath(data.getString(data.getColumnIndex(DATA)));
+
+        long size = data.getLong(data.getColumnIndex(SIZE));
+        if (size == 0 && mediaFile.getPath() != null) {
+            //Check if File size is really zero
+            size = new java.io.File(data.getString(data.getColumnIndex(DATA))).length();
+            if (size <= 0 && configs.isSkipZeroSizeFiles())
+                return null;
+        }
+        mediaFile.setSize(size);
+
+        mediaFile.setId(data.getLong(data.getColumnIndex(_ID)));
+        mediaFile.setName(data.getString(data.getColumnIndex(TITLE)));
+        mediaFile.setPath(data.getString(data.getColumnIndex(DATA)));
+        mediaFile.setDate(data.getLong(data.getColumnIndex(DATE_ADDED)));
+        mediaFile.setMimeType(data.getString(data.getColumnIndex(MIME_TYPE)));
+        mediaFile.setBucketId(data.getString(data.getColumnIndex(BUCKET_ID)));
+        mediaFile.setBucketName(data.getString(data.getColumnIndex(BUCKET_DISPLAY_NAME)));
+        mediaFile.setUri(ContentUris.withAppendedId(FileLoader.getContentUri(configs), mediaFile.getId()));
+        mediaFile.setDuration(data.getLong(data.getColumnIndex(DURATION)));
+
+        if (mediaFile.getMediaType() == MediaFile.TYPE_FILE
+                && mediaFile.getMimeType() != null) {
+            //Double check correct MediaType
+            mediaFile.setMediaType(getMediaType(mediaFile.getMimeType()));
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+            mediaFile.setHeight(data.getLong(data.getColumnIndex(HEIGHT)));
+            mediaFile.setWidth(data.getLong(data.getColumnIndex(WIDTH)));
+        }
+
+        int mediaTypeIndex = data.getColumnIndex(MEDIA_TYPE);
+        if (mediaTypeIndex >= 0) {
+            mediaFile.setMediaType(data.getInt(mediaTypeIndex));
+        }
+
+        int albumIdIndex = data.getColumnIndex(ALBUM_ID);
+        if (albumIdIndex >= 0) {
+            int albumId = data.getInt(albumIdIndex);
+            if (albumId >= 0) {
+                mediaFile.setThumbnail(ContentUris
+                        .withAppendedId(Uri.parse("content://media/external/audio/albumart"), albumId));
+            }
+        }
+        return mediaFile;
     }
 }

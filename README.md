@@ -13,6 +13,7 @@ A FilePicker library for Android for selecting multiple types of files and also 
 
 ## Note
 
+* For Android 10 please upgrade to [1.3.0](https://github.com/jaiselrahman/FilePicker/releases/tag/1.3.0) which contains some [behavior changes](https://github.com/jaiselrahman/FilePicker/releases/tag/1.3.0).
 * Uses [MediaStore](https://developer.android.com/reference/android/provider/MediaStore) Database for loading files info.
 * Uses [Glide](https://github.com/bumptech/glide) for loading images.
 

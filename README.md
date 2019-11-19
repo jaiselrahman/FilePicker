@@ -9,7 +9,7 @@
 
 A FilePicker library for Android for selecting multiple types of files and also to capture Images and Videos.
 
-[Sample Apk](https://github.com/jaiselrahman/FilePicker/releases/download/1.2.0/app-release.apk)
+[Sample Apk](https://github.com/jaiselrahman/FilePicker/releases/download/1.3.0/app-release.apk)
 
 ## Note
 
@@ -39,7 +39,7 @@ Step 2: Add the dependency
 ```gradle
     dependencies {
         ...
-        implementation 'com.github.jaiselrahman:FilePicker:1.2.2'
+        implementation 'com.github.jaiselrahman:FilePicker:1.3.0'
     }
 ```
 

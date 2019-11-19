@@ -50,7 +50,7 @@ public class FileLoader extends CursorLoader {
     private static final ArrayList<String> VideoSelectionArgs = new ArrayList<>();
     private static final List<String> FILE_PROJECTION = Arrays.asList(
             MediaStore.Files.FileColumns._ID,
-            MediaStore.Files.FileColumns.TITLE,
+            MediaStore.Files.FileColumns.DISPLAY_NAME,
             MediaStore.Files.FileColumns.DATA,
             MediaStore.Files.FileColumns.SIZE,
             MediaStore.Files.FileColumns.DATE_ADDED,
@@ -223,7 +223,7 @@ public class FileLoader extends CursorLoader {
     public static MediaFile asMediaFile(ContentResolver contentResolver, Uri uri, Configurations configs) {
         Cursor data = contentResolver.query(uri, FILE_PROJECTION.toArray(new String[0]), null, null, null);
         if (data != null && data.moveToFirst()) {
-            return FileLoaderCallback.asMediaFile(data, configs);
+            return FileLoaderCallback.asMediaFile(data, configs, uri);
         }
         return null;
     }

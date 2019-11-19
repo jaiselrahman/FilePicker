@@ -157,6 +157,7 @@ public class MediaFile implements Parcelable {
         this.name = name;
     }
 
+    @Deprecated
     public String getPath() {
         return path;
     }
@@ -208,9 +209,8 @@ public class MediaFile implements Parcelable {
 
     @Override
     public boolean equals(Object obj) {
-        boolean status = this == obj
-                || obj instanceof MediaFile && this.path.equals(((MediaFile) obj).getPath());
-        return status;
+        return this == obj
+                || obj instanceof MediaFile && this.uri.equals(((MediaFile) obj).uri);
     }
 
     @Override

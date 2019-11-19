@@ -50,7 +50,7 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.ViewHo
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         MediaFile mediaFile = mediaFiles.get(position);
         Context context = holder.itemView.getContext();
-        holder.filePath.setText(context.getString(R.string.path, mediaFile.getPath()));
+        holder.filePath.setText(context.getString(R.string.uri, mediaFile.getUri()));
         holder.fileMime.setText(context.getString(R.string.mime, mediaFile.getMimeType()));
         holder.fileSize.setText(context.getString(R.string.size, mediaFile.getSize()));
         holder.fileBucketName.setText(context.getString(R.string.bucketname, mediaFile.getBucketName()));

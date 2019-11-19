@@ -26,6 +26,7 @@ import android.os.Build;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.jaiselrahman.filepicker.config.Configurations;
 import com.jaiselrahman.filepicker.model.MediaFile;
@@ -40,9 +41,9 @@ import static android.provider.MediaStore.Images.ImageColumns.BUCKET_DISPLAY_NAM
 import static android.provider.MediaStore.Images.ImageColumns.BUCKET_ID;
 import static android.provider.MediaStore.MediaColumns.DATA;
 import static android.provider.MediaStore.MediaColumns.DATE_ADDED;
+import static android.provider.MediaStore.MediaColumns.DISPLAY_NAME;
 import static android.provider.MediaStore.MediaColumns.HEIGHT;
 import static android.provider.MediaStore.MediaColumns.SIZE;
-import static android.provider.MediaStore.MediaColumns.TITLE;
 import static android.provider.MediaStore.MediaColumns.WIDTH;
 import static android.provider.MediaStore.Video.VideoColumns.DURATION;
 
@@ -69,7 +70,7 @@ class FileLoaderCallback implements LoaderManager.LoaderCallbacks<Cursor> {
         ArrayList<MediaFile> mediaFiles = new ArrayList<>();
         if (data.moveToFirst())
             do {
-                MediaFile mediaFile = asMediaFile(data, configs);
+                MediaFile mediaFile = asMediaFile(data, configs, null);
                 if (mediaFile != null) {
                     mediaFiles.add(mediaFile);
                 }
@@ -94,11 +95,12 @@ class FileLoaderCallback implements LoaderManager.LoaderCallbacks<Cursor> {
     public void onLoaderReset(Loader<Cursor> loader) {
     }
 
-    static MediaFile asMediaFile(@NonNull Cursor data, Configurations configs) {
+    static MediaFile asMediaFile(@NonNull Cursor data, Configurations configs, @Nullable Uri uri) {
         MediaFile mediaFile = new MediaFile();
         mediaFile.setPath(data.getString(data.getColumnIndex(DATA)));
 
         long size = data.getLong(data.getColumnIndex(SIZE));
+        //noinspection deprecation
         if (size == 0 && mediaFile.getPath() != null) {
             //Check if File size is really zero
             size = new java.io.File(data.getString(data.getColumnIndex(DATA))).length();
@@ -108,13 +110,13 @@ class FileLoaderCallback implements LoaderManager.LoaderCallbacks<Cursor> {
         mediaFile.setSize(size);
 
         mediaFile.setId(data.getLong(data.getColumnIndex(_ID)));
-        mediaFile.setName(data.getString(data.getColumnIndex(TITLE)));
+        mediaFile.setName(data.getString(data.getColumnIndex(DISPLAY_NAME)));
         mediaFile.setPath(data.getString(data.getColumnIndex(DATA)));
         mediaFile.setDate(data.getLong(data.getColumnIndex(DATE_ADDED)));
         mediaFile.setMimeType(data.getString(data.getColumnIndex(MIME_TYPE)));
         mediaFile.setBucketId(data.getString(data.getColumnIndex(BUCKET_ID)));
         mediaFile.setBucketName(data.getString(data.getColumnIndex(BUCKET_DISPLAY_NAME)));
-        mediaFile.setUri(ContentUris.withAppendedId(FileLoader.getContentUri(configs), mediaFile.getId()));
+        mediaFile.setUri(uri != null ? uri : ContentUris.withAppendedId(FileLoader.getContentUri(configs), mediaFile.getId()));
         mediaFile.setDuration(data.getLong(data.getColumnIndex(DURATION)));
 
         if (mediaFile.getMediaType() == MediaFile.TYPE_FILE

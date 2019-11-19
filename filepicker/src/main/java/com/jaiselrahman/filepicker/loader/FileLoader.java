@@ -50,7 +50,7 @@ public class FileLoader extends CursorLoader {
     private static final ArrayList<String> VideoSelectionArgs = new ArrayList<>();
     private static final List<String> FILE_PROJECTION = Arrays.asList(
             MediaStore.Files.FileColumns._ID,
-            MediaStore.Files.FileColumns.TITLE,
+            MediaStore.Files.FileColumns.DISPLAY_NAME,
             MediaStore.Files.FileColumns.DATA,
             MediaStore.Files.FileColumns.SIZE,
             MediaStore.Files.FileColumns.DATE_ADDED,

@@ -40,9 +40,9 @@ import static android.provider.MediaStore.Images.ImageColumns.BUCKET_DISPLAY_NAM
 import static android.provider.MediaStore.Images.ImageColumns.BUCKET_ID;
 import static android.provider.MediaStore.MediaColumns.DATA;
 import static android.provider.MediaStore.MediaColumns.DATE_ADDED;
+import static android.provider.MediaStore.MediaColumns.DISPLAY_NAME;
 import static android.provider.MediaStore.MediaColumns.HEIGHT;
 import static android.provider.MediaStore.MediaColumns.SIZE;
-import static android.provider.MediaStore.MediaColumns.TITLE;
 import static android.provider.MediaStore.MediaColumns.WIDTH;
 import static android.provider.MediaStore.Video.VideoColumns.DURATION;
 
@@ -108,7 +108,7 @@ class FileLoaderCallback implements LoaderManager.LoaderCallbacks<Cursor> {
         mediaFile.setSize(size);
 
         mediaFile.setId(data.getLong(data.getColumnIndex(_ID)));
-        mediaFile.setName(data.getString(data.getColumnIndex(TITLE)));
+        mediaFile.setName(data.getString(data.getColumnIndex(DISPLAY_NAME)));
         mediaFile.setPath(data.getString(data.getColumnIndex(DATA)));
         mediaFile.setDate(data.getLong(data.getColumnIndex(DATE_ADDED)));
         mediaFile.setMimeType(data.getString(data.getColumnIndex(MIME_TYPE)));

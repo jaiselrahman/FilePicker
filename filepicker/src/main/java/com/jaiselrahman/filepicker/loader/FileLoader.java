@@ -223,7 +223,7 @@ public class FileLoader extends CursorLoader {
     public static MediaFile asMediaFile(ContentResolver contentResolver, Uri uri, Configurations configs) {
         Cursor data = contentResolver.query(uri, FILE_PROJECTION.toArray(new String[0]), null, null, null);
         if (data != null && data.moveToFirst()) {
-            return FileLoaderCallback.asMediaFile(data, configs);
+            return FileLoaderCallback.asMediaFile(data, configs, uri);
         }
         return null;
     }

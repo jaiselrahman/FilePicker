@@ -24,6 +24,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -118,6 +119,12 @@ class FileLoaderCallback implements LoaderManager.LoaderCallbacks<Cursor> {
         mediaFile.setBucketName(data.getString(data.getColumnIndex(BUCKET_DISPLAY_NAME)));
         mediaFile.setUri(uri != null ? uri : ContentUris.withAppendedId(FileLoader.getContentUri(configs), mediaFile.getId()));
         mediaFile.setDuration(data.getLong(data.getColumnIndex(DURATION)));
+
+        if (TextUtils.isEmpty(mediaFile.getName())) {
+            //noinspection deprecation
+            String path = mediaFile.getPath() != null ? mediaFile.getPath() : "";
+            mediaFile.setName(path.substring(path.lastIndexOf('/') + 1));
+        }
 
         if (mediaFile.getMediaType() == MediaFile.TYPE_FILE
                 && mediaFile.getMimeType() != null) {

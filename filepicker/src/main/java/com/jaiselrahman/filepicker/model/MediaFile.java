@@ -27,6 +27,8 @@ public class MediaFile implements Parcelable {
     public static final int TYPE_IMAGE = 1;
     public static final int TYPE_AUDIO = 2;
     public static final int TYPE_VIDEO = 3;
+    public static final int TYPE_MAX = TYPE_VIDEO;
+
     public static final Creator<MediaFile> CREATOR = new Creator<MediaFile>() {
         @Override
         public MediaFile createFromParcel(Parcel in) {

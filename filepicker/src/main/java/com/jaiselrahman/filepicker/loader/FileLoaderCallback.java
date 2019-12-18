@@ -126,7 +126,13 @@ class FileLoaderCallback implements LoaderManager.LoaderCallbacks<Cursor> {
             mediaFile.setName(path.substring(path.lastIndexOf('/') + 1));
         }
 
-        if (mediaFile.getMediaType() == MediaFile.TYPE_FILE
+        int mediaTypeIndex = data.getColumnIndex(MEDIA_TYPE);
+        if (mediaTypeIndex >= 0) {
+            mediaFile.setMediaType(data.getInt(mediaTypeIndex));
+        }
+
+        if ((mediaFile.getMediaType() == MediaFile.TYPE_FILE
+                || mediaFile.getMediaType() > MediaFile.TYPE_MAX)
                 && mediaFile.getMimeType() != null) {
             //Double check correct MediaType
             mediaFile.setMediaType(getMediaType(mediaFile.getMimeType()));
@@ -135,11 +141,6 @@ class FileLoaderCallback implements LoaderManager.LoaderCallbacks<Cursor> {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
             mediaFile.setHeight(data.getLong(data.getColumnIndex(HEIGHT)));
             mediaFile.setWidth(data.getLong(data.getColumnIndex(WIDTH)));
-        }
-
-        int mediaTypeIndex = data.getColumnIndex(MEDIA_TYPE);
-        if (mediaTypeIndex >= 0) {
-            mediaFile.setMediaType(data.getInt(mediaTypeIndex));
         }
 
         int albumIdIndex = data.getColumnIndex(ALBUM_ID);

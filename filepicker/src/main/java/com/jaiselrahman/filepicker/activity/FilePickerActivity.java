@@ -165,21 +165,36 @@ public class FilePickerActivity extends AppCompatActivity
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == REQUEST_WRITE_PERMISSION) {
-            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                loadFiles(false);
-            } else {
-                Toast.makeText(this, R.string.permission_not_given, Toast.LENGTH_SHORT).show();
-                finish();
-            }
-        } else if (requestCode == REQUEST_CAMERA_PERMISSION_FOR_CAMERA || requestCode == REQUEST_CAMERA_PERMISSION_FOR_VIDEO) {
-            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                fileGalleryAdapter.openCamera(requestCode == REQUEST_CAMERA_PERMISSION_FOR_VIDEO);
-            } else {
-                Toast.makeText(this, R.string.permission_not_given, Toast.LENGTH_SHORT).show();
-            }
+
+        switch (requestCode) {
+
+            case REQUEST_WRITE_PERMISSION:
+                if(grantResults.length > 0){
+                    if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                        loadFiles(false);
+                    } else {
+                        Toast.makeText(this, R.string.permission_not_given, Toast.LENGTH_SHORT).show();
+                        finish();
+                    }
+                }
+                return;
+
+            case REQUEST_CAMERA_PERMISSION_FOR_CAMERA:
+            case REQUEST_CAMERA_PERMISSION_FOR_VIDEO:
+                if(grantResults.length > 0){
+                    if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                        fileGalleryAdapter.openCamera(requestCode == REQUEST_CAMERA_PERMISSION_FOR_VIDEO);
+                    } else {
+                        Toast.makeText(this, R.string.permission_not_given, Toast.LENGTH_SHORT).show();
+                    }
+                }
+                return;
+
+            default:
+                super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         }
+
+
     }
 
     @SuppressLint("NewApi")

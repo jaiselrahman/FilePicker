@@ -28,6 +28,7 @@ import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.webkit.MimeTypeMap;
@@ -53,8 +54,15 @@ import com.jaiselrahman.filepicker.view.DividerItemDecoration;
 import java.io.File;
 import java.util.ArrayList;
 
-public class FilePickerActivity extends AppCompatActivity
-        implements OnSelectionListener<FileGalleryAdapter.ViewHolder>, OnCameraClickListener {
+import io.reactivex.Observable;
+import io.reactivex.Scheduler;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.functions.Consumer;
+import io.reactivex.schedulers.Schedulers;
+
+public class FilePickerActivity extends AppCompatActivity implements OnSelectionListener<FileGalleryAdapter.ViewHolder>, OnCameraClickListener {
+
     public static final String MEDIA_FILES = "MEDIA_FILES";
     public static final String SELECTED_MEDIA_FILES = "SELECTED_MEDIA_FILES";
     public static final String CONFIGS = "CONFIGS";
@@ -103,8 +111,7 @@ public class FilePickerActivity extends AppCompatActivity
         setSupportActionBar(toolbar);
 
         int spanCount;
-        if (getResources().getConfiguration().orientation
-                == Configuration.ORIENTATION_LANDSCAPE) {
+        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
             spanCount = configs.getLandscapeSpanCount();
         } else {
             spanCount = configs.getPortraitSpanCount();
@@ -118,6 +125,7 @@ public class FilePickerActivity extends AppCompatActivity
         }
 
         boolean isSingleChoice = configs.isSingleChoiceMode();
+
         fileGalleryAdapter = new FileGalleryAdapter(this, mediaFiles, imageSize,
                 configs.isImageCaptureEnabled(),
                 configs.isVideoCaptureEnabled());
@@ -134,13 +142,18 @@ public class FilePickerActivity extends AppCompatActivity
         recyclerView.addItemDecoration(new DividerItemDecoration(getResources().getDimensionPixelSize(R.dimen.grid_spacing), spanCount));
         recyclerView.setItemAnimator(null);
 
-        if (requestPermission(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_WRITE_PERMISSION)) {
-            loadFiles(false);
-        }
-
         maxCount = configs.getMaxSelection();
         if (maxCount > 0) {
             setTitle(getResources().getString(R.string.selection_count, fileGalleryAdapter.getSelectedItemCount(), maxCount));
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        if (requestPermission(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_WRITE_PERMISSION)) {
+            loadFiles();
         }
     }
 
@@ -150,17 +163,16 @@ public class FilePickerActivity extends AppCompatActivity
                 && !(configs.isShowImages() || configs.isShowVideos() || configs.isShowAudios());
     }
 
-    private void loadFiles(boolean restart) {
-        FileLoader.loadFiles(this, new FileResultCallback() {
+    private void loadFiles() {
+        FileLoader fileLoader = new FileLoader(this, configs);
+        fileLoader.loadFiles(new Consumer<ArrayList<MediaFile>>() {
             @Override
-            public void onResult(ArrayList<MediaFile> filesResults) {
-                if (filesResults != null) {
-                    mediaFiles.clear();
-                    mediaFiles.addAll(filesResults);
-                    fileGalleryAdapter.notifyDataSetChanged();
-                }
+            public void accept(ArrayList<MediaFile> mediaFiles) {
+                FilePickerActivity.this.mediaFiles.clear();
+                FilePickerActivity.this.mediaFiles.addAll(mediaFiles);
+                fileGalleryAdapter.notifyDataSetChanged();
             }
-        }, configs, restart);
+        });
     }
 
     @Override
@@ -169,9 +181,9 @@ public class FilePickerActivity extends AppCompatActivity
         switch (requestCode) {
 
             case REQUEST_WRITE_PERMISSION:
-                if(grantResults.length > 0){
+                if (grantResults.length > 0) {
                     if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                        loadFiles(false);
+                        loadFiles();
                     } else {
                         Toast.makeText(this, R.string.permission_not_given, Toast.LENGTH_SHORT).show();
                         finish();
@@ -181,7 +193,7 @@ public class FilePickerActivity extends AppCompatActivity
 
             case REQUEST_CAMERA_PERMISSION_FOR_CAMERA:
             case REQUEST_CAMERA_PERMISSION_FOR_VIDEO:
-                if(grantResults.length > 0){
+                if (grantResults.length > 0) {
                     if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                         fileGalleryAdapter.openCamera(requestCode == REQUEST_CAMERA_PERMISSION_FOR_VIDEO);
                     } else {
@@ -193,8 +205,6 @@ public class FilePickerActivity extends AppCompatActivity
             default:
                 super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         }
-
-
     }
 
     @SuppressLint("NewApi")
@@ -212,15 +222,14 @@ public class FilePickerActivity extends AppCompatActivity
                                     runOnUiThread(new Runnable() {
                                         @Override
                                         public void run() {
-                                            loadFiles(true);
+                                            loadFiles();
                                         }
                                     });
                                 }
                             }
                         });
             } else {
-                getContentResolver().delete(fileGalleryAdapter.getLastCapturedUri(),
-                        null, null);
+                getContentResolver().delete(fileGalleryAdapter.getLastCapturedUri(), null, null);
             }
         } else if (requestCode == REQUEST_DOCUMENT) {
             ContentResolver contentResolver = getContentResolver();

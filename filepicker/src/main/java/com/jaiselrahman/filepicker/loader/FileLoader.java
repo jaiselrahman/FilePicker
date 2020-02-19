@@ -17,18 +17,21 @@
 package com.jaiselrahman.filepicker.loader;
 
 import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.content.Context;
 import android.content.CursorLoader;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.MediaStore;
+import android.text.TextUtils;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.FragmentActivity;
 
+import com.doctoror.rxcursorloader.RxCursorLoader;
 import com.jaiselrahman.filepicker.config.Configurations;
 import com.jaiselrahman.filepicker.model.MediaFile;
 import com.jaiselrahman.filepicker.utils.FileUtils;
@@ -38,13 +41,32 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import io.reactivex.BackpressureStrategy;
+import io.reactivex.FlowableSubscriber;
+import io.reactivex.Observer;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Consumer;
+import io.reactivex.functions.Function;
+import io.reactivex.schedulers.Schedulers;
+
+import static android.provider.BaseColumns._ID;
+import static android.provider.MediaStore.Audio.AlbumColumns.ALBUM_ID;
+import static android.provider.MediaStore.Files.FileColumns.MEDIA_TYPE;
 import static android.provider.MediaStore.Images.ImageColumns.BUCKET_ID;
+import static android.provider.MediaStore.MediaColumns.BUCKET_DISPLAY_NAME;
 import static android.provider.MediaStore.MediaColumns.DATA;
 import static android.provider.MediaStore.MediaColumns.DATE_ADDED;
+import static android.provider.MediaStore.MediaColumns.DISPLAY_NAME;
+import static android.provider.MediaStore.MediaColumns.DURATION;
+import static android.provider.MediaStore.MediaColumns.HEIGHT;
 import static android.provider.MediaStore.MediaColumns.MIME_TYPE;
+import static android.provider.MediaStore.MediaColumns.SIZE;
+import static android.provider.MediaStore.MediaColumns.WIDTH;
 import static com.jaiselrahman.filepicker.activity.FilePickerActivity.TAG;
 
-public class FileLoader extends CursorLoader {
+public class FileLoader {
     private static final ArrayList<String> ImageSelectionArgs = new ArrayList<>();
     private static final ArrayList<String> AudioSelectionArgs = new ArrayList<>();
     private static final ArrayList<String> VideoSelectionArgs = new ArrayList<>();
@@ -62,17 +84,20 @@ public class FileLoader extends CursorLoader {
             MediaStore.Video.Media.DURATION
     );
 
-    static {
+
+    private Configurations configs;
+    private Context context;
+    private CompositeDisposable disposable = new CompositeDisposable();
+    private final RxCursorLoader.Query query;
+
+    public FileLoader(Context context, @NonNull Configurations configs) {
+        this.context = context;
+        this.configs = configs;
+
         ImageSelectionArgs.addAll(Arrays.asList("image/jpeg", "image/png", "image/jpg", "image/gif"));
         AudioSelectionArgs.addAll(Arrays.asList("audio/mpeg", "audio/mp3", "audio/x-ms-wma", "audio/x-wav", "audio/amr", "audio/3gp"));
         VideoSelectionArgs.addAll(Arrays.asList("video/mpeg", "video/mp4"));
-    }
 
-    private Configurations configs;
-
-    FileLoader(Context context, @NonNull Configurations configs) {
-        super(context);
-        this.configs = configs;
         ArrayList<String> selectionArgs = new ArrayList<>();
         StringBuilder selectionBuilder = new StringBuilder();
 
@@ -82,6 +107,7 @@ public class FileLoader extends CursorLoader {
             if (!rootPath.endsWith(File.separator)) rootPath += File.separator;
             selectionArgs.add(rootPath + "%");
         }
+
 
         if (configs.isShowImages())
             selectionArgs.addAll(ImageSelectionArgs);
@@ -128,28 +154,20 @@ public class FileLoader extends CursorLoader {
                 selectionArgs.add(folders.get(i) + "%");
             }
         }
+
         selectionBuilder.append(")");
 
-        List<String> projection = new ArrayList<>(FILE_PROJECTION);
+        this.query = new RxCursorLoader.Query.Builder()
+                .setContentUri(getContentUri(configs))
+                .setProjection(FILE_PROJECTION.toArray(new String[0]))
+                .setSelection(selectionBuilder.toString().concat(" OFFSET ?"))
+                .setSelectionArgs(selectionArgs.toArray(new String[0]))
+                .create();
 
-        if (selectionBuilder.length() != 0) {
-            if (canUseAlbumId(configs)) {
-                projection.add(MediaStore.Audio.AudioColumns.ALBUM_ID);
-            }
-            if (canUseMediaType(configs)) {
-                projection.add(MediaStore.Files.FileColumns.MEDIA_TYPE);
-            }
-            setProjection(projection.toArray(new String[0]));
-            setUri(getContentUri(configs));
-            setSortOrder(DATE_ADDED + " DESC");
-            setSelection(selectionBuilder.toString());
-            setSelectionArgs(selectionArgs.toArray(new String[0]));
-        }
     }
 
     static Uri getContentUri(Configurations configs) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q &&
-                (configs.isShowAudios() && !(configs.isShowFiles() || configs.isShowImages() || configs.isShowVideos()))) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && (configs.isShowAudios() && !(configs.isShowFiles() || configs.isShowImages() || configs.isShowVideos()))) {
             return MediaStore.Audio.Media.getContentUri("external");
         } else {
             return MediaStore.Files.getContentUri("external");
@@ -176,7 +194,7 @@ public class FileLoader extends CursorLoader {
             selection = BUCKET_ID + " IS NOT NULL";
         }
         String sortOrder = DATA + " ASC";
-        Cursor cursor = getContext().getContentResolver().query(uri, projection, selection, null, sortOrder);
+        Cursor cursor = context.getContentResolver().query(uri, projection, selection, null, sortOrder);
         if (cursor == null) {
             Log.e(TAG, "IgnoreFolders Cursor NULL");
             return new ArrayList<>();
@@ -206,17 +224,35 @@ public class FileLoader extends CursorLoader {
         return false;
     }
 
-    public static void loadFiles(FragmentActivity activity, FileResultCallback fileResultCallback, Configurations configs, boolean restart) {
-        if (configs.isShowFiles() || configs.isShowVideos() || configs.isShowAudios() || configs.isShowImages()) {
-            FileLoaderCallback fileLoaderCallBack = new FileLoaderCallback(activity, fileResultCallback, configs);
-            if (!restart) {
-                activity.getLoaderManager().initLoader(0, null, fileLoaderCallBack);
-            } else {
-                activity.getLoaderManager().restartLoader(0, null, fileLoaderCallBack);
-            }
-        } else {
-            fileResultCallback.onResult(null);
-        }
+    public void loadFiles(Consumer<ArrayList<MediaFile>> consumer) {
+
+        disposable.add(RxCursorLoader
+                .single(context.getContentResolver(), query)
+                .map(new Function<Cursor, ArrayList<MediaFile>>() {
+                    @Override
+                    public ArrayList<MediaFile> apply(Cursor cursor) {
+                        ArrayList<MediaFile> mediaFiles = new ArrayList<>();
+                        if (cursor.moveToFirst())
+                            do {
+                                MediaFile mediaFile = asMediaFile(cursor, configs, null);
+                                if (mediaFile != null) {
+                                    mediaFiles.add(mediaFile);
+                                }
+                            } while (cursor.moveToNext());
+
+                        mediaFiles.addAll(mediaFiles);
+                        return mediaFiles;
+                    }
+                })
+                .subscribeOn(Schedulers.computation())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(consumer, new Consumer<Throwable>() {
+                    @Override
+                    public void accept(Throwable throwable) {
+                        Log.e("FilePickerError", throwable.getMessage());
+                    }
+                }));
+
     }
 
     @Nullable
@@ -227,4 +263,76 @@ public class FileLoader extends CursorLoader {
         }
         return null;
     }
+
+    private MediaFile asMediaFile(@NonNull Cursor data, Configurations configs, @Nullable Uri uri) {
+        MediaFile mediaFile = new MediaFile();
+        mediaFile.setPath(data.getString(data.getColumnIndex(DATA)));
+
+        long size = data.getLong(data.getColumnIndex(SIZE));
+        //noinspection deprecation
+        if (size == 0 && mediaFile.getPath() != null) {
+            //Check if File size is really zero
+            size = new java.io.File(data.getString(data.getColumnIndex(DATA))).length();
+            if (size <= 0 && configs.isSkipZeroSizeFiles())
+                return null;
+        }
+        mediaFile.setSize(size);
+
+        mediaFile.setId(data.getLong(data.getColumnIndex(_ID)));
+        mediaFile.setName(data.getString(data.getColumnIndex(DISPLAY_NAME)));
+        mediaFile.setPath(data.getString(data.getColumnIndex(DATA)));
+        mediaFile.setDate(data.getLong(data.getColumnIndex(DATE_ADDED)));
+        mediaFile.setMimeType(data.getString(data.getColumnIndex(MediaStore.Files.FileColumns.MIME_TYPE)));
+        mediaFile.setBucketId(data.getString(data.getColumnIndex(BUCKET_ID)));
+        mediaFile.setBucketName(data.getString(data.getColumnIndex(BUCKET_DISPLAY_NAME)));
+        mediaFile.setUri(uri != null ? uri : ContentUris.withAppendedId(FileLoader.getContentUri(configs), mediaFile.getId()));
+        mediaFile.setDuration(data.getLong(data.getColumnIndex(DURATION)));
+
+        if (TextUtils.isEmpty(mediaFile.getName())) {
+            //noinspection deprecation
+            String path = mediaFile.getPath() != null ? mediaFile.getPath() : "";
+            mediaFile.setName(path.substring(path.lastIndexOf('/') + 1));
+        }
+
+        int mediaTypeIndex = data.getColumnIndex(MEDIA_TYPE);
+        if (mediaTypeIndex >= 0) {
+            mediaFile.setMediaType(data.getInt(mediaTypeIndex));
+        }
+
+        if ((mediaFile.getMediaType() == MediaFile.TYPE_FILE
+                || mediaFile.getMediaType() > MediaFile.TYPE_MAX)
+                && mediaFile.getMimeType() != null) {
+            //Double check correct MediaType
+            mediaFile.setMediaType(getMediaType(mediaFile.getMimeType()));
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+            mediaFile.setHeight(data.getLong(data.getColumnIndex(HEIGHT)));
+            mediaFile.setWidth(data.getLong(data.getColumnIndex(WIDTH)));
+        }
+
+        int albumIdIndex = data.getColumnIndex(ALBUM_ID);
+        if (albumIdIndex >= 0) {
+            int albumId = data.getInt(albumIdIndex);
+            if (albumId >= 0) {
+                mediaFile.setThumbnail(ContentUris.withAppendedId(Uri.parse("content://media/external/audio/albumart"), albumId));
+            }
+        }
+        return mediaFile;
+    }
+
+    private static @MediaFile.Type
+    int getMediaType(String mime) {
+        if (mime.startsWith("image/")) {
+            return MediaFile.TYPE_IMAGE;
+        } else if (mime.startsWith("video/")) {
+            return MediaFile.TYPE_VIDEO;
+        } else if (mime.startsWith("audio/")) {
+            return MediaFile.TYPE_AUDIO;
+        } else {
+            return MediaFile.TYPE_FILE;
+        }
+    }
+
+
 }

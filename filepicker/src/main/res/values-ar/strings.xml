@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">FilePicker</string>
+    <string name="done">تاكيد</string>
+    <string name="file_thumbnail">صورة  مصغره</string>
+    <string name="open_camera">افتح الكاميرا</string>
+    <string name="permission_not_given">Permission not given</string>
+</resources>

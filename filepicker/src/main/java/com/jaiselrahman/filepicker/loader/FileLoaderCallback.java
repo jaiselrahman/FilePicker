@@ -63,7 +63,7 @@ class FileLoaderCallback implements LoaderManager.LoaderCallbacks<Cursor> {
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        return new FileLoader(context, configs);
+        return null;
     }
 
     @Override
@@ -147,8 +147,7 @@ class FileLoaderCallback implements LoaderManager.LoaderCallbacks<Cursor> {
         if (albumIdIndex >= 0) {
             int albumId = data.getInt(albumIdIndex);
             if (albumId >= 0) {
-                mediaFile.setThumbnail(ContentUris
-                        .withAppendedId(Uri.parse("content://media/external/audio/albumart"), albumId));
+                mediaFile.setThumbnail(ContentUris.withAppendedId(Uri.parse("content://media/external/audio/albumart"), albumId));
             }
         }
         return mediaFile;

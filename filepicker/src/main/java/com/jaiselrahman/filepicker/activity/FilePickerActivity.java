@@ -156,6 +156,7 @@ public class FilePickerActivity extends AppCompatActivity
             public void onResult(ArrayList<MediaFile> filesResults) {
                 if (filesResults != null) {
                     mediaFiles.clear();
+                    mediaFiles.ensureCapacity(filesResults.size());
                     mediaFiles.addAll(filesResults);
                     fileGalleryAdapter.notifyDataSetChanged();
                 }

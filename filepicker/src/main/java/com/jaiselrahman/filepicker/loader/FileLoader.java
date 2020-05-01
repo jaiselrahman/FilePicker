@@ -18,7 +18,6 @@ package com.jaiselrahman.filepicker.loader;
 
 import android.content.ContentResolver;
 import android.content.Context;
-import android.content.CursorLoader;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
@@ -28,6 +27,8 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.FragmentActivity;
+import androidx.loader.app.LoaderManager;
+import androidx.loader.content.CursorLoader;
 
 import com.jaiselrahman.filepicker.config.Configurations;
 import com.jaiselrahman.filepicker.model.MediaFile;
@@ -73,8 +74,12 @@ public class FileLoader extends CursorLoader {
     FileLoader(Context context, @NonNull Configurations configs) {
         super(context);
         this.configs = configs;
+    }
+
+    @Override
+    public Cursor loadInBackground() {
         ArrayList<String> selectionArgs = new ArrayList<>();
-        StringBuilder selectionBuilder = new StringBuilder();
+        StringBuilder selectionBuilder = new StringBuilder(100);
 
         String rootPath = configs.getRootPath();
         if (rootPath != null) {
@@ -145,6 +150,7 @@ public class FileLoader extends CursorLoader {
             setSelection(selectionBuilder.toString());
             setSelectionArgs(selectionArgs.toArray(new String[0]));
         }
+        return super.loadInBackground();
     }
 
     static Uri getContentUri(Configurations configs) {
@@ -210,9 +216,9 @@ public class FileLoader extends CursorLoader {
         if (configs.isShowFiles() || configs.isShowVideos() || configs.isShowAudios() || configs.isShowImages()) {
             FileLoaderCallback fileLoaderCallBack = new FileLoaderCallback(activity, fileResultCallback, configs);
             if (!restart) {
-                activity.getLoaderManager().initLoader(0, null, fileLoaderCallBack);
+                LoaderManager.getInstance(activity).initLoader(0, null, fileLoaderCallBack);
             } else {
-                activity.getLoaderManager().restartLoader(0, null, fileLoaderCallBack);
+                LoaderManager.getInstance(activity).restartLoader(0, null, fileLoaderCallBack);
             }
         } else {
             fileResultCallback.onResult(null);

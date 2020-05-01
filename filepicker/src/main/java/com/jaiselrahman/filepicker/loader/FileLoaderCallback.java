@@ -16,10 +16,9 @@
 
 package com.jaiselrahman.filepicker.loader;
 
-import android.app.LoaderManager;
+
 import android.content.ContentUris;
 import android.content.Context;
-import android.content.Loader;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
@@ -28,6 +27,8 @@ import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.loader.app.LoaderManager;
+import androidx.loader.content.Loader;
 
 import com.jaiselrahman.filepicker.config.Configurations;
 import com.jaiselrahman.filepicker.model.MediaFile;
@@ -61,14 +62,15 @@ class FileLoaderCallback implements LoaderManager.LoaderCallbacks<Cursor> {
         this.configs = configs;
     }
 
+    @NonNull
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         return new FileLoader(context, configs);
     }
 
     @Override
-    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        ArrayList<MediaFile> mediaFiles = new ArrayList<>();
+    public void onLoadFinished(@NonNull Loader<Cursor> loader, Cursor data) {
+        ArrayList<MediaFile> mediaFiles = new ArrayList<>(data.getCount());
         if (data.moveToFirst())
             do {
                 MediaFile mediaFile = asMediaFile(data, configs, null);
@@ -93,7 +95,7 @@ class FileLoaderCallback implements LoaderManager.LoaderCallbacks<Cursor> {
     }
 
     @Override
-    public void onLoaderReset(Loader<Cursor> loader) {
+    public void onLoaderReset(@NonNull Loader<Cursor> loader) {
     }
 
     static MediaFile asMediaFile(@NonNull Cursor data, Configurations configs, @Nullable Uri uri) {

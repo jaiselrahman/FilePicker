@@ -72,6 +72,18 @@ public class FilePickerActivity extends AppCompatActivity
     private int maxCount;
     private Long dirId = null;
 
+    private FileResultCallback fileResultCallback = new FileResultCallback() {
+        @Override
+        public void onResult(ArrayList<MediaFile> filesResults) {
+            if (filesResults != null) {
+                mediaFiles.clear();
+                mediaFiles.ensureCapacity(filesResults.size());
+                mediaFiles.addAll(filesResults);
+                fileGalleryAdapter.notifyDataSetChanged();
+            }
+        }
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -156,22 +168,11 @@ public class FilePickerActivity extends AppCompatActivity
     }
 
     private void loadFiles(boolean restart) {
-        FileLoader.loadFiles(this, new FileResultCallback() {
-            @Override
-            public void onResult(ArrayList<MediaFile> filesResults) {
-                if (filesResults != null) {
-                    mediaFiles.clear();
-                    mediaFiles.ensureCapacity(filesResults.size());
-                    mediaFiles.addAll(filesResults);
-                    fileGalleryAdapter.notifyDataSetChanged();
-                }
-            }
-        }, configs, dirId, restart);
+        FileLoader.loadFiles(this, fileResultCallback, configs, dirId, restart);
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == REQUEST_WRITE_PERMISSION) {
             if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 loadFiles(false);
@@ -185,13 +186,14 @@ public class FilePickerActivity extends AppCompatActivity
             } else {
                 Toast.makeText(this, R.string.permission_not_given, Toast.LENGTH_SHORT).show();
             }
+        } else {
+            super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         }
     }
 
     @SuppressLint("NewApi")
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == FileGalleryAdapter.CAPTURE_IMAGE_VIDEO) {
             File file = fileGalleryAdapter.getLastCapturedFile();
             if (resultCode == RESULT_OK) {

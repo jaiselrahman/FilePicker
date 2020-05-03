@@ -66,6 +66,18 @@ public class DirSelectActivity extends AppCompatActivity implements DirListAdapt
     private ArrayList<Dir> dirs = new ArrayList<>();
     private DirListAdapter dirAdapter;
 
+    private DirResultCallback dirResultCallback = new DirResultCallback() {
+        @Override
+        public void onResult(ArrayList<Dir> dirsResult) {
+            if (dirs != null) {
+                dirs.clear();
+                dirs.ensureCapacity(dirsResult.size());
+                dirs.addAll(dirsResult);
+                dirAdapter.notifyDataSetChanged();
+            }
+        }
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -146,22 +158,11 @@ public class DirSelectActivity extends AppCompatActivity implements DirListAdapt
     }
 
     private void loadFiles(boolean restart) {
-        DirLoader.loadDirs(this, new DirResultCallback() {
-            @Override
-            public void onResult(ArrayList<Dir> dirsResult) {
-                if (dirs != null) {
-                    dirs.clear();
-                    dirs.ensureCapacity(dirsResult.size());
-                    dirs.addAll(dirsResult);
-                    dirAdapter.notifyDataSetChanged();
-                }
-            }
-        }, configs, restart);
+        DirLoader.loadDirs(this, dirResultCallback, configs, restart);
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == REQUEST_WRITE_PERMISSION) {
             if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 loadFiles(false);
@@ -175,6 +176,8 @@ public class DirSelectActivity extends AppCompatActivity implements DirListAdapt
             } else {
                 Toast.makeText(this, R.string.permission_not_given, Toast.LENGTH_SHORT).show();
             }
+        } else {
+            super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         }
     }
 

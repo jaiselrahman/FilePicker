@@ -17,7 +17,6 @@
 package com.jaiselrahman.filepicker.loader.dir;
 
 import android.content.Context;
-import android.database.Cursor;
 import android.os.Build;
 import android.provider.MediaStore;
 
@@ -34,14 +33,14 @@ import java.util.ArrayList;
 import static android.provider.MediaStore.Files.FileColumns.MEDIA_TYPE;
 import static android.provider.MediaStore.Files.FileColumns.MEDIA_TYPE_AUDIO;
 import static android.provider.MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE;
-import static android.provider.MediaStore.Files.FileColumns.MEDIA_TYPE_NONE;
 import static android.provider.MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO;
 import static android.provider.MediaStore.Files.FileColumns.MIME_TYPE;
-import static android.provider.MediaStore.Images.ImageColumns.BUCKET_ID;
+import static android.provider.MediaStore.MediaColumns.BUCKET_ID;
 import static android.provider.MediaStore.MediaColumns.DATA;
 import static android.provider.MediaStore.MediaColumns.DATE_ADDED;
-import static android.provider.MediaStore.MediaColumns.DISPLAY_NAME;
 import static android.provider.MediaStore.MediaColumns.SIZE;
+import static com.jaiselrahman.filepicker.loader.FileLoader.appendDefaultFileSelection;
+import static com.jaiselrahman.filepicker.loader.FileLoader.appendFileSelection;
 
 public class DirLoader extends CursorLoader {
 
@@ -54,15 +53,9 @@ public class DirLoader extends CursorLoader {
             MEDIA_TYPE
     };
 
-    private Configurations configs;
-
     DirLoader(Context context, @NonNull Configurations configs) {
         super(context);
-        this.configs = configs;
-    }
 
-    @Override
-    public Cursor loadInBackground() {
         ArrayList<String> selectionArgs = new ArrayList<>();
         StringBuilder selectionBuilder = new StringBuilder(200);
 
@@ -124,38 +117,6 @@ public class DirLoader extends CursorLoader {
             setSelection(selectionBuilder.toString());
             setSelectionArgs(selectionArgs.toArray(new String[0]));
         }
-
-        return super.loadInBackground();
-    }
-
-    private static void appendDefaultFileSelection(StringBuilder selection) {
-        selection.append("(")
-                .append("(")
-                .append(MEDIA_TYPE).append(" = ").append(MEDIA_TYPE_NONE)
-                .append(" or ")
-                .append(MEDIA_TYPE).append(" > ").append(MEDIA_TYPE_VIDEO)
-                .append(")and ")
-                .append(MIME_TYPE).append(" <> 'resource/folder'")
-                .append(" and ")
-                .append(MIME_TYPE).append(" NOT LIKE 'image/%'")
-                .append(" and ")
-                .append(MIME_TYPE).append(" NOT LIKE 'video/%'")
-                .append(" and ")
-                .append(MIME_TYPE).append(" NOT LIKE 'audio/%'")
-                .append(")");
-    }
-
-    private static void appendFileSelection(StringBuilder selectionBuilder, ArrayList<String> selectionArgs, String[] suffixes) {
-        selectionBuilder.append("(");
-        selectionBuilder.append(DISPLAY_NAME).append(" LIKE ?");
-        int size = suffixes.length;
-        selectionArgs.add("%." + suffixes[0].replace(".", ""));
-        for (int i = 1; i < size; i++) {
-            selectionBuilder.append(" or ").append(DISPLAY_NAME).append(" LIKE ?");
-            suffixes[i] = suffixes[i].replace(".", "");
-            selectionArgs.add("%." + suffixes[i]);
-        }
-        selectionBuilder.append(")");
     }
 
     public static void loadDirs(FragmentActivity activity, DirResultCallback dirResultCallback, Configurations configs, boolean restart) {

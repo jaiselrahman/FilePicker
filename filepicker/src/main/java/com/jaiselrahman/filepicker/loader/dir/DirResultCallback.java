@@ -21,7 +21,10 @@ import androidx.annotation.Nullable;
 import com.jaiselrahman.filepicker.model.Dir;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 public interface DirResultCallback {
-    void onResult(@Nullable ArrayList<Dir> dirs);
+    void onResult(@Nullable Collection<Dir> dirs);
 }

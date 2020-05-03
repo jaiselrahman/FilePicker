@@ -52,6 +52,7 @@ import com.jaiselrahman.filepicker.view.DividerItemDecoration;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 
 public class DirSelectActivity extends AppCompatActivity implements DirListAdapter.OnCameraClickListener {
 
@@ -68,7 +69,7 @@ public class DirSelectActivity extends AppCompatActivity implements DirListAdapt
 
     private DirResultCallback dirResultCallback = new DirResultCallback() {
         @Override
-        public void onResult(ArrayList<Dir> dirsResult) {
+        public void onResult(Collection<Dir> dirsResult) {
             if (dirs != null) {
                 dirs.clear();
                 dirs.ensureCapacity(dirsResult.size());

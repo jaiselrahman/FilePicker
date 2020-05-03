@@ -129,6 +129,7 @@ public class DirListAdapter extends RecyclerView.Adapter<DirListAdapter.ViewHold
         holder.dir = mediaDirs.get(position);
 
         holder.dirName.setText(holder.dir.getName());
+        holder.dirCount.setText(String.valueOf(holder.dir.getCount()));
 
         glideRequest.load(holder.dir.getPreview())
                 .into(holder.dirPreview);
@@ -208,6 +209,7 @@ public class DirListAdapter extends RecyclerView.Adapter<DirListAdapter.ViewHold
         private ImageView openCamera, openVideoCamera;
         private SquareImage dirPreview;
         private TextView dirName;
+        private TextView dirCount;
         private Dir dir;
 
         ViewHolder(View v, final OnClickListener onClickListener) {
@@ -216,6 +218,7 @@ public class DirListAdapter extends RecyclerView.Adapter<DirListAdapter.ViewHold
             openVideoCamera = v.findViewById(R.id.file_open_video_camera);
             dirPreview = v.findViewById(R.id.dir_preview);
             dirName = v.findViewById(R.id.dir_name);
+            dirCount = v.findViewById(R.id.dir_count);
 
             v.setOnClickListener(new View.OnClickListener() {
                 @Override

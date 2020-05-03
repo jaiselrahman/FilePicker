@@ -33,12 +33,13 @@ import com.jaiselrahman.filepicker.model.Dir;
 import com.jaiselrahman.filepicker.utils.FileUtils;
 
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 
-import static android.provider.MediaStore.Images.ImageColumns.BUCKET_ID;
-import static android.provider.MediaStore.MediaColumns.BUCKET_DISPLAY_NAME;
-import static android.provider.MediaStore.MediaColumns.DATA;
+import static android.provider.MediaStore.Files.FileColumns.MEDIA_TYPE_AUDIO;
+import static android.provider.MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE;
+import static android.provider.MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO;
 
 class DirLoaderCallback implements LoaderManager.LoaderCallbacks<Cursor> {
     private Context context;
@@ -61,34 +62,69 @@ class DirLoaderCallback implements LoaderManager.LoaderCallbacks<Cursor> {
 
     @Override
     public void onLoadFinished(@NonNull Loader<Cursor> loader, Cursor data) {
-        ArrayList<Dir> mediaDirs = new ArrayList<>();
-        ArrayList<String> ignoredPaths = new ArrayList<>();
 
-        HashSet<Long> dirIds = new HashSet<>(mediaDirs.size() / 8);
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            dirResultCallback.onResult(getDirs(data, configs));
+        } else {
+            dirResultCallback.onResult(getDirsQ(data, configs));
+        }
+    }
+
+    private static Collection<Dir> getDirs(Cursor data, Configurations configs) {
+        List<Dir> dirs = new ArrayList<>();
+        List<String> ignoredPaths = new ArrayList<>();
 
         if (data.moveToFirst())
             do {
-                String path = data.getString(data.getColumnIndex(DATA));
+                String path = data.getString(DirLoader.COLUMN_DATA);
                 String parent = FileUtils.getParent(path);
 
-                long dirId = data.getInt(data.getColumnIndex(BUCKET_ID));
-
-                if (!isExcluded(parent, ignoredPaths) && !FileUtils.toIgnoreFolder(path, configs) &&
-                        (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q || !dirIds.contains(dirId))) {
+                if (!isExcluded(parent, ignoredPaths) && !FileUtils.toIgnoreFolder(path, configs)) {
                     Dir mediaDir = new Dir();
-
-                    mediaDir.setId(dirId);
-                    mediaDir.setName(data.getString(data.getColumnIndex(BUCKET_DISPLAY_NAME)));
+                    mediaDir.setId(data.getInt(DirLoader.COLUMN_BUCKET_ID));
+                    mediaDir.setName(data.getString(DirLoader.COLUMN_BUCKET_DISPLAY_NAME));
+                    mediaDir.setCount(data.getInt(DirLoader.COLUMN_COUNT));
                     mediaDir.setPreview(getPreview(data));
-
-                    mediaDirs.add(mediaDir);
-
-                    dirIds.add(dirId);
+                    dirs.add(mediaDir);
                 } else {
                     ignoredPaths.add(path);
                 }
             } while (data.moveToNext());
-        dirResultCallback.onResult(mediaDirs);
+
+        return dirs;
+    }
+
+    private static Collection<Dir> getDirsQ(Cursor data, Configurations configs) {
+        HashMap<Long, Dir> dirs = new HashMap<>();
+        List<String> ignoredPaths = new ArrayList<>();
+
+        if (data.moveToFirst())
+            do {
+                String path = data.getString(DirLoader.COLUMN_DATA);
+                String parent = FileUtils.getParent(path);
+
+                if (!isExcluded(parent, ignoredPaths) && !FileUtils.toIgnoreFolder(path, configs)) {
+                    long dirId = data.getInt(DirLoader.COLUMN_BUCKET_ID);
+
+                    Dir mediaDir = dirs.get(dirId);
+
+                    if (mediaDir == null) {
+                        mediaDir = new Dir();
+                        mediaDir.setId(dirId);
+                        mediaDir.setName(data.getString(DirLoader.COLUMN_BUCKET_DISPLAY_NAME));
+                        mediaDir.setPreview(getPreview(data));
+                        mediaDir.setCount(1);
+
+                        dirs.put(dirId, mediaDir);
+                    } else {
+                        mediaDir.setCount(mediaDir.getCount() + 1);
+                    }
+                } else {
+                    ignoredPaths.add(path);
+                }
+            } while (data.moveToNext());
+
+        return dirs.values();
     }
 
     @Override
@@ -96,18 +132,18 @@ class DirLoaderCallback implements LoaderManager.LoaderCallbacks<Cursor> {
     }
 
     private static Uri getPreview(Cursor cursor) {
-        long id = cursor.getLong(cursor.getColumnIndex(MediaStore.Files.FileColumns._ID));
-        String mimeType = cursor.getString(cursor.getColumnIndex(MediaStore.MediaColumns.MIME_TYPE));
+        long id = cursor.getLong(DirLoader.COLUMN_ID);
+        int mediaType = cursor.getInt(DirLoader.COLUMN_MEDIA_TYPE);
 
-        if (mimeType == null || id <= 0) return null;
+        if (id <= 0) return null;
 
         Uri contentUri;
 
-        if (mimeType.startsWith("image/")) {
+        if (mediaType == MEDIA_TYPE_IMAGE) {
             contentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
-        } else if (mimeType.startsWith("audio/")) {
+        } else if (mediaType == MEDIA_TYPE_AUDIO) {
             contentUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
-        } else if (mimeType.startsWith("video/")) {
+        } else if (mediaType == MEDIA_TYPE_VIDEO) {
             contentUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
         } else {
             contentUri = MediaStore.Files.getContentUri("external");
@@ -116,7 +152,7 @@ class DirLoaderCallback implements LoaderManager.LoaderCallbacks<Cursor> {
         return ContentUris.withAppendedId(contentUri, id);
     }
 
-    private boolean isExcluded(String path, List<String> ignoredPaths) {
+    private static boolean isExcluded(String path, List<String> ignoredPaths) {
         for (String p : ignoredPaths) {
             if (path.startsWith(p)) return true;
         }

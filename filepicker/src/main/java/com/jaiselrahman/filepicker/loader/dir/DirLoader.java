@@ -29,12 +29,13 @@ import com.jaiselrahman.filepicker.config.Configurations;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import static android.provider.MediaStore.Files.FileColumns.MEDIA_TYPE;
 import static android.provider.MediaStore.Files.FileColumns.MEDIA_TYPE_AUDIO;
 import static android.provider.MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE;
 import static android.provider.MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO;
-import static android.provider.MediaStore.Files.FileColumns.MIME_TYPE;
 import static android.provider.MediaStore.MediaColumns.BUCKET_ID;
 import static android.provider.MediaStore.MediaColumns.DATA;
 import static android.provider.MediaStore.MediaColumns.DATE_ADDED;
@@ -43,15 +44,22 @@ import static com.jaiselrahman.filepicker.loader.FileLoader.appendDefaultFileSel
 import static com.jaiselrahman.filepicker.loader.FileLoader.appendFileSelection;
 
 public class DirLoader extends CursorLoader {
+    static final String COUNT = "count";
 
-    private static final String[] FILE_PROJECTION = new String[]{
+    private static final String[] DIR_PROJECTION = new String[]{
             MediaStore.Files.FileColumns._ID,
             MediaStore.Files.FileColumns.DATA,
             MediaStore.Files.FileColumns.BUCKET_ID,
             MediaStore.Files.FileColumns.BUCKET_DISPLAY_NAME,
-            MIME_TYPE,
-            MEDIA_TYPE
+            MEDIA_TYPE,
     };
+
+    static final int COLUMN_ID = 0;
+    static final int COLUMN_DATA = 1;
+    static final int COLUMN_BUCKET_ID = 2;
+    static final int COLUMN_BUCKET_DISPLAY_NAME = 3;
+    static final int COLUMN_MEDIA_TYPE = 4;
+    static final int COLUMN_COUNT = 5;
 
     DirLoader(Context context, @NonNull Configurations configs) {
         super(context);
@@ -111,12 +119,24 @@ public class DirLoader extends CursorLoader {
         }
 
         if (selectionBuilder.length() != 0) {
-            setProjection(FILE_PROJECTION);
+            setProjection(getDirProjection());
             setUri(MediaStore.Files.getContentUri("external"));
             setSortOrder(DATE_ADDED + " DESC");
             setSelection(selectionBuilder.toString());
             setSelectionArgs(selectionArgs.toArray(new String[0]));
         }
+    }
+
+    private static String[] getDirProjection() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            return DIR_PROJECTION;
+        }
+
+        List<String> projection = new ArrayList<>();
+        Collections.addAll(projection, DIR_PROJECTION);
+        projection.add("COUNT(*) as " + COUNT);
+
+        return projection.toArray(new String[0]);
     }
 
     public static void loadDirs(FragmentActivity activity, DirResultCallback dirResultCallback, Configurations configs, boolean restart) {

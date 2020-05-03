@@ -53,19 +53,22 @@ class FileLoaderCallback implements LoaderManager.LoaderCallbacks<Cursor> {
     private Context context;
     private FileResultCallback fileResultCallback;
     private Configurations configs;
+    private Long dirId;
 
     FileLoaderCallback(@NonNull Context context,
                        @NonNull FileResultCallback fileResultCallback,
-                       @NonNull Configurations configs) {
+                       @NonNull Configurations configs,
+                       Long dirId) {
         this.context = context;
         this.fileResultCallback = fileResultCallback;
         this.configs = configs;
+        this.dirId = dirId;
     }
 
     @NonNull
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        return new FileLoader(context, configs);
+        return new FileLoader(context, configs, dirId);
     }
 
     @Override

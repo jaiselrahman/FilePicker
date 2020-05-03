@@ -70,10 +70,12 @@ public class FileLoader extends CursorLoader {
     }
 
     private Configurations configs;
+    private Long dirId;
 
-    FileLoader(Context context, @NonNull Configurations configs) {
+    FileLoader(Context context, @NonNull Configurations configs, Long dirId) {
         super(context);
         this.configs = configs;
+        this.dirId = dirId;
     }
 
     @Override
@@ -86,6 +88,12 @@ public class FileLoader extends CursorLoader {
             selectionBuilder.append(DATA).append(" LIKE ?");
             if (!rootPath.endsWith(File.separator)) rootPath += File.separator;
             selectionArgs.add(rootPath + "%");
+        }
+
+        if (dirId != null) {
+            if (selectionBuilder.length() != 0)
+                selectionBuilder.append(" and ");
+            selectionBuilder.append(BUCKET_ID).append("=").append(dirId);
         }
 
         if (configs.isShowImages())
@@ -212,9 +220,9 @@ public class FileLoader extends CursorLoader {
         return false;
     }
 
-    public static void loadFiles(FragmentActivity activity, FileResultCallback fileResultCallback, Configurations configs, boolean restart) {
+    public static void loadFiles(FragmentActivity activity, FileResultCallback fileResultCallback, Configurations configs, Long dirId, boolean restart) {
         if (configs.isShowFiles() || configs.isShowVideos() || configs.isShowAudios() || configs.isShowImages()) {
-            FileLoaderCallback fileLoaderCallBack = new FileLoaderCallback(activity, fileResultCallback, configs);
+            FileLoaderCallback fileLoaderCallBack = new FileLoaderCallback(activity, fileResultCallback, configs, dirId);
             if (!restart) {
                 LoaderManager.getInstance(activity).initLoader(0, null, fileLoaderCallBack);
             } else {

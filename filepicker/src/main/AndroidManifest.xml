@@ -18,6 +18,9 @@
         <activity
             android:name=".activity.FilePickerActivity"
             android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".activity.DirSelectActivity"
+            android:theme="@style/AppTheme.NoActionBar" />
     </application>
 
 </manifest>

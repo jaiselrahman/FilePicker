@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2018, Jaisel Rahman <jaiselrahman@gmail.com>.
+ *  Copyright (c) 2020, Jaisel Rahman <jaiselrahman@gmail.com>.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -41,36 +41,30 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.jaiselrahman.filepicker.R;
-import com.jaiselrahman.filepicker.adapter.FileGalleryAdapter;
-import com.jaiselrahman.filepicker.adapter.FileGalleryAdapter.OnCameraClickListener;
-import com.jaiselrahman.filepicker.adapter.MultiSelectionAdapter.OnSelectionListener;
+import com.jaiselrahman.filepicker.adapter.DirListAdapter;
 import com.jaiselrahman.filepicker.config.Configurations;
 import com.jaiselrahman.filepicker.loader.FileLoader;
-import com.jaiselrahman.filepicker.loader.FileResultCallback;
+import com.jaiselrahman.filepicker.loader.dir.DirLoader;
+import com.jaiselrahman.filepicker.loader.dir.DirResultCallback;
+import com.jaiselrahman.filepicker.model.Dir;
 import com.jaiselrahman.filepicker.model.MediaFile;
 import com.jaiselrahman.filepicker.view.DividerItemDecoration;
 
 import java.io.File;
 import java.util.ArrayList;
 
-public class FilePickerActivity extends AppCompatActivity
-        implements OnSelectionListener<FileGalleryAdapter.ViewHolder>, OnCameraClickListener {
+public class DirSelectActivity extends AppCompatActivity implements DirListAdapter.OnCameraClickListener {
+
     public static final String MEDIA_FILES = "MEDIA_FILES";
-    public static final String SELECTED_MEDIA_FILES = "SELECTED_MEDIA_FILES";
     public static final String CONFIGS = "CONFIGS";
-    public static final String DIR_ID = "DIR_ID";
-    public static final String TAG = "FilePicker";
-    private static final String PATH = "PATH";
-    private static final String URI = "URI";
     private static final int REQUEST_WRITE_PERMISSION = 1;
     private static final int REQUEST_CAMERA_PERMISSION_FOR_CAMERA = 2;
     private static final int REQUEST_CAMERA_PERMISSION_FOR_VIDEO = 3;
     private static final int REQUEST_DOCUMENT = 4;
+    private static final int REQUEST_FILE = 5;
     private Configurations configs;
-    private ArrayList<MediaFile> mediaFiles = new ArrayList<>();
-    private FileGalleryAdapter fileGalleryAdapter;
-    private int maxCount;
-    private Long dirId = null;
+    private ArrayList<Dir> dirs = new ArrayList<>();
+    private DirListAdapter dirAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,9 +74,6 @@ public class FilePickerActivity extends AppCompatActivity
         if (configs == null) {
             configs = new Configurations.Builder().build();
         }
-
-        if (getIntent().hasExtra(DIR_ID))
-            dirId = getIntent().getLongExtra(DIR_ID, 0);
 
         if (useDocumentUi()) {
             MimeTypeMap mimeType = MimeTypeMap.getSingleton();
@@ -122,30 +113,29 @@ public class FilePickerActivity extends AppCompatActivity
             imageSize = Math.min(point.x, point.y) / configs.getPortraitSpanCount();
         }
 
-        boolean isSingleChoice = configs.isSingleChoiceMode();
-        fileGalleryAdapter = new FileGalleryAdapter(this, mediaFiles, imageSize,
+        dirAdapter = new DirListAdapter(this, dirs, imageSize,
                 configs.isImageCaptureEnabled(),
                 configs.isVideoCaptureEnabled());
-        fileGalleryAdapter.enableSelection(true);
-        fileGalleryAdapter.enableSingleClickSelection(configs.isSingleClickSelection());
-        fileGalleryAdapter.setOnSelectionListener(this);
-        fileGalleryAdapter.setSingleChoiceMode(isSingleChoice);
-        fileGalleryAdapter.setMaxSelection(isSingleChoice ? 1 : configs.getMaxSelection());
-        fileGalleryAdapter.setSelectedItems(configs.getSelectedMediaFiles());
-        fileGalleryAdapter.setOnCameraClickListener(this);
+
+        dirAdapter.setOnClickListener(new DirListAdapter.OnClickListener() {
+            @Override
+            public void onClick(Dir dir) {
+                Intent intent = new Intent(DirSelectActivity.this, FilePickerActivity.class)
+                        .putExtra(FilePickerActivity.CONFIGS, configs)
+                        .putExtra(FilePickerActivity.DIR_ID, dir.getId());
+                startActivityForResult(intent, REQUEST_FILE);
+            }
+        });
+
+        dirAdapter.setOnCameraClickListener(this);
         RecyclerView recyclerView = findViewById(R.id.file_gallery);
         recyclerView.setLayoutManager(new GridLayoutManager(this, spanCount));
-        recyclerView.setAdapter(fileGalleryAdapter);
+        recyclerView.setAdapter(dirAdapter);
         recyclerView.addItemDecoration(new DividerItemDecoration(getResources().getDimensionPixelSize(R.dimen.grid_spacing), spanCount));
         recyclerView.setItemAnimator(null);
 
         if (requestPermission(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_WRITE_PERMISSION)) {
             loadFiles(false);
-        }
-
-        maxCount = configs.getMaxSelection();
-        if (maxCount > 0) {
-            setTitle(getResources().getString(R.string.selection_count, fileGalleryAdapter.getSelectedItemCount(), maxCount));
         }
     }
 
@@ -156,17 +146,17 @@ public class FilePickerActivity extends AppCompatActivity
     }
 
     private void loadFiles(boolean restart) {
-        FileLoader.loadFiles(this, new FileResultCallback() {
+        DirLoader.loadDirs(this, new DirResultCallback() {
             @Override
-            public void onResult(ArrayList<MediaFile> filesResults) {
-                if (filesResults != null) {
-                    mediaFiles.clear();
-                    mediaFiles.ensureCapacity(filesResults.size());
-                    mediaFiles.addAll(filesResults);
-                    fileGalleryAdapter.notifyDataSetChanged();
+            public void onResult(ArrayList<Dir> dirsResult) {
+                if (dirs != null) {
+                    dirs.clear();
+                    dirs.ensureCapacity(dirsResult.size());
+                    dirs.addAll(dirsResult);
+                    dirAdapter.notifyDataSetChanged();
                 }
             }
-        }, configs, dirId, restart);
+        }, configs, restart);
     }
 
     @Override
@@ -181,7 +171,7 @@ public class FilePickerActivity extends AppCompatActivity
             }
         } else if (requestCode == REQUEST_CAMERA_PERMISSION_FOR_CAMERA || requestCode == REQUEST_CAMERA_PERMISSION_FOR_VIDEO) {
             if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                fileGalleryAdapter.openCamera(requestCode == REQUEST_CAMERA_PERMISSION_FOR_VIDEO);
+                dirAdapter.openCamera(requestCode == REQUEST_CAMERA_PERMISSION_FOR_VIDEO);
             } else {
                 Toast.makeText(this, R.string.permission_not_given, Toast.LENGTH_SHORT).show();
             }
@@ -191,9 +181,8 @@ public class FilePickerActivity extends AppCompatActivity
     @SuppressLint("NewApi")
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == FileGalleryAdapter.CAPTURE_IMAGE_VIDEO) {
-            File file = fileGalleryAdapter.getLastCapturedFile();
+        if (requestCode == DirListAdapter.CAPTURE_IMAGE_VIDEO) {
+            File file = dirAdapter.getLastCapturedFile();
             if (resultCode == RESULT_OK) {
                 MediaScannerConnection.scanFile(this, new String[]{file.getAbsolutePath()}, null,
                         new MediaScannerConnection.OnScanCompletedListener() {
@@ -210,7 +199,7 @@ public class FilePickerActivity extends AppCompatActivity
                             }
                         });
             } else {
-                getContentResolver().delete(fileGalleryAdapter.getLastCapturedUri(),
+                getContentResolver().delete(dirAdapter.getLastCapturedUri(),
                         null, null);
             }
         } else if (requestCode == REQUEST_DOCUMENT) {
@@ -234,6 +223,17 @@ public class FilePickerActivity extends AppCompatActivity
             intent.putExtra(MEDIA_FILES, mediaFiles);
             setResult(RESULT_OK, intent);
             finish();
+        } else if (requestCode == REQUEST_FILE) {
+            if (resultCode == RESULT_OK) {
+                setResult(RESULT_OK, data);
+                finish();
+            } else if (resultCode == RESULT_CANCELED && data != null) {
+                ArrayList<MediaFile> selectedFiles = data.getParcelableArrayListExtra(FilePickerActivity.MEDIA_FILES);
+                if (selectedFiles != null) {
+                    configs.getSelectedMediaFiles().clear();
+                    configs.getSelectedMediaFiles().addAll(selectedFiles);
+                }
+            }
         } else {
             super.onActivityResult(requestCode, resultCode, data);
         }
@@ -248,43 +248,10 @@ public class FilePickerActivity extends AppCompatActivity
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.done) {
-            Intent intent = new Intent();
-            intent.putExtra(MEDIA_FILES, fileGalleryAdapter.getSelectedItems());
-            setResult(RESULT_OK, intent);
             finish();
             return true;
         }
         return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        if (useDocumentUi()) return;
-        File file = fileGalleryAdapter.getLastCapturedFile();
-        if (file != null)
-            outState.putString(PATH, file.getAbsolutePath());
-        outState.putParcelable(URI, fileGalleryAdapter.getLastCapturedUri());
-        outState.putParcelableArrayList(SELECTED_MEDIA_FILES, fileGalleryAdapter.getSelectedItems());
-    }
-
-    @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
-        if (useDocumentUi()) return;
-        String path = savedInstanceState.getString(PATH);
-        if (path != null)
-            fileGalleryAdapter.setLastCapturedFile(new File(path));
-
-        Uri uri = savedInstanceState.getParcelable(URI);
-        if (uri != null)
-            fileGalleryAdapter.setLastCapturedUri(uri);
-
-        ArrayList<MediaFile> mediaFiles = savedInstanceState.getParcelableArrayList(SELECTED_MEDIA_FILES);
-        if (mediaFiles != null) {
-            fileGalleryAdapter.setSelectedItems(mediaFiles);
-            fileGalleryAdapter.notifyDataSetChanged();
-        }
     }
 
     @Override
@@ -315,43 +282,5 @@ public class FilePickerActivity extends AppCompatActivity
             return false;
         }
         return true;
-    }
-
-    @Override
-    public void onSelectionBegin() {
-
-    }
-
-    @Override
-    public void onSelected(FileGalleryAdapter.ViewHolder viewHolder, int position) {
-        if (maxCount > 0) {
-            setTitle(getResources().getString(R.string.selection_count, fileGalleryAdapter.getSelectedItemCount(), maxCount));
-        }
-    }
-
-    @Override
-    public void onUnSelected(FileGalleryAdapter.ViewHolder viewHolder, int position) {
-        if (maxCount > 0) {
-            setTitle(getResources().getString(R.string.selection_count, fileGalleryAdapter.getSelectedItemCount(), maxCount));
-        }
-    }
-
-    @Override
-    public void onSelectAll() {
-
-    }
-
-    @Override
-    public void onUnSelectAll() {
-
-    }
-
-    @Override
-    public void onSelectionEnd() {
-
-    }
-
-    @Override
-    public void onMaxReached() {
     }
 }

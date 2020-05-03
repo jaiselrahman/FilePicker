@@ -37,7 +37,10 @@ public class FileUtils {
             }
         }
         if (configs.isIgnoreNoMediaDir()) {
-            return new File(parent, MediaStore.MEDIA_IGNORE_FILENAME).exists();
+            while (!parent.isEmpty() && !new File(parent, MediaStore.MEDIA_IGNORE_FILENAME).exists()) {
+                parent = getParent(parent);
+            }
+            return !parent.isEmpty();
         }
         return false;
     }

@@ -18,7 +18,6 @@ package com.jaiselrahman.filepickersample;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Environment;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -26,6 +25,7 @@ import android.view.View;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.jaiselrahman.filepicker.activity.DirSelectActivity;
 import com.jaiselrahman.filepicker.activity.FilePickerActivity;
 import com.jaiselrahman.filepicker.config.Configurations;
 import com.jaiselrahman.filepicker.model.MediaFile;
@@ -105,15 +105,15 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.launch_filePicker).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(MainActivity.this, FilePickerActivity.class);
-                intent.putExtra(FilePickerActivity.CONFIGS, new Configurations.Builder()
+                Intent intent = new Intent(MainActivity.this, DirSelectActivity.class);
+                intent.putExtra(DirSelectActivity.CONFIGS, new Configurations.Builder()
                         .setCheckPermission(true)
                         .setSelectedMediaFiles(mediaFiles)
                         .setShowFiles(true)
-                        .setShowImages(false)
-                        .setShowVideos(false)
+                        .setShowImages(true)
+                        .setShowAudios(true)
+                        .setShowVideos(true)
                         .setMaxSelection(10)
-                        .setRootPath(Environment.getExternalStorageDirectory().getPath() + "/Download")
                         .build());
                 startActivityForResult(intent, FILE_REQUEST_CODE);
             }

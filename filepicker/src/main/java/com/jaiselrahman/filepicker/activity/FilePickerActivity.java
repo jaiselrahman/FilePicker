@@ -66,20 +66,22 @@ public class FilePickerActivity extends AppCompatActivity
     private static final int REQUEST_CAMERA_PERMISSION_FOR_CAMERA = 2;
     private static final int REQUEST_CAMERA_PERMISSION_FOR_VIDEO = 3;
     private static final int REQUEST_DOCUMENT = 4;
+    private static final int INIT_SIZE = 6;
     private Configurations configs;
-    private ArrayList<MediaFile> mediaFiles = new ArrayList<>();
     private FileGalleryAdapter fileGalleryAdapter;
     private int maxCount;
     private Long dirId = null;
 
     private FileResultCallback fileResultCallback = new FileResultCallback() {
         @Override
-        public void onResult(ArrayList<MediaFile> filesResults) {
+        public void onResult(final ArrayList<MediaFile> filesResults) {
             if (filesResults != null) {
-                mediaFiles.clear();
-                mediaFiles.ensureCapacity(filesResults.size());
-                mediaFiles.addAll(filesResults);
-                fileGalleryAdapter.notifyDataSetChanged();
+                if (filesResults.size() <= INIT_SIZE) {
+                    fileGalleryAdapter.submitList(filesResults);
+                } else {
+                    fileGalleryAdapter.submitList(filesResults.subList(0, INIT_SIZE));
+                    fileGalleryAdapter.submitList(filesResults);
+                }
             }
         }
     };
@@ -135,9 +137,9 @@ public class FilePickerActivity extends AppCompatActivity
         }
 
         boolean isSingleChoice = configs.isSingleChoiceMode();
-        fileGalleryAdapter = new FileGalleryAdapter(this, mediaFiles, imageSize,
-                configs.isImageCaptureEnabled(),
-                configs.isVideoCaptureEnabled());
+        fileGalleryAdapter = new FileGalleryAdapter(this, imageSize,
+                dirId == null && configs.isImageCaptureEnabled(),
+                dirId == null && configs.isVideoCaptureEnabled());
         fileGalleryAdapter.enableSelection(true);
         fileGalleryAdapter.enableSingleClickSelection(configs.isSingleClickSelection());
         fileGalleryAdapter.setOnSelectionListener(this);
@@ -146,10 +148,17 @@ public class FilePickerActivity extends AppCompatActivity
         fileGalleryAdapter.setSelectedItems(configs.getSelectedMediaFiles());
         fileGalleryAdapter.setOnCameraClickListener(this);
         RecyclerView recyclerView = findViewById(R.id.file_gallery);
-        recyclerView.setLayoutManager(new GridLayoutManager(this, spanCount));
+        recyclerView.setLayoutManager(new GridLayoutManager(this, spanCount) {
+            @Override
+            public boolean isAutoMeasureEnabled() {
+                return false;
+            }
+        });
         recyclerView.setAdapter(fileGalleryAdapter);
         recyclerView.addItemDecoration(new DividerItemDecoration(getResources().getDimensionPixelSize(R.dimen.grid_spacing), spanCount));
         recyclerView.setItemAnimator(null);
+        recyclerView.setHasFixedSize(false);
+        recyclerView.setItemViewCacheSize(20);
 
         if (requestPermission(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_WRITE_PERMISSION)) {
             loadFiles(false);
@@ -355,5 +364,15 @@ public class FilePickerActivity extends AppCompatActivity
 
     @Override
     public void onMaxReached() {
+    }
+
+    @Override
+    public void onBackPressed() {
+
+        Intent intent = new Intent();
+        intent.putExtra(MEDIA_FILES, fileGalleryAdapter.getSelectedItems());
+        setResult(RESULT_CANCELED, intent);
+
+        super.onBackPressed();
     }
 }

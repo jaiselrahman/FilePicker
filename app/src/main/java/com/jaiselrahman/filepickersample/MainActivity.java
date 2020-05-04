@@ -113,6 +113,10 @@ public class MainActivity extends AppCompatActivity {
                         .setShowImages(true)
                         .setShowAudios(true)
                         .setShowVideos(true)
+                        .setIgnoreNoMedia(false)
+                        .enableVideoCapture(true)
+                        .enableImageCapture(true)
+                        .setIgnoreHiddenFile(false)
                         .setMaxSelection(10)
                         .build());
                 startActivityForResult(intent, FILE_REQUEST_CODE);

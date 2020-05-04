@@ -20,19 +20,18 @@ import android.view.View;
 
 import androidx.annotation.CallSuper;
 import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.AsyncListDiffer;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.jaiselrahman.filepicker.model.MediaFile;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 @SuppressWarnings({"unused", "WeakerAccess"})
 public abstract class MultiSelectionAdapter<VH extends RecyclerView.ViewHolder> extends RecyclerView.Adapter<VH> {
     private static final String TAG = MultiSelectionAdapter.class.getSimpleName();
     private ArrayList<MediaFile> selectedItems = new ArrayList<>();
-    private ArrayList<MediaFile> mediaFiles;
 
     private OnItemClickListener onItemClickListener;
     private OnItemLongClickListener onItemLongClickListener;
@@ -42,7 +41,9 @@ public abstract class MultiSelectionAdapter<VH extends RecyclerView.ViewHolder> 
     private boolean isSingleClickSelection = false;
     private boolean singleChoiceMode = false;
     private int maxSelection = -1;
-    private int itemStartPosition = 0;
+    protected int itemStartPosition = 0;
+    private AsyncListDiffer<MediaFile> differ;
+
     private OnSelectionListener<VH> onSelectionListener = new OnSelectionListener<VH>() {
         @Override
         public void onSelectionBegin() {
@@ -54,7 +55,7 @@ public abstract class MultiSelectionAdapter<VH extends RecyclerView.ViewHolder> 
         @Override
         public void onSelected(VH viewHolder, int position) {
             if (singleChoiceMode && selectedItems.size() > 0) {
-                int pos = mediaFiles.indexOf(selectedItems.get(0));
+                int pos = getCurrentList().indexOf(selectedItems.get(0));
                 if (pos >= 0) {
                     removeSelection(pos);
                     handleItemChanged(pos);
@@ -80,7 +81,7 @@ public abstract class MultiSelectionAdapter<VH extends RecyclerView.ViewHolder> 
         public void onSelectAll() {
             isSelectionStarted = true;
             selectedItems.clear();
-            selectedItems.addAll(mediaFiles);
+            selectedItems.addAll(getCurrentList());
             notifyDataSetChanged();
             if (customOnSelectionListener != null)
                 customOnSelectionListener.onSelectAll();
@@ -89,7 +90,7 @@ public abstract class MultiSelectionAdapter<VH extends RecyclerView.ViewHolder> 
         @Override
         public void onUnSelectAll() {
             for (int i = selectedItems.size() - 1; i >= 0; i--) {
-                int position = mediaFiles.indexOf(selectedItems.get(i));
+                int position = getCurrentList().indexOf(selectedItems.get(i));
                 if (position < 0) continue;
                 removeSelection(position);
                 handleItemChanged(position);
@@ -113,8 +114,8 @@ public abstract class MultiSelectionAdapter<VH extends RecyclerView.ViewHolder> 
         }
     };
 
-    public MultiSelectionAdapter(ArrayList<MediaFile> items) {
-        this.mediaFiles = items;
+    public void setDiffer(AsyncListDiffer<MediaFile> differ) {
+        this.differ = differ;
     }
 
     public void setItemStartPosition(int itemStartPosition) {
@@ -129,6 +130,19 @@ public abstract class MultiSelectionAdapter<VH extends RecyclerView.ViewHolder> 
         this.maxSelection = maxSelection;
     }
 
+    protected MediaFile getItem(int position) {
+        return differ.getCurrentList().get(position);
+    }
+
+    protected List<MediaFile> getCurrentList() {
+        return differ.getCurrentList();
+    }
+
+    @Override
+    public int getItemCount() {
+        return differ.getCurrentList().size();
+    }
+
     @CallSuper
     @Override
     public void onBindViewHolder(@NonNull final VH holder, int position) {
@@ -139,7 +153,7 @@ public abstract class MultiSelectionAdapter<VH extends RecyclerView.ViewHolder> 
             public void onClick(View v) {
                 int position = holder.getAdapterPosition() - itemStartPosition;
                 if (enabledSelection && (isSelectionStarted || isSingleClickSelection)) {
-                    if (selectedItems.contains(mediaFiles.get(position))) {
+                    if (selectedItems.contains(getItem(position))) {
                         onSelectionListener.onUnSelected(holder, position);
                         if (selectedItems.isEmpty()) {
                             onSelectionListener.onSelectionEnd();
@@ -153,8 +167,7 @@ public abstract class MultiSelectionAdapter<VH extends RecyclerView.ViewHolder> 
             }
         });
 
-
-        setItemSelected(view, position, selectedItems.contains(mediaFiles.get(position)));
+        setItemSelected(view, position, selectedItems.contains(getItem(position)));
 
         view.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
@@ -165,7 +178,7 @@ public abstract class MultiSelectionAdapter<VH extends RecyclerView.ViewHolder> 
                         onSelectionListener.onSelectionBegin();
                         onSelectionListener.onSelected(holder, position);
                     } else if (selectedItems.size() <= 1
-                            && selectedItems.contains(mediaFiles.get(position))) {
+                            && selectedItems.contains(getItem(position))) {
                         onSelectionListener.onSelectionEnd();
                         onSelectionListener.onUnSelected(holder, position);
                     }
@@ -268,10 +281,10 @@ public abstract class MultiSelectionAdapter<VH extends RecyclerView.ViewHolder> 
 
     private void setItemSelected(View view, int position, boolean selected) {
         if (selected) {
-            if (!selectedItems.contains(mediaFiles.get(position)))
-                selectedItems.add(mediaFiles.get(position));
+            if (!selectedItems.contains(getItem(position)))
+                selectedItems.add(getItem(position));
         } else {
-            if (selectedItems.remove(mediaFiles.get(position))
+            if (selectedItems.remove(getItem(position))
                     && selectedItems.isEmpty()) {
                 onSelectionListener.onSelectionEnd();
             }
@@ -279,59 +292,12 @@ public abstract class MultiSelectionAdapter<VH extends RecyclerView.ViewHolder> 
     }
 
     private void removeSelection(int position) {
-        if (selectedItems.remove(mediaFiles.get(position))
+        if (selectedItems.remove(getItem(position))
                 && selectedItems.isEmpty()) {
             onSelectionListener.onSelectionEnd();
         }
     }
 
-    public boolean add(MediaFile mediaFile) {
-        if (mediaFiles.add(mediaFile)) {
-            handleItemInserted(mediaFiles.size() - 1);
-            return true;
-        }
-        return false;
-    }
-
-    public void add(int position, MediaFile mediaFile) {
-        mediaFiles.add(position, mediaFile);
-        handleItemInserted(position);
-    }
-
-    public boolean addAll(Collection<MediaFile> itemSelection) {
-        int lastPosition = mediaFiles.size();
-        if (mediaFiles.addAll(itemSelection)) {
-            handleItemRangeInserted(lastPosition, itemSelection.size());
-            return true;
-        }
-        return false;
-    }
-
-    public boolean addAll(int position, Collection<MediaFile> itemCollection) {
-        if (mediaFiles.addAll(position, itemCollection)) {
-            handleItemRangeInserted(position, itemCollection.size());
-            return true;
-        }
-        return false;
-    }
-
-    public void remove(MediaFile item) {
-        int position = mediaFiles.indexOf(item);
-        handleItemRemoved(position);
-        mediaFiles.remove(position);
-    }
-
-    public MediaFile remove(int position) {
-        handleItemRemoved(position);
-        return mediaFiles.remove(position);
-    }
-
-    public void removeAll(Collection<MediaFile> itemCollection) {
-        ArrayList<MediaFile> removeItems = new ArrayList<>(itemCollection);
-        for (int i = itemCollection.size() - 1; i >= 0; i--) {
-            remove(removeItems.get(i));
-        }
-    }
 
     public interface OnItemClickListener {
         void onClick(View v, int position);

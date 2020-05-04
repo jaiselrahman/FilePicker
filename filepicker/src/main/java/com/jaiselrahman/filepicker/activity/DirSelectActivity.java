@@ -52,7 +52,7 @@ import com.jaiselrahman.filepicker.view.DividerItemDecoration;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.List;
 
 public class DirSelectActivity extends AppCompatActivity implements DirListAdapter.OnCameraClickListener {
 
@@ -63,18 +63,21 @@ public class DirSelectActivity extends AppCompatActivity implements DirListAdapt
     private static final int REQUEST_CAMERA_PERMISSION_FOR_VIDEO = 3;
     private static final int REQUEST_DOCUMENT = 4;
     private static final int REQUEST_FILE = 5;
+    private static final int INIT_SIZE = 6;
     private Configurations configs;
     private ArrayList<Dir> dirs = new ArrayList<>();
     private DirListAdapter dirAdapter;
 
     private DirResultCallback dirResultCallback = new DirResultCallback() {
         @Override
-        public void onResult(Collection<Dir> dirsResult) {
+        public void onResult(final List<Dir> dirsResult) {
             if (dirs != null) {
-                dirs.clear();
-                dirs.ensureCapacity(dirsResult.size());
-                dirs.addAll(dirsResult);
-                dirAdapter.notifyDataSetChanged();
+                if (dirsResult.size() <= INIT_SIZE) {
+                    dirAdapter.submitList(dirsResult);
+                } else {
+                    dirAdapter.submitList(dirsResult.subList(0, INIT_SIZE));
+                    dirAdapter.submitList(dirsResult);
+                }
             }
         }
     };
@@ -126,7 +129,7 @@ public class DirSelectActivity extends AppCompatActivity implements DirListAdapt
             imageSize = Math.min(point.x, point.y) / configs.getPortraitSpanCount();
         }
 
-        dirAdapter = new DirListAdapter(this, dirs, imageSize,
+        dirAdapter = new DirListAdapter(this, imageSize,
                 configs.isImageCaptureEnabled(),
                 configs.isVideoCaptureEnabled());
 
@@ -142,13 +145,20 @@ public class DirSelectActivity extends AppCompatActivity implements DirListAdapt
 
         dirAdapter.setOnCameraClickListener(this);
         RecyclerView recyclerView = findViewById(R.id.file_gallery);
-        recyclerView.setLayoutManager(new GridLayoutManager(this, spanCount));
+        recyclerView.setLayoutManager(new GridLayoutManager(this, spanCount) {
+            @Override
+            public boolean isAutoMeasureEnabled() {
+                return false;
+            }
+        });
         recyclerView.setAdapter(dirAdapter);
         recyclerView.addItemDecoration(new DividerItemDecoration(getResources().getDimensionPixelSize(R.dimen.grid_spacing), spanCount));
         recyclerView.setItemAnimator(null);
+        recyclerView.setHasFixedSize(true);
+        recyclerView.setItemViewCacheSize(20);
 
         if (requestPermission(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_WRITE_PERMISSION)) {
-            loadFiles(false);
+            loadDirs(false);
         }
     }
 
@@ -158,7 +168,7 @@ public class DirSelectActivity extends AppCompatActivity implements DirListAdapt
                 && !(configs.isShowImages() || configs.isShowVideos() || configs.isShowAudios());
     }
 
-    private void loadFiles(boolean restart) {
+    private void loadDirs(boolean restart) {
         DirLoader.loadDirs(this, dirResultCallback, configs, restart);
     }
 
@@ -166,7 +176,7 @@ public class DirSelectActivity extends AppCompatActivity implements DirListAdapt
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         if (requestCode == REQUEST_WRITE_PERMISSION) {
             if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                loadFiles(false);
+                loadDirs(false);
             } else {
                 Toast.makeText(this, R.string.permission_not_given, Toast.LENGTH_SHORT).show();
                 finish();
@@ -196,7 +206,7 @@ public class DirSelectActivity extends AppCompatActivity implements DirListAdapt
                                     runOnUiThread(new Runnable() {
                                         @Override
                                         public void run() {
-                                            loadFiles(true);
+                                            loadDirs(true);
                                         }
                                     });
                                 }

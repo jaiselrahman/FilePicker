@@ -33,6 +33,7 @@ import com.jaiselrahman.filepicker.model.Dir;
 import com.jaiselrahman.filepicker.utils.FileUtils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -70,7 +71,7 @@ class DirLoaderCallback implements LoaderManager.LoaderCallbacks<Cursor> {
         }
     }
 
-    private static Collection<Dir> getDirs(Cursor data, Configurations configs) {
+    private static List<Dir> getDirs(Cursor data, Configurations configs) {
         List<Dir> dirs = new ArrayList<>();
         List<String> ignoredPaths = new ArrayList<>();
 
@@ -94,7 +95,7 @@ class DirLoaderCallback implements LoaderManager.LoaderCallbacks<Cursor> {
         return dirs;
     }
 
-    private static Collection<Dir> getDirsQ(Cursor data, Configurations configs) {
+    private static List<Dir> getDirsQ(Cursor data, Configurations configs) {
         HashMap<Long, Dir> dirs = new HashMap<>();
         List<String> ignoredPaths = new ArrayList<>();
 
@@ -124,7 +125,7 @@ class DirLoaderCallback implements LoaderManager.LoaderCallbacks<Cursor> {
                 }
             } while (data.moveToNext());
 
-        return dirs.values();
+        return new ArrayList<>(dirs.values());
     }
 
     @Override
@@ -146,7 +147,7 @@ class DirLoaderCallback implements LoaderManager.LoaderCallbacks<Cursor> {
         } else if (mediaType == MEDIA_TYPE_VIDEO) {
             contentUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
         } else {
-            contentUri = MediaStore.Files.getContentUri("external");
+            return null;
         }
 
         return ContentUris.withAppendedId(contentUri, id);

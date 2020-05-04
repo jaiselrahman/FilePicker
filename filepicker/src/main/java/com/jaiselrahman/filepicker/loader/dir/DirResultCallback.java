@@ -26,5 +26,5 @@ import java.util.Collections;
 import java.util.List;
 
 public interface DirResultCallback {
-    void onResult(@Nullable Collection<Dir> dirs);
+    void onResult(@Nullable List<Dir> dirs);
 }

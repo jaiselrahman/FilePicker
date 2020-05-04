@@ -29,6 +29,10 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.AsyncDifferConfig;
+import androidx.recyclerview.widget.AsyncListDiffer;
+import androidx.recyclerview.widget.DiffUtil;
+import androidx.recyclerview.widget.ListUpdateCallback;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
@@ -41,8 +45,8 @@ import com.jaiselrahman.filepicker.view.SquareImage;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 import static android.os.Environment.DIRECTORY_MOVIES;
@@ -50,9 +54,9 @@ import static android.os.Environment.DIRECTORY_PICTURES;
 import static android.os.Environment.getExternalStoragePublicDirectory;
 import static com.jaiselrahman.filepicker.activity.FilePickerActivity.TAG;
 
-public class DirListAdapter extends RecyclerView.Adapter<DirListAdapter.ViewHolder> {
+public class DirListAdapter extends RecyclerView.Adapter<DirListAdapter.ViewHolder> implements ListUpdateCallback {
     public static final int CAPTURE_IMAGE_VIDEO = 1;
-    private ArrayList<Dir> mediaDirs;
+    //    private ArrayList<Dir> mediaDirs;
     private Activity activity;
     private RequestManager glideRequest;
     private OnClickListener onClickListener;
@@ -61,10 +65,12 @@ public class DirListAdapter extends RecyclerView.Adapter<DirListAdapter.ViewHold
     private boolean showVideoCamera;
     private File lastCapturedFile;
     private Uri lastCapturedUri;
+    private int itemStartPosition;
     private SimpleDateFormat TimeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault());
 
-    public DirListAdapter(Activity activity, ArrayList<Dir> mediaDirs, int imageSize, boolean showCamera, boolean showVideoCamera) {
-        this.mediaDirs = mediaDirs;
+    private AsyncListDiffer<Dir> differ = new AsyncListDiffer<>(this, new AsyncDifferConfig.Builder<>(DIR_ITEM_CALLBACK).build());
+
+    public DirListAdapter(Activity activity, int imageSize, boolean showCamera, boolean showVideoCamera) {
         this.activity = activity;
         this.showCamera = showCamera;
         this.showVideoCamera = showVideoCamera;
@@ -74,6 +80,11 @@ public class DirListAdapter extends RecyclerView.Adapter<DirListAdapter.ViewHold
                         .optionalCenterCrop()
                         .placeholder(R.drawable.ic_dir)
                         .override(imageSize));
+
+        if (showCamera && showVideoCamera)
+            itemStartPosition = 2;
+        else if (showCamera || showVideoCamera)
+            itemStartPosition = 1;
     }
 
     public File getLastCapturedFile() {
@@ -126,13 +137,17 @@ public class DirListAdapter extends RecyclerView.Adapter<DirListAdapter.ViewHold
             position--;
         }
 
-        holder.dir = mediaDirs.get(position);
+        holder.dir = getItem(position);
 
         holder.dirName.setText(holder.dir.getName());
         holder.dirCount.setText(String.valueOf(holder.dir.getCount()));
 
-        glideRequest.load(holder.dir.getPreview())
-                .into(holder.dirPreview);
+        Uri preview = holder.dir.getPreview();
+        if (preview != null)
+            glideRequest.load(holder.dir.getPreview())
+                    .into(holder.dirPreview);
+        else
+            holder.dirPreview.setImageResource(R.drawable.ic_dir);
     }
 
     private void handleCamera(final ImageView openCamera, final boolean forVideo) {
@@ -193,16 +208,44 @@ public class DirListAdapter extends RecyclerView.Adapter<DirListAdapter.ViewHold
         this.onCameraClickListener = onCameraClickListener;
     }
 
+    private Dir getItem(int position) {
+        return differ.getCurrentList().get(position);
+    }
+
     @Override
     public int getItemCount() {
         if (showCamera) {
             if (showVideoCamera)
-                return mediaDirs.size() + 2;
-            return mediaDirs.size() + 1;
+                return differ.getCurrentList().size() + 2;
+            return differ.getCurrentList().size() + 1;
         } else if (showVideoCamera) {
-            return mediaDirs.size() + 1;
+            return differ.getCurrentList().size() + 1;
         }
-        return mediaDirs.size();
+        return differ.getCurrentList().size();
+    }
+
+    @Override
+    public void onInserted(int position, int count) {
+        notifyItemRangeInserted(itemStartPosition + position, count);
+    }
+
+    @Override
+    public void onRemoved(int position, int count) {
+        notifyItemRangeRemoved(itemStartPosition + position, count);
+    }
+
+    @Override
+    public void onMoved(int fromPosition, int toPosition) {
+        notifyItemMoved(itemStartPosition + fromPosition, itemStartPosition + toPosition);
+    }
+
+    @Override
+    public void onChanged(int position, int count, Object payload) {
+        notifyItemRangeChanged(itemStartPosition + position, count, payload);
+    }
+
+    public void submitList(List<Dir> dirs) {
+        differ.submitList(dirs);
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {
@@ -236,4 +279,19 @@ public class DirListAdapter extends RecyclerView.Adapter<DirListAdapter.ViewHold
     public interface OnClickListener {
         void onClick(Dir dir);
     }
+
+    private static final DiffUtil.ItemCallback<Dir> DIR_ITEM_CALLBACK = new DiffUtil.ItemCallback<Dir>() {
+        @Override
+        public boolean areItemsTheSame(@NonNull Dir oldItem, @NonNull Dir newItem) {
+            return oldItem.getId() == newItem.getId();
+        }
+
+        @Override
+        public boolean areContentsTheSame(@NonNull Dir oldItem, @NonNull Dir newItem) {
+            return oldItem.getName().equals(newItem.getName())
+                    && oldItem.getCount() == newItem.getCount()
+                    && (oldItem.getPreview() == null && newItem.getPreview() == null)
+                    || oldItem.getPreview().equals(newItem.getPreview());
+        }
+    };
 }

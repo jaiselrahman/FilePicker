@@ -29,6 +29,10 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.AsyncDifferConfig;
+import androidx.recyclerview.widget.AsyncListDiffer;
+import androidx.recyclerview.widget.DiffUtil;
+import androidx.recyclerview.widget.ListUpdateCallback;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
@@ -42,8 +46,8 @@ import com.jaiselrahman.filepicker.view.SquareImage;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 import static android.os.Environment.DIRECTORY_MOVIES;
@@ -52,9 +56,9 @@ import static android.os.Environment.getExternalStoragePublicDirectory;
 import static com.jaiselrahman.filepicker.activity.FilePickerActivity.TAG;
 
 public class FileGalleryAdapter extends MultiSelectionAdapter<FileGalleryAdapter.ViewHolder>
-        implements MultiSelectionAdapter.OnSelectionListener<FileGalleryAdapter.ViewHolder> {
+        implements MultiSelectionAdapter.OnSelectionListener<FileGalleryAdapter.ViewHolder>,
+        ListUpdateCallback {
     public static final int CAPTURE_IMAGE_VIDEO = 1;
-    private ArrayList<MediaFile> mediaFiles;
     private Activity activity;
     private RequestManager glideRequest;
     private OnSelectionListener<ViewHolder> onSelectionListener;
@@ -65,12 +69,15 @@ public class FileGalleryAdapter extends MultiSelectionAdapter<FileGalleryAdapter
     private Uri lastCapturedUri;
     private SimpleDateFormat TimeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault());
 
-    public FileGalleryAdapter(Activity activity, ArrayList<MediaFile> mediaFiles, int imageSize, boolean showCamera, boolean showVideoCamera) {
-        super(mediaFiles);
-        this.mediaFiles = mediaFiles;
+    private AsyncListDiffer<MediaFile> differ = new AsyncListDiffer<>(this, new AsyncDifferConfig.Builder<>(ITEM_CALLBACK).build());
+
+    public FileGalleryAdapter(Activity activity, int imageSize, boolean showCamera, boolean showVideoCamera) {
         this.activity = activity;
         this.showCamera = showCamera;
         this.showVideoCamera = showVideoCamera;
+
+        setDiffer(differ);
+
         glideRequest = Glide.with(this.activity)
                 .applyDefaultRequestOptions(RequestOptions
                         .sizeMultiplierOf(0.70f)
@@ -134,7 +141,9 @@ public class FileGalleryAdapter extends MultiSelectionAdapter<FileGalleryAdapter
         }
 
         super.onBindViewHolder(holder, position);
-        MediaFile mediaFile = mediaFiles.get(position);
+
+        MediaFile mediaFile = getItem(position);
+
         if (mediaFile.getMediaType() == MediaFile.TYPE_VIDEO ||
                 mediaFile.getMediaType() == MediaFile.TYPE_IMAGE) {
             glideRequest.load(mediaFile.getUri())
@@ -229,12 +238,12 @@ public class FileGalleryAdapter extends MultiSelectionAdapter<FileGalleryAdapter
     public int getItemCount() {
         if (showCamera) {
             if (showVideoCamera)
-                return mediaFiles.size() + 2;
-            return mediaFiles.size() + 1;
+                return super.getItemCount() + 2;
+            return super.getItemCount() + 1;
         } else if (showVideoCamera) {
-            return mediaFiles.size() + 1;
+            return super.getItemCount() + 1;
         }
-        return mediaFiles.size();
+        return super.getItemCount();
     }
 
     @Override
@@ -304,7 +313,43 @@ public class FileGalleryAdapter extends MultiSelectionAdapter<FileGalleryAdapter
         }
     }
 
+    @Override
+    public void onInserted(int position, int count) {
+        notifyItemRangeInserted(itemStartPosition + position, count);
+    }
+
+    @Override
+    public void onRemoved(int position, int count) {
+        notifyItemRangeRemoved(itemStartPosition + position, count);
+    }
+
+    @Override
+    public void onMoved(int fromPosition, int toPosition) {
+        notifyItemMoved(itemStartPosition + fromPosition, itemStartPosition + toPosition);
+    }
+
+    @Override
+    public void onChanged(int position, int count, Object payload) {
+        notifyItemRangeChanged(itemStartPosition + position, count, payload);
+    }
+
+    public void submitList(List<MediaFile> mediaFiles) {
+        differ.submitList(mediaFiles);
+    }
+
     public interface OnCameraClickListener {
         boolean onCameraClick(boolean forVideo);
     }
+
+    private static final DiffUtil.ItemCallback<MediaFile> ITEM_CALLBACK = new DiffUtil.ItemCallback<MediaFile>() {
+        @Override
+        public boolean areItemsTheSame(@NonNull MediaFile oldItem, @NonNull MediaFile newItem) {
+            return oldItem.getId() == newItem.getId();
+        }
+
+        @Override
+        public boolean areContentsTheSame(@NonNull MediaFile oldItem, @NonNull MediaFile newItem) {
+            return oldItem.getName().equals(newItem.getName());
+        }
+    };
 }

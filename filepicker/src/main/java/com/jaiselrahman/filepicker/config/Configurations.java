@@ -57,6 +57,7 @@ public class Configurations implements Parcelable {
     private Matcher[] ignorePathMatchers;
     private final boolean ignoreNoMedia;
     private final boolean ignoreHiddenFile;
+    private final String title;
 
     private Configurations(Builder builder) {
         this.imageCaptureEnabled = builder.imageCapture;
@@ -79,6 +80,7 @@ public class Configurations implements Parcelable {
         setIgnorePathMatchers(builder.ignorePaths);
         this.ignoreNoMedia = builder.ignoreNoMedia;
         this.ignoreHiddenFile = builder.ignoreHiddenFile;
+        this.title = builder.title;
     }
 
     protected Configurations(Parcel in) {
@@ -102,6 +104,7 @@ public class Configurations implements Parcelable {
         setIgnorePathMatchers(in.createStringArray());
         ignoreNoMedia = in.readByte() != 0;
         ignoreHiddenFile = in.readByte() != 0;
+        title = in.readString();
     }
 
     public boolean isShowVideos() {
@@ -150,6 +153,7 @@ public class Configurations implements Parcelable {
         dest.writeStringArray(getIgnorePaths());
         dest.writeByte((byte) (ignoreNoMedia ? 1 : 0));
         dest.writeByte((byte) (ignoreHiddenFile ? 1 : 0));
+        dest.writeString(title);
     }
 
     @Override
@@ -234,6 +238,10 @@ public class Configurations implements Parcelable {
         return null;
     }
 
+    public String getTitle() {
+        return title;
+    }
+
     public static class Builder {
         private boolean imageCapture = false, videoCapture = false,
                 checkPermission = false, showImages = true, showVideos = true,
@@ -253,6 +261,7 @@ public class Configurations implements Parcelable {
         private String[] ignorePaths = null;
         private boolean ignoreNoMedia = true;
         private boolean ignoreHiddenFile = true;
+        private String title = null;
 
         public Builder setSingleClickSelection(boolean singleClickSelection) {
             this.singleClickSelection = singleClickSelection;
@@ -363,6 +372,11 @@ public class Configurations implements Parcelable {
 
         public Builder setIgnoreHiddenFile(boolean ignoreHiddenFile) {
             this.ignoreHiddenFile = ignoreHiddenFile;
+            return this;
+        }
+
+        public Builder setTitle(String title) {
+            this.title = title;
             return this;
         }
 

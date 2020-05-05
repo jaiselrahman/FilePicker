@@ -97,6 +97,7 @@ public class MainActivity extends AppCompatActivity {
                         .setShowAudios(true)
                         .setSingleChoiceMode(true)
                         .setSelectedMediaFile(file)
+                        .setTitle("Select an audio")
                         .build());
                 startActivityForResult(intent, FILE_REQUEST_CODE);
             }
@@ -118,6 +119,7 @@ public class MainActivity extends AppCompatActivity {
                         .enableImageCapture(true)
                         .setIgnoreHiddenFile(false)
                         .setMaxSelection(10)
+                        .setTitle("Select a file")
                         .build());
                 startActivityForResult(intent, FILE_REQUEST_CODE);
             }

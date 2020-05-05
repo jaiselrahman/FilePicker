@@ -114,6 +114,9 @@ public class DirSelectActivity extends AppCompatActivity implements DirListAdapt
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        if (configs.getTitle() != null)
+            setTitle(configs.getTitle());
+
         int spanCount;
         if (getResources().getConfiguration().orientation
                 == Configuration.ORIENTATION_LANDSCAPE) {
@@ -138,7 +141,8 @@ public class DirSelectActivity extends AppCompatActivity implements DirListAdapt
             public void onClick(Dir dir) {
                 Intent intent = new Intent(DirSelectActivity.this, FilePickerActivity.class)
                         .putExtra(FilePickerActivity.CONFIGS, configs)
-                        .putExtra(FilePickerActivity.DIR_ID, dir.getId());
+                        .putExtra(FilePickerActivity.DIR_ID, dir.getId())
+                        .putExtra(FilePickerActivity.DIR_TITLE, dir.getName());
                 startActivityForResult(intent, REQUEST_FILE);
             }
         });

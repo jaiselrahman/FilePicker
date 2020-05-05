@@ -3,6 +3,7 @@
     <string name="file_thumbnail">File Thumbnail</string>
     <string name="open_camera">Open Camera</string>
     <string name="done">Done</string>
+    <string name="selection_count_title">%3$s (%1$d/%2$d)</string>
     <string name="selection_count">%1$d/%2$d</string>
     <string name="permission_not_given">Permission not given</string>
 </resources>

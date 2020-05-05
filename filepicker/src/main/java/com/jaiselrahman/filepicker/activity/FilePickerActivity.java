@@ -53,12 +53,14 @@ import com.jaiselrahman.filepicker.view.DividerItemDecoration;
 import java.io.File;
 import java.util.ArrayList;
 
+@SuppressLint("StringFormatMatches")
 public class FilePickerActivity extends AppCompatActivity
         implements OnSelectionListener<FileGalleryAdapter.ViewHolder>, OnCameraClickListener {
     public static final String MEDIA_FILES = "MEDIA_FILES";
     public static final String SELECTED_MEDIA_FILES = "SELECTED_MEDIA_FILES";
     public static final String CONFIGS = "CONFIGS";
     public static final String DIR_ID = "DIR_ID";
+    public static final String DIR_TITLE = "DIR_TITLE";
     public static final String TAG = "FilePicker";
     private static final String PATH = "PATH";
     private static final String URI = "URI";
@@ -71,6 +73,8 @@ public class FilePickerActivity extends AppCompatActivity
     private FileGalleryAdapter fileGalleryAdapter;
     private int maxCount;
     private Long dirId = null;
+    private String title = null;
+    private int title_res = R.string.selection_count;
 
     private FileResultCallback fileResultCallback = new FileResultCallback() {
         @Override
@@ -121,6 +125,14 @@ public class FilePickerActivity extends AppCompatActivity
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        if (getIntent().hasExtra(DIR_TITLE))
+            title = getIntent().getStringExtra(DIR_TITLE);
+        else if (configs.getTitle() != null)
+            title = configs.getTitle();
+
+        if (title != null)
+            title_res = R.string.selection_count_title;
+
         int spanCount;
         if (getResources().getConfiguration().orientation
                 == Configuration.ORIENTATION_LANDSCAPE) {
@@ -166,7 +178,7 @@ public class FilePickerActivity extends AppCompatActivity
 
         maxCount = configs.getMaxSelection();
         if (maxCount > 0) {
-            setTitle(getResources().getString(R.string.selection_count, fileGalleryAdapter.getSelectedItemCount(), maxCount));
+            setTitle(getResources().getString(title_res, fileGalleryAdapter.getSelectedItemCount(), maxCount, title));
         }
     }
 
@@ -336,14 +348,14 @@ public class FilePickerActivity extends AppCompatActivity
     @Override
     public void onSelected(FileGalleryAdapter.ViewHolder viewHolder, int position) {
         if (maxCount > 0) {
-            setTitle(getResources().getString(R.string.selection_count, fileGalleryAdapter.getSelectedItemCount(), maxCount));
+            setTitle(getResources().getString(title_res, fileGalleryAdapter.getSelectedItemCount(), maxCount, title));
         }
     }
 
     @Override
     public void onUnSelected(FileGalleryAdapter.ViewHolder viewHolder, int position) {
         if (maxCount > 0) {
-            setTitle(getResources().getString(R.string.selection_count, fileGalleryAdapter.getSelectedItemCount(), maxCount));
+            setTitle(getResources().getString(title_res, fileGalleryAdapter.getSelectedItemCount(), maxCount, title));
         }
     }
 

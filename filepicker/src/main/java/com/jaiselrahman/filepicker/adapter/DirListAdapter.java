@@ -56,7 +56,6 @@ import static com.jaiselrahman.filepicker.activity.FilePickerActivity.TAG;
 
 public class DirListAdapter extends RecyclerView.Adapter<DirListAdapter.ViewHolder> implements ListUpdateCallback {
     public static final int CAPTURE_IMAGE_VIDEO = 1;
-    //    private ArrayList<Dir> mediaDirs;
     private Activity activity;
     private RequestManager glideRequest;
     private OnClickListener onClickListener;

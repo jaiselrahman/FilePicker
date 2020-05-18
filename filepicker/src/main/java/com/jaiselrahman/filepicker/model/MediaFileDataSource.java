@@ -21,21 +21,17 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.MediaStore;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.core.content.ContentResolverCompat;
 import androidx.paging.DataSource;
 import androidx.paging.PositionalDataSource;
 
-import com.jaiselrahman.filepicker.activity.FilePickerActivity;
 import com.jaiselrahman.filepicker.config.Configurations;
-import com.jaiselrahman.filepicker.loader.FileLoader;
 import com.jaiselrahman.filepicker.utils.FileUtils;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import static android.provider.MediaStore.Files.FileColumns.MEDIA_TYPE;
@@ -50,20 +46,6 @@ import static android.provider.MediaStore.MediaColumns.DISPLAY_NAME;
 import static android.provider.MediaStore.MediaColumns.SIZE;
 
 public class MediaFileDataSource extends PositionalDataSource<MediaFile> {
-
-    private static final List<String> FILE_PROJECTION = Arrays.asList(
-            MediaStore.Files.FileColumns._ID,
-            MediaStore.Files.FileColumns.DISPLAY_NAME,
-            MediaStore.Files.FileColumns.DATA,
-            MediaStore.Files.FileColumns.SIZE,
-            MediaStore.Files.FileColumns.DATE_ADDED,
-            MediaStore.Files.FileColumns.MIME_TYPE,
-            MediaStore.Images.Media.BUCKET_ID,
-            MediaStore.Images.Media.BUCKET_DISPLAY_NAME,
-            MediaStore.Files.FileColumns.HEIGHT,
-            MediaStore.Files.FileColumns.WIDTH,
-            MediaStore.Video.Media.DURATION
-    );
 
     private Configurations configs;
     private ContentResolver contentResolver;
@@ -136,7 +118,7 @@ public class MediaFileDataSource extends PositionalDataSource<MediaFile> {
             selectionBuilder.append(SIZE).append(" > 0 ");
         }
 
-        List<String> projection = new ArrayList<>(FILE_PROJECTION);
+        List<String> projection = new ArrayList<>(FileLoader.FILE_PROJECTION);
 
         if (canUseMediaType(configs)) {
             projection.add(MediaStore.Files.FileColumns.MEDIA_TYPE);
@@ -236,7 +218,7 @@ public class MediaFileDataSource extends PositionalDataSource<MediaFile> {
         return folders;
     }
 
-    private static void appendDefaultFileSelection(StringBuilder selection) {
+    static void appendDefaultFileSelection(StringBuilder selection) {
         selection.append("(")
                 .append("(")
                 .append(MEDIA_TYPE).append(" = ").append(MEDIA_TYPE_NONE)
@@ -253,7 +235,7 @@ public class MediaFileDataSource extends PositionalDataSource<MediaFile> {
                 .append(")");
     }
 
-    private static void appendFileSelection(StringBuilder selectionBuilder, List<String> selectionArgs, String[] suffixes) {
+    static void appendFileSelection(StringBuilder selectionBuilder, List<String> selectionArgs, String[] suffixes) {
         selectionBuilder.append("(").append(DISPLAY_NAME).append(" LIKE ?");
         selectionArgs.add("%." + suffixes[0].replace(".", ""));
 
@@ -281,7 +263,7 @@ public class MediaFileDataSource extends PositionalDataSource<MediaFile> {
 
         private Uri uri;
 
-        public Factory(ContentResolver contentResolver, Configurations configs, Long dirId) {
+        Factory(ContentResolver contentResolver, Configurations configs, Long dirId) {
             this.contentResolver = contentResolver;
             this.configs = configs;
             this.dirId = dirId;

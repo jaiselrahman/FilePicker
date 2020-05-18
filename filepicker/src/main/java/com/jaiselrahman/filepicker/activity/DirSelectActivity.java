@@ -37,50 +37,38 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.paging.PagedList;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.jaiselrahman.filepicker.R;
 import com.jaiselrahman.filepicker.adapter.DirListAdapter;
 import com.jaiselrahman.filepicker.config.Configurations;
-import com.jaiselrahman.filepicker.loader.FileLoader;
-import com.jaiselrahman.filepicker.loader.dir.DirLoader;
-import com.jaiselrahman.filepicker.loader.dir.DirResultCallback;
+import com.jaiselrahman.filepicker.model.FileLoader;
 import com.jaiselrahman.filepicker.model.Dir;
+import com.jaiselrahman.filepicker.model.DirViewModel;
 import com.jaiselrahman.filepicker.model.MediaFile;
 import com.jaiselrahman.filepicker.view.DividerItemDecoration;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.List;
 
 public class DirSelectActivity extends AppCompatActivity implements DirListAdapter.OnCameraClickListener {
 
     public static final String MEDIA_FILES = "MEDIA_FILES";
     public static final String CONFIGS = "CONFIGS";
+
     private static final int REQUEST_WRITE_PERMISSION = 1;
     private static final int REQUEST_CAMERA_PERMISSION_FOR_CAMERA = 2;
     private static final int REQUEST_CAMERA_PERMISSION_FOR_VIDEO = 3;
     private static final int REQUEST_DOCUMENT = 4;
     private static final int REQUEST_FILE = 5;
-    private static final int INIT_SIZE = 6;
-    private Configurations configs;
-    private ArrayList<Dir> dirs = new ArrayList<>();
-    private DirListAdapter dirAdapter;
 
-    private DirResultCallback dirResultCallback = new DirResultCallback() {
-        @Override
-        public void onResult(final List<Dir> dirsResult) {
-            if (dirs != null) {
-                if (dirsResult.size() <= INIT_SIZE) {
-                    dirAdapter.submitList(dirsResult);
-                } else {
-                    dirAdapter.submitList(dirsResult.subList(0, INIT_SIZE));
-                    dirAdapter.submitList(dirsResult);
-                }
-            }
-        }
-    };
+    private Configurations configs;
+    private DirListAdapter dirAdapter;
+    private DirViewModel viewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -162,7 +150,7 @@ public class DirSelectActivity extends AppCompatActivity implements DirListAdapt
         recyclerView.setItemViewCacheSize(20);
 
         if (requestPermission(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_WRITE_PERMISSION)) {
-            loadDirs(false);
+            loadDirs();
         }
     }
 
@@ -172,15 +160,23 @@ public class DirSelectActivity extends AppCompatActivity implements DirListAdapt
                 && !(configs.isShowImages() || configs.isShowVideos() || configs.isShowAudios());
     }
 
-    private void loadDirs(boolean restart) {
-        DirLoader.loadDirs(this, dirResultCallback, configs, restart);
+    private void loadDirs() {
+        viewModel = new ViewModelProvider(this, new DirViewModel.Factory(getContentResolver(), configs))
+                .get(DirViewModel.class);
+
+        viewModel.dirs.observe(this, new Observer<PagedList<Dir>>() {
+            @Override
+            public void onChanged(PagedList<Dir> dirs) {
+                dirAdapter.submitList(dirs);
+            }
+        });
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         if (requestCode == REQUEST_WRITE_PERMISSION) {
             if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                loadDirs(false);
+                loadDirs();
             } else {
                 Toast.makeText(this, R.string.permission_not_given, Toast.LENGTH_SHORT).show();
                 finish();
@@ -210,7 +206,7 @@ public class DirSelectActivity extends AppCompatActivity implements DirListAdapt
                                     runOnUiThread(new Runnable() {
                                         @Override
                                         public void run() {
-                                            loadDirs(true);
+                                            viewModel.refresh();
                                         }
                                     });
                                 }

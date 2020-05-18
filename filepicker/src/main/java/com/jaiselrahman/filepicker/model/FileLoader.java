@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2018, Jaisel Rahman <jaiselrahman@gmail.com>.
+ *  Copyright (c) 2020, Jaisel Rahman <jaiselrahman@gmail.com>.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package com.jaiselrahman.filepicker.loader;
+package com.jaiselrahman.filepicker.model;
 
 import android.content.ContentResolver;
 import android.content.ContentUris;
@@ -27,9 +27,7 @@ import android.text.TextUtils;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-
 import com.jaiselrahman.filepicker.config.Configurations;
-import com.jaiselrahman.filepicker.model.MediaFile;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -50,7 +48,7 @@ import static android.provider.MediaStore.MediaColumns.SIZE;
 import static android.provider.MediaStore.MediaColumns.WIDTH;
 
 public class FileLoader {
-    private static final List<String> FILE_PROJECTION = Arrays.asList(
+    static final List<String> FILE_PROJECTION = Arrays.asList(
             MediaStore.Files.FileColumns._ID,
             MediaStore.Files.FileColumns.DISPLAY_NAME,
             MediaStore.Files.FileColumns.DATA,
@@ -64,7 +62,16 @@ public class FileLoader {
             MediaStore.Video.Media.DURATION
     );
 
-    public static Uri getContentUri(Configurations configs) {
+    @Nullable
+    public static MediaFile asMediaFile(ContentResolver contentResolver, Uri uri, Configurations configs) {
+        Cursor data = contentResolver.query(uri, FILE_PROJECTION.toArray(new String[0]), null, null, null);
+        if (data != null && data.moveToFirst()) {
+            return asMediaFile(data, configs, uri);
+        }
+        return null;
+    }
+
+    static Uri getContentUri(Configurations configs) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q &&
                 (configs.isShowAudios() && !(configs.isShowFiles() || configs.isShowImages() || configs.isShowVideos()))) {
             return MediaStore.Audio.Media.getContentUri("external");
@@ -73,7 +80,7 @@ public class FileLoader {
         }
     }
 
-    public static List<MediaFile> asMediaFiles(Cursor data, Configurations configs) {
+    static List<MediaFile> asMediaFiles(Cursor data, Configurations configs) {
         ArrayList<MediaFile> mediaFiles = new ArrayList<>(data.getCount());
         if (data.moveToFirst())
             do {
@@ -85,7 +92,7 @@ public class FileLoader {
         return mediaFiles;
     }
 
-    public static MediaFile asMediaFile(@NonNull Cursor data, Configurations configs, @Nullable Uri uri) {
+    private static MediaFile asMediaFile(@NonNull Cursor data, Configurations configs, @Nullable Uri uri) {
         MediaFile mediaFile = new MediaFile();
         mediaFile.setPath(data.getString(data.getColumnIndex(DATA)));
 
@@ -141,15 +148,6 @@ public class FileLoader {
             }
         }
         return mediaFile;
-    }
-
-    @Nullable
-    public static MediaFile asMediaFile(ContentResolver contentResolver, Uri uri, Configurations configs) {
-        Cursor data = contentResolver.query(uri, FILE_PROJECTION.toArray(new String[0]), null, null, null);
-        if (data != null && data.moveToFirst()) {
-            return asMediaFile(data, configs, uri);
-        }
-        return null;
     }
 
     private static @MediaFile.Type

@@ -14,16 +14,18 @@
  *  limitations under the License.
  */
 
-package com.jaiselrahman.filepicker.loader.dir;
+package com.jaiselrahman.filepicker.model;
 
-import android.content.Context;
+import android.content.ContentResolver;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Build;
 import android.provider.MediaStore;
 
 import androidx.annotation.NonNull;
-import androidx.fragment.app.FragmentActivity;
-import androidx.loader.app.LoaderManager;
-import androidx.loader.content.CursorLoader;
+import androidx.core.content.ContentResolverCompat;
+import androidx.paging.DataSource;
+import androidx.paging.PositionalDataSource;
 
 import com.jaiselrahman.filepicker.config.Configurations;
 
@@ -40,29 +42,23 @@ import static android.provider.MediaStore.MediaColumns.BUCKET_ID;
 import static android.provider.MediaStore.MediaColumns.DATA;
 import static android.provider.MediaStore.MediaColumns.DATE_ADDED;
 import static android.provider.MediaStore.MediaColumns.SIZE;
-import static com.jaiselrahman.filepicker.loader.FileLoader.appendDefaultFileSelection;
-import static com.jaiselrahman.filepicker.loader.FileLoader.appendFileSelection;
+import static com.jaiselrahman.filepicker.model.MediaFileDataSource.appendDefaultFileSelection;
+import static com.jaiselrahman.filepicker.model.MediaFileDataSource.appendFileSelection;
 
-public class DirLoader extends CursorLoader {
-    static final String COUNT = "count";
+public class DirDataSource extends PositionalDataSource<Dir> {
+    private Configurations configs;
+    private ContentResolver contentResolver;
 
-    private static final String[] DIR_PROJECTION = new String[]{
-            MediaStore.Files.FileColumns._ID,
-            MediaStore.Files.FileColumns.DATA,
-            MediaStore.Files.FileColumns.BUCKET_ID,
-            MediaStore.Files.FileColumns.BUCKET_DISPLAY_NAME,
-            MEDIA_TYPE,
-    };
+    private String[] projection;
+    private String sortOrder;
+    private String selection;
+    private String[] selectionArgs;
+    private Uri uri;
 
-    static final int COLUMN_ID = 0;
-    static final int COLUMN_DATA = 1;
-    static final int COLUMN_BUCKET_ID = 2;
-    static final int COLUMN_BUCKET_DISPLAY_NAME = 3;
-    static final int COLUMN_MEDIA_TYPE = 4;
-    static final int COLUMN_COUNT = 5;
-
-    DirLoader(Context context, @NonNull Configurations configs) {
-        super(context);
+    private DirDataSource(ContentResolver contentResolver, Uri uri, @NonNull Configurations configs) {
+        this.contentResolver = contentResolver;
+        this.configs = configs;
+        this.uri = uri;
 
         ArrayList<String> selectionArgs = new ArrayList<>();
         StringBuilder selectionBuilder = new StringBuilder(200);
@@ -118,37 +114,63 @@ public class DirLoader extends CursorLoader {
             selectionBuilder.append(BUCKET_ID).append(" IS NOT NULL");
         }
 
-        if (selectionBuilder.length() != 0) {
-            setProjection(getDirProjection());
-            setUri(MediaStore.Files.getContentUri("external"));
-            setSortOrder(DATE_ADDED + " DESC");
-            setSelection(selectionBuilder.toString());
-            setSelectionArgs(selectionArgs.toArray(new String[0]));
-        }
+        this.projection = getDirProjection();
+        this.sortOrder = DATE_ADDED + " DESC";
+        this.selection = selectionBuilder.toString();
+        this.selectionArgs = selectionArgs.toArray(new String[0]);
+    }
+
+    @Override
+    public void loadInitial(@NonNull LoadInitialParams params, @NonNull LoadInitialCallback<Dir> callback) {
+        callback.onResult(getDirs(params.requestedStartPosition, params.requestedLoadSize), 0);
+    }
+
+    @Override
+    public void loadRange(@NonNull LoadRangeParams params, @NonNull LoadRangeCallback<Dir> callback) {
+        callback.onResult(getDirs(params.startPosition, params.loadSize));
+    }
+
+    private List<Dir> getDirs(int offset, int limit) {
+        Cursor data = ContentResolverCompat.query(contentResolver, uri, projection,
+                selection, selectionArgs,
+                sortOrder + " LIMIT " + limit + " OFFSET " + offset, null);
+
+        return DirLoader.getDirs(data, configs);
     }
 
     private static String[] getDirProjection() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            return DIR_PROJECTION;
+            return DirLoader.DIR_PROJECTION;
         }
 
         List<String> projection = new ArrayList<>();
-        Collections.addAll(projection, DIR_PROJECTION);
-        projection.add("COUNT(*) as " + COUNT);
+        Collections.addAll(projection, DirLoader.DIR_PROJECTION);
+        projection.add("COUNT(*) as " + DirLoader.COUNT);
 
         return projection.toArray(new String[0]);
     }
 
-    public static void loadDirs(FragmentActivity activity, DirResultCallback dirResultCallback, Configurations configs, boolean restart) {
-        if (configs.isShowFiles() || configs.isShowVideos() || configs.isShowAudios() || configs.isShowImages()) {
-            DirLoaderCallback dirLoaderCallBack = new DirLoaderCallback(activity, dirResultCallback, configs);
-            if (!restart) {
-                LoaderManager.getInstance(activity).initLoader(0, null, dirLoaderCallBack);
-            } else {
-                LoaderManager.getInstance(activity).restartLoader(0, null, dirLoaderCallBack);
-            }
-        } else {
-            dirResultCallback.onResult(null);
+    public static class Factory extends DataSource.Factory<Integer, Dir> {
+        private ContentResolver contentResolver;
+        private Configurations configs;
+
+        private Uri uri;
+
+        Factory(ContentResolver contentResolver, Configurations configs) {
+            this.contentResolver = contentResolver;
+            this.configs = configs;
+
+            uri = MediaStore.Files.getContentUri("external");
+        }
+
+        public Uri getUri() {
+            return uri;
+        }
+
+        @NonNull
+        @Override
+        public DataSource<Integer, Dir> create() {
+            return new DirDataSource(contentResolver, uri, configs);
         }
     }
 }

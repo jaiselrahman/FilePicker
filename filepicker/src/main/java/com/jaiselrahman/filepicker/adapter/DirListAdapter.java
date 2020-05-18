@@ -29,8 +29,9 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.paging.AsyncPagedListDiffer;
+import androidx.paging.PagedList;
 import androidx.recyclerview.widget.AsyncDifferConfig;
-import androidx.recyclerview.widget.AsyncListDiffer;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.ListUpdateCallback;
 import androidx.recyclerview.widget.RecyclerView;
@@ -46,7 +47,6 @@ import com.jaiselrahman.filepicker.view.SquareImage;
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.List;
 import java.util.Locale;
 
 import static android.os.Environment.DIRECTORY_MOVIES;
@@ -67,7 +67,7 @@ public class DirListAdapter extends RecyclerView.Adapter<DirListAdapter.ViewHold
     private int itemStartPosition;
     private SimpleDateFormat TimeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault());
 
-    private AsyncListDiffer<Dir> differ = new AsyncListDiffer<>(this, new AsyncDifferConfig.Builder<>(DIR_ITEM_CALLBACK).build());
+    private AsyncPagedListDiffer<Dir> differ = new AsyncPagedListDiffer<>(this, new AsyncDifferConfig.Builder<>(DIR_ITEM_CALLBACK).build());
 
     public DirListAdapter(Activity activity, int imageSize, boolean showCamera, boolean showVideoCamera) {
         this.activity = activity;
@@ -208,19 +208,19 @@ public class DirListAdapter extends RecyclerView.Adapter<DirListAdapter.ViewHold
     }
 
     private Dir getItem(int position) {
-        return differ.getCurrentList().get(position);
+        return differ.getItem(position);
     }
 
     @Override
     public int getItemCount() {
         if (showCamera) {
             if (showVideoCamera)
-                return differ.getCurrentList().size() + 2;
-            return differ.getCurrentList().size() + 1;
+                return differ.getItemCount() + 2;
+            return differ.getItemCount() + 1;
         } else if (showVideoCamera) {
-            return differ.getCurrentList().size() + 1;
+            return differ.getItemCount() + 1;
         }
-        return differ.getCurrentList().size();
+        return differ.getItemCount();
     }
 
     @Override
@@ -243,7 +243,7 @@ public class DirListAdapter extends RecyclerView.Adapter<DirListAdapter.ViewHold
         notifyItemRangeChanged(itemStartPosition + position, count, payload);
     }
 
-    public void submitList(List<Dir> dirs) {
+    public void submitList(PagedList<Dir> dirs) {
         differ.submitList(dirs);
     }
 
@@ -287,10 +287,10 @@ public class DirListAdapter extends RecyclerView.Adapter<DirListAdapter.ViewHold
 
         @Override
         public boolean areContentsTheSame(@NonNull Dir oldItem, @NonNull Dir newItem) {
-            return oldItem.getName() != null && oldItem.getName().equals(newItem.getName())
+            return (oldItem.getName() != null && oldItem.getName().equals(newItem.getName()))
                     && oldItem.getCount() == newItem.getCount()
-                    && (oldItem.getPreview() == null && newItem.getPreview() == null)
-                    || oldItem.getPreview().equals(newItem.getPreview());
+                    && ((oldItem.getPreview() == null && newItem.getPreview() == null)
+                    || (oldItem.getPreview() !=null && oldItem.getPreview().equals(newItem.getPreview())));
         }
     };
 }

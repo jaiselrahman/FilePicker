@@ -14,64 +14,49 @@
  *  limitations under the License.
  */
 
-package com.jaiselrahman.filepicker.loader.dir;
+package com.jaiselrahman.filepicker.model;
 
 import android.content.ContentUris;
-import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
-import android.os.Bundle;
 import android.provider.MediaStore;
 
-import androidx.annotation.NonNull;
-import androidx.loader.app.LoaderManager;
-import androidx.loader.content.Loader;
-
 import com.jaiselrahman.filepicker.config.Configurations;
-import com.jaiselrahman.filepicker.model.Dir;
 import com.jaiselrahman.filepicker.utils.FileUtils;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 
+import static android.provider.MediaStore.Files.FileColumns.MEDIA_TYPE;
 import static android.provider.MediaStore.Files.FileColumns.MEDIA_TYPE_AUDIO;
 import static android.provider.MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE;
 import static android.provider.MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO;
 
-class DirLoaderCallback implements LoaderManager.LoaderCallbacks<Cursor> {
-    private Context context;
-    private DirResultCallback dirResultCallback;
-    private Configurations configs;
+class DirLoader {
+    static final String COUNT = "count";
 
-    DirLoaderCallback(@NonNull Context context,
-                      @NonNull DirResultCallback dirResultCallback,
-                      @NonNull Configurations configs) {
-        this.context = context;
-        this.dirResultCallback = dirResultCallback;
-        this.configs = configs;
-    }
+    static final String[] DIR_PROJECTION = new String[]{
+            MediaStore.Files.FileColumns._ID,
+            MediaStore.Files.FileColumns.DATA,
+            MediaStore.Files.FileColumns.BUCKET_ID,
+            MediaStore.Files.FileColumns.BUCKET_DISPLAY_NAME,
+            MEDIA_TYPE,
+    };
 
-    @NonNull
-    @Override
-    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        return new DirLoader(context, configs);
-    }
+    private static final int COLUMN_ID = 0;
+    private static final int COLUMN_DATA = 1;
+    private static final int COLUMN_BUCKET_ID = 2;
+    private static final int COLUMN_BUCKET_DISPLAY_NAME = 3;
+    private static final int COLUMN_MEDIA_TYPE = 4;
+    private static final int COLUMN_COUNT = 5;
 
-    @Override
-    public void onLoadFinished(@NonNull Loader<Cursor> loader, Cursor data) {
-
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-            dirResultCallback.onResult(getDirs(data, configs));
-        } else {
-            dirResultCallback.onResult(getDirsQ(data, configs));
+    static List<Dir> getDirs(Cursor data, Configurations configs) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            return getDirsQ(data, configs);
         }
-    }
 
-    private static List<Dir> getDirs(Cursor data, Configurations configs) {
         List<Dir> dirs = new ArrayList<>();
         List<String> ignoredPaths = new ArrayList<>();
 
@@ -128,10 +113,6 @@ class DirLoaderCallback implements LoaderManager.LoaderCallbacks<Cursor> {
         return new ArrayList<>(dirs.values());
     }
 
-    @Override
-    public void onLoaderReset(@NonNull Loader<Cursor> loader) {
-    }
-
     private static Uri getPreview(Cursor cursor) {
         long id = cursor.getLong(DirLoader.COLUMN_ID);
         int mediaType = cursor.getInt(DirLoader.COLUMN_MEDIA_TYPE);
@@ -153,6 +134,7 @@ class DirLoaderCallback implements LoaderManager.LoaderCallbacks<Cursor> {
         return ContentUris.withAppendedId(contentUri, id);
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private static boolean isExcluded(String path, List<String> ignoredPaths) {
         for (String p : ignoredPaths) {
             if (path.startsWith(p)) return true;

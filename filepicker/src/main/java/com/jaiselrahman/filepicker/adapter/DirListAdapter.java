@@ -287,7 +287,7 @@ public class DirListAdapter extends RecyclerView.Adapter<DirListAdapter.ViewHold
 
         @Override
         public boolean areContentsTheSame(@NonNull Dir oldItem, @NonNull Dir newItem) {
-            return oldItem.getName().equals(newItem.getName())
+            return oldItem.getName() != null && oldItem.getName().equals(newItem.getName())
                     && oldItem.getCount() == newItem.getCount()
                     && (oldItem.getPreview() == null && newItem.getPreview() == null)
                     || oldItem.getPreview().equals(newItem.getPreview());

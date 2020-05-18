@@ -17,39 +17,39 @@
 package com.jaiselrahman.filepicker.loader;
 
 import android.content.ContentResolver;
-import android.content.Context;
+import android.content.ContentUris;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.MediaStore;
+import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.FragmentActivity;
-import androidx.loader.app.LoaderManager;
-import androidx.loader.content.CursorLoader;
+
 
 import com.jaiselrahman.filepicker.config.Configurations;
 import com.jaiselrahman.filepicker.model.MediaFile;
-import com.jaiselrahman.filepicker.utils.FileUtils;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static android.provider.BaseColumns._ID;
+import static android.provider.MediaStore.Audio.AlbumColumns.ALBUM_ID;
 import static android.provider.MediaStore.Files.FileColumns.MEDIA_TYPE;
-import static android.provider.MediaStore.Files.FileColumns.MEDIA_TYPE_AUDIO;
-import static android.provider.MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE;
-import static android.provider.MediaStore.Files.FileColumns.MEDIA_TYPE_NONE;
-import static android.provider.MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO;
-import static android.provider.MediaStore.Images.ImageColumns.BUCKET_ID;
+import static android.provider.MediaStore.Files.FileColumns.MIME_TYPE;
+import static android.provider.MediaStore.MediaColumns.BUCKET_DISPLAY_NAME;
+import static android.provider.MediaStore.MediaColumns.BUCKET_ID;
 import static android.provider.MediaStore.MediaColumns.DATA;
 import static android.provider.MediaStore.MediaColumns.DATE_ADDED;
 import static android.provider.MediaStore.MediaColumns.DISPLAY_NAME;
+import static android.provider.MediaStore.MediaColumns.DURATION;
+import static android.provider.MediaStore.MediaColumns.HEIGHT;
 import static android.provider.MediaStore.MediaColumns.SIZE;
+import static android.provider.MediaStore.MediaColumns.WIDTH;
 
-public class FileLoader extends CursorLoader {
+public class FileLoader {
     private static final List<String> FILE_PROJECTION = Arrays.asList(
             MediaStore.Files.FileColumns._ID,
             MediaStore.Files.FileColumns.DISPLAY_NAME,
@@ -64,104 +64,7 @@ public class FileLoader extends CursorLoader {
             MediaStore.Video.Media.DURATION
     );
 
-    private Configurations configs;
-    private StringBuilder selectionBuilder = new StringBuilder(100);
-    private ArrayList<String> selectionArgs = new ArrayList<>();
-
-    FileLoader(Context context, @NonNull Configurations configs, Long dirId) {
-        super(context);
-        this.configs = configs;
-
-        String rootPath = configs.getRootPath();
-        if (rootPath != null) {
-            selectionBuilder.append(DATA).append(" LIKE ? and ");
-            if (!rootPath.endsWith(File.separator)) rootPath += File.separator;
-            selectionArgs.add(rootPath + "%");
-        }
-
-        if (dirId != null) {
-            if (selectionBuilder.length() != 0)
-                selectionBuilder.append(" and ");
-            selectionBuilder.append(BUCKET_ID).append("=").append(dirId).append(" and ");
-        }
-
-        if (canUseMediaType(configs)) {
-
-            selectionBuilder.append("(");
-
-            if (configs.isShowImages()) {
-                if (selectionBuilder.charAt(selectionBuilder.length() - 1) != '(')
-                    selectionBuilder.append(" or ");
-                selectionBuilder.append(MEDIA_TYPE).append(" = ").append(MEDIA_TYPE_IMAGE);
-            }
-
-            if (configs.isShowVideos()) {
-                if (selectionBuilder.charAt(selectionBuilder.length() - 1) != '(')
-                    selectionBuilder.append(" or ");
-                selectionBuilder.append(MEDIA_TYPE).append(" = ").append(MEDIA_TYPE_VIDEO);
-            }
-
-            if (configs.isShowAudios()) {
-                if (selectionBuilder.charAt(selectionBuilder.length() - 1) != '(')
-                    selectionBuilder.append(" or ");
-                selectionBuilder.append(MEDIA_TYPE).append(" = ").append(MEDIA_TYPE_AUDIO);
-            }
-
-            if (configs.isShowFiles()) {
-                if (selectionBuilder.charAt(selectionBuilder.length() - 1) != '(')
-                    selectionBuilder.append(" or ");
-
-                String[] suffixes = configs.getSuffixes();
-                if (suffixes != null && suffixes.length > 0) {
-                    appendFileSelection(selectionBuilder, selectionArgs, suffixes);
-                } else {
-                    appendDefaultFileSelection(selectionBuilder);
-                }
-            }
-            selectionBuilder.append(") and ");
-        }
-
-        if (configs.isSkipZeroSizeFiles()) {
-            selectionBuilder.append(SIZE).append(" > 0 ");
-        }
-
-
-        List<String> projection = new ArrayList<>(FILE_PROJECTION);
-
-        if (canUseMediaType(configs)) {
-            projection.add(MediaStore.Files.FileColumns.MEDIA_TYPE);
-        }
-
-        if (canUseAlbumId(configs)) {
-            projection.add(MediaStore.Audio.AudioColumns.ALBUM_ID);
-        }
-
-        setProjection(projection.toArray(new String[0]));
-        setUri(getContentUri(configs));
-        setSortOrder(DATE_ADDED + " DESC");
-    }
-
-    @Override
-    public Cursor loadInBackground() {
-
-        List<String> folders = getFoldersToIgnore();
-        if (folders.size() > 0) {
-            selectionBuilder.append(" and(").append(DATA).append(" NOT LIKE ? ");
-            selectionArgs.add(folders.get(0) + "%");
-            int size = folders.size();
-            for (int i = 1; i < size; i++) {
-                selectionBuilder.append(" and ").append(DATA).append(" NOT LIKE ? ");
-                selectionArgs.add(folders.get(i) + "%");
-            }
-            selectionBuilder.append(")");
-        }
-
-        setSelection(selectionBuilder.toString());
-        setSelectionArgs(selectionArgs.toArray(new String[0]));
-        return super.loadInBackground();
-    }
-
-    static Uri getContentUri(Configurations configs) {
+    public static Uri getContentUri(Configurations configs) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q &&
                 (configs.isShowAudios() && !(configs.isShowFiles() || configs.isShowImages() || configs.isShowVideos()))) {
             return MediaStore.Audio.Media.getContentUri("external");
@@ -170,112 +73,95 @@ public class FileLoader extends CursorLoader {
         }
     }
 
-    private static boolean canUseAlbumId(Configurations configs) {
-        return Build.VERSION.SDK_INT < Build.VERSION_CODES.Q ||
-                (configs.isShowAudios() && !(configs.isShowFiles() || configs.isShowImages() || configs.isShowVideos()));
+    public static List<MediaFile> asMediaFiles(Cursor data, Configurations configs) {
+        ArrayList<MediaFile> mediaFiles = new ArrayList<>(data.getCount());
+        if (data.moveToFirst())
+            do {
+                MediaFile mediaFile = asMediaFile(data, configs, null);
+                if (mediaFile != null) {
+                    mediaFiles.add(mediaFile);
+                }
+            } while (data.moveToNext());
+        return mediaFiles;
     }
 
-    private static boolean canUseMediaType(Configurations configs) {
-        return Build.VERSION.SDK_INT < Build.VERSION_CODES.Q ||
-                (!configs.isShowAudios() && (configs.isShowFiles() || configs.isShowImages() || configs.isShowVideos()));
-    }
+    public static MediaFile asMediaFile(@NonNull Cursor data, Configurations configs, @Nullable Uri uri) {
+        MediaFile mediaFile = new MediaFile();
+        mediaFile.setPath(data.getString(data.getColumnIndex(DATA)));
 
-    private List<String> getFoldersToIgnore() {
-        Uri uri = MediaStore.Files.getContentUri("external");
+        long size = data.getLong(data.getColumnIndex(SIZE));
+        //noinspection deprecation
+        if (size == 0 && mediaFile.getPath() != null) {
+            //Check if File size is really zero
+            size = new java.io.File(data.getString(data.getColumnIndex(DATA))).length();
+            if (size <= 0 && configs.isSkipZeroSizeFiles())
+                return null;
+        }
+        mediaFile.setSize(size);
 
-        String[] projection = new String[]{DATA};
+        mediaFile.setId(data.getLong(data.getColumnIndex(_ID)));
+        mediaFile.setName(data.getString(data.getColumnIndex(DISPLAY_NAME)));
+        mediaFile.setPath(data.getString(data.getColumnIndex(DATA)));
+        mediaFile.setDate(data.getLong(data.getColumnIndex(DATE_ADDED)));
+        mediaFile.setMimeType(data.getString(data.getColumnIndex(MIME_TYPE)));
+        mediaFile.setBucketId(data.getString(data.getColumnIndex(BUCKET_ID)));
+        mediaFile.setBucketName(data.getString(data.getColumnIndex(BUCKET_DISPLAY_NAME)));
+        mediaFile.setUri(uri != null ? uri : ContentUris.withAppendedId(getContentUri(configs), mediaFile.getId()));
+        mediaFile.setDuration(data.getLong(data.getColumnIndex(DURATION)));
 
-        String selection;
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-            selection = BUCKET_ID + " IS NOT NULL) GROUP BY (" + BUCKET_ID;
-        } else {
-            selection = BUCKET_ID + " IS NOT NULL";
+        if (TextUtils.isEmpty(mediaFile.getName())) {
+            //noinspection deprecation
+            String path = mediaFile.getPath() != null ? mediaFile.getPath() : "";
+            mediaFile.setName(path.substring(path.lastIndexOf('/') + 1));
         }
 
-        String sortOrder = DATA + " ASC";
-
-        Cursor cursor = getContext().getContentResolver().query(uri, projection, selection, null, sortOrder);
-        if (cursor == null) {
-            return new ArrayList<>();
+        int mediaTypeIndex = data.getColumnIndex(MEDIA_TYPE);
+        if (mediaTypeIndex >= 0) {
+            mediaFile.setMediaType(data.getInt(mediaTypeIndex));
         }
 
-        int dataColumnIndex = cursor.getColumnIndex(DATA);
+        if ((mediaFile.getMediaType() == MediaFile.TYPE_FILE
+                || mediaFile.getMediaType() > MediaFile.TYPE_MAX)
+                && mediaFile.getMimeType() != null) {
+            //Double check correct MediaType
+            mediaFile.setMediaType(getMediaType(mediaFile.getMimeType()));
+        }
 
-        ArrayList<String> folders = new ArrayList<>();
-        try {
-            if (cursor.moveToFirst()) {
-                do {
-                    String path = cursor.getString(dataColumnIndex);
-                    String parent = FileUtils.getParent(path);
-                    if (!isExcluded(parent, folders) && FileUtils.toIgnoreFolder(path, configs)) {
-                        folders.add(parent);
-                    }
-                } while (cursor.moveToNext());
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+            mediaFile.setHeight(data.getLong(data.getColumnIndex(HEIGHT)));
+            mediaFile.setWidth(data.getLong(data.getColumnIndex(WIDTH)));
+        }
+
+        int albumIdIndex = data.getColumnIndex(ALBUM_ID);
+        if (albumIdIndex >= 0) {
+            int albumId = data.getInt(albumIdIndex);
+            if (albumId >= 0) {
+                mediaFile.setThumbnail(ContentUris
+                        .withAppendedId(Uri.parse("content://media/external/audio/albumart"), albumId));
             }
-        } catch (Exception e) {
-            e.printStackTrace();
         }
-        cursor.close();
-
-        return folders;
-    }
-
-    private static boolean isExcluded(String path, List<String> ignoredPaths) {
-        for (String p : ignoredPaths) {
-            if (path.startsWith(p)) return true;
-        }
-        return false;
-    }
-
-    public static void appendDefaultFileSelection(StringBuilder selection) {
-        selection.append("(")
-                .append("(")
-                .append(MEDIA_TYPE).append(" = ").append(MEDIA_TYPE_NONE)
-                .append(" or ")
-                .append(MEDIA_TYPE).append(" > ").append(MEDIA_TYPE_VIDEO)
-                .append(")and ")
-                .append(MediaStore.Files.FileColumns.MIME_TYPE).append(" <> 'resource/folder'")
-                .append(" and ")
-                .append(MediaStore.Files.FileColumns.MIME_TYPE).append(" NOT LIKE 'image/%'")
-                .append(" and ")
-                .append(MediaStore.Files.FileColumns.MIME_TYPE).append(" NOT LIKE 'video/%'")
-                .append(" and ")
-                .append(MediaStore.Files.FileColumns.MIME_TYPE).append(" NOT LIKE 'audio/%'")
-                .append(")");
-    }
-
-    public static void appendFileSelection(StringBuilder selectionBuilder, ArrayList<String> selectionArgs, String[] suffixes) {
-        selectionBuilder.append("(").append(DISPLAY_NAME).append(" LIKE ?");
-        selectionArgs.add("%." + suffixes[0].replace(".", ""));
-
-        int size = suffixes.length;
-        for (int i = 1; i < size; i++) {
-            selectionBuilder.append(" or ").append(DISPLAY_NAME).append(" LIKE ?");
-            suffixes[i] = suffixes[i].replace(".", "");
-            selectionArgs.add("%." + suffixes[i]);
-        }
-        selectionBuilder.append(")");
-    }
-
-    public static void loadFiles(FragmentActivity activity, FileResultCallback fileResultCallback, Configurations configs, Long dirId, boolean restart) {
-        if (configs.isShowFiles() || configs.isShowVideos() || configs.isShowAudios() || configs.isShowImages()) {
-            FileLoaderCallback fileLoaderCallBack = new FileLoaderCallback(activity, fileResultCallback, configs, dirId);
-            if (!restart) {
-                LoaderManager.getInstance(activity).initLoader(0, null, fileLoaderCallBack);
-            } else {
-                LoaderManager.getInstance(activity).restartLoader(0, null, fileLoaderCallBack);
-            }
-        } else {
-            fileResultCallback.onResult(null);
-        }
+        return mediaFile;
     }
 
     @Nullable
     public static MediaFile asMediaFile(ContentResolver contentResolver, Uri uri, Configurations configs) {
         Cursor data = contentResolver.query(uri, FILE_PROJECTION.toArray(new String[0]), null, null, null);
         if (data != null && data.moveToFirst()) {
-            return FileLoaderCallback.asMediaFile(data, configs, uri);
+            return asMediaFile(data, configs, uri);
         }
         return null;
+    }
+
+    private static @MediaFile.Type
+    int getMediaType(String mime) {
+        if (mime.startsWith("image/")) {
+            return MediaFile.TYPE_IMAGE;
+        } else if (mime.startsWith("video/")) {
+            return MediaFile.TYPE_VIDEO;
+        } else if (mime.startsWith("audio/")) {
+            return MediaFile.TYPE_AUDIO;
+        } else {
+            return MediaFile.TYPE_FILE;
+        }
     }
 }

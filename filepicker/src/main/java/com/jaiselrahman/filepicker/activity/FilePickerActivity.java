@@ -28,6 +28,7 @@ import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.webkit.MimeTypeMap;
@@ -37,6 +38,9 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.paging.PagedList;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -46,11 +50,10 @@ import com.jaiselrahman.filepicker.adapter.FileGalleryAdapter.OnCameraClickListe
 import com.jaiselrahman.filepicker.adapter.MultiSelectionAdapter.OnSelectionListener;
 import com.jaiselrahman.filepicker.config.Configurations;
 import com.jaiselrahman.filepicker.loader.FileLoader;
-import com.jaiselrahman.filepicker.loader.FileResultCallback;
 import com.jaiselrahman.filepicker.model.MediaFile;
+import com.jaiselrahman.filepicker.model.MediaFileViewModel;
 import com.jaiselrahman.filepicker.view.DividerItemDecoration;
 
-import java.io.File;
 import java.util.ArrayList;
 
 @SuppressLint("StringFormatMatches")
@@ -68,27 +71,13 @@ public class FilePickerActivity extends AppCompatActivity
     private static final int REQUEST_CAMERA_PERMISSION_FOR_CAMERA = 2;
     private static final int REQUEST_CAMERA_PERMISSION_FOR_VIDEO = 3;
     private static final int REQUEST_DOCUMENT = 4;
-    private static final int INIT_SIZE = 6;
     private Configurations configs;
     private FileGalleryAdapter fileGalleryAdapter;
+    private MediaFileViewModel viewModel;
     private int maxCount;
     private Long dirId = null;
     private String title = null;
     private int title_res = R.string.selection_count;
-
-    private FileResultCallback fileResultCallback = new FileResultCallback() {
-        @Override
-        public void onResult(final ArrayList<MediaFile> filesResults) {
-            if (filesResults != null) {
-                if (filesResults.size() <= INIT_SIZE) {
-                    fileGalleryAdapter.submitList(filesResults);
-                } else {
-                    fileGalleryAdapter.submitList(filesResults.subList(0, INIT_SIZE));
-                    fileGalleryAdapter.submitList(filesResults);
-                }
-            }
-        }
-    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -104,6 +93,7 @@ public class FilePickerActivity extends AppCompatActivity
 
         if (useDocumentUi()) {
             MimeTypeMap mimeType = MimeTypeMap.getSingleton();
+
             String[] suffixes = configs.getSuffixes();
             String[] mime = new String[suffixes.length];
             for (int i = 0; i < suffixes.length; i++) {
@@ -173,7 +163,7 @@ public class FilePickerActivity extends AppCompatActivity
         recyclerView.setItemViewCacheSize(20);
 
         if (requestPermission(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_WRITE_PERMISSION)) {
-            loadFiles(false);
+            loadFiles();
         }
 
         maxCount = configs.getMaxSelection();
@@ -188,15 +178,23 @@ public class FilePickerActivity extends AppCompatActivity
                 && !(configs.isShowImages() || configs.isShowVideos() || configs.isShowAudios());
     }
 
-    private void loadFiles(boolean restart) {
-        FileLoader.loadFiles(this, fileResultCallback, configs, dirId, restart);
+    private void loadFiles() {
+        viewModel = new ViewModelProvider(this, new MediaFileViewModel.Factory(getContentResolver(), configs, dirId))
+                .get(MediaFileViewModel.class);
+
+        viewModel.mediaFiles.observe(this, new Observer<PagedList<MediaFile>>() {
+            @Override
+            public void onChanged(PagedList<MediaFile> mediaFiles) {
+                fileGalleryAdapter.submitList(mediaFiles);
+            }
+        });
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         if (requestCode == REQUEST_WRITE_PERMISSION) {
             if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                loadFiles(false);
+                loadFiles();
             } else {
                 Toast.makeText(this, R.string.permission_not_given, Toast.LENGTH_SHORT).show();
                 finish();
@@ -216,20 +214,18 @@ public class FilePickerActivity extends AppCompatActivity
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == FileGalleryAdapter.CAPTURE_IMAGE_VIDEO) {
-            File file = fileGalleryAdapter.getLastCapturedFile();
             if (resultCode == RESULT_OK) {
-                MediaScannerConnection.scanFile(this, new String[]{file.getAbsolutePath()}, null,
+                String path = fileGalleryAdapter.getLastCapturedFile();
+                MediaScannerConnection.scanFile(this, new String[]{path}, null,
                         new MediaScannerConnection.OnScanCompletedListener() {
                             @Override
                             public void onScanCompleted(String path, final Uri uri) {
-                                if (uri != null) {
-                                    runOnUiThread(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            loadFiles(true);
-                                        }
-                                    });
-                                }
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        viewModel.refresh();
+                                    }
+                                });
                             }
                         });
             } else {
@@ -284,9 +280,7 @@ public class FilePickerActivity extends AppCompatActivity
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         if (useDocumentUi()) return;
-        File file = fileGalleryAdapter.getLastCapturedFile();
-        if (file != null)
-            outState.putString(PATH, file.getAbsolutePath());
+        outState.putString(PATH, fileGalleryAdapter.getLastCapturedFile());
         outState.putParcelable(URI, fileGalleryAdapter.getLastCapturedUri());
         outState.putParcelableArrayList(SELECTED_MEDIA_FILES, fileGalleryAdapter.getSelectedItems());
     }
@@ -295,9 +289,10 @@ public class FilePickerActivity extends AppCompatActivity
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
         if (useDocumentUi()) return;
+
         String path = savedInstanceState.getString(PATH);
         if (path != null)
-            fileGalleryAdapter.setLastCapturedFile(new File(path));
+            fileGalleryAdapter.setLastCapturedFile(path);
 
         Uri uri = savedInstanceState.getParcelable(URI);
         if (uri != null)

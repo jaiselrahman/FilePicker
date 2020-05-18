@@ -29,6 +29,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.paging.AsyncPagedListDiffer;
+import androidx.paging.PagedList;
 import androidx.recyclerview.widget.AsyncDifferConfig;
 import androidx.recyclerview.widget.AsyncListDiffer;
 import androidx.recyclerview.widget.DiffUtil;
@@ -65,16 +67,17 @@ public class FileGalleryAdapter extends MultiSelectionAdapter<FileGalleryAdapter
     private OnCameraClickListener onCameraClickListener;
     private boolean showCamera;
     private boolean showVideoCamera;
-    private File lastCapturedFile;
+    private String lastCapturedFile;
     private Uri lastCapturedUri;
     private SimpleDateFormat TimeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault());
 
-    private AsyncListDiffer<MediaFile> differ = new AsyncListDiffer<>(this, new AsyncDifferConfig.Builder<>(ITEM_CALLBACK).build());
+    private AsyncPagedListDiffer<MediaFile> differ = new AsyncPagedListDiffer<MediaFile>(this, new AsyncDifferConfig.Builder<>(ITEM_CALLBACK).build());
 
     public FileGalleryAdapter(Activity activity, int imageSize, boolean showCamera, boolean showVideoCamera) {
         this.activity = activity;
         this.showCamera = showCamera;
         this.showVideoCamera = showVideoCamera;
+
 
         setDiffer(differ);
 
@@ -90,11 +93,11 @@ public class FileGalleryAdapter extends MultiSelectionAdapter<FileGalleryAdapter
             setItemStartPosition(1);
     }
 
-    public File getLastCapturedFile() {
+    public String getLastCapturedFile() {
         return lastCapturedFile;
     }
 
-    public void setLastCapturedFile(File file) {
+    public void setLastCapturedFile(String file) {
         lastCapturedFile = file;
     }
 
@@ -197,27 +200,30 @@ public class FileGalleryAdapter extends MultiSelectionAdapter<FileGalleryAdapter
             fileName = "/VID_" + getTimeStamp() + ".mp4";
             dir = getExternalStoragePublicDirectory(DIRECTORY_MOVIES);
             externalContentUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
+
+            lastCapturedFile = dir.getAbsolutePath() + fileName;
+            lastCapturedUri = FilePickerProvider.getUriForFile(activity, new File(lastCapturedFile));
         } else {
             intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
             dir = getExternalStoragePublicDirectory(DIRECTORY_PICTURES);
             fileName = "/IMG_" + getTimeStamp() + ".jpeg";
             externalContentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+
+            lastCapturedFile = dir.getAbsolutePath() + fileName;
+
+            ContentValues values = new ContentValues();
+            values.put(MediaStore.MediaColumns.DATA, lastCapturedFile);
+            values.put(MediaStore.Images.ImageColumns.DATE_TAKEN, System.currentTimeMillis());
+            lastCapturedUri = activity.getContentResolver().insert(externalContentUri, values);
         }
         if (!dir.exists() && !dir.mkdir()) {
             Log.d(TAG, "onClick: " +
                     (forVideo ? "MOVIES" : "PICTURES") + " Directory not exists");
             return;
         }
-        lastCapturedFile = new File(dir.getAbsolutePath() + fileName);
 
-        Uri fileUri = FilePickerProvider.getUriForFile(activity, lastCapturedFile);
-
-        ContentValues values = new ContentValues();
-        values.put(MediaStore.MediaColumns.DATA, lastCapturedFile.getAbsolutePath());
-        values.put(MediaStore.Images.ImageColumns.DATE_TAKEN, System.currentTimeMillis());
-        lastCapturedUri = activity.getContentResolver().insert(externalContentUri, values);
-
-        intent.putExtra(MediaStore.EXTRA_OUTPUT, fileUri);
+        intent.putExtra(MediaStore.EXTRA_OUTPUT, lastCapturedUri);
+        intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
         activity.startActivityForResult(intent, CAPTURE_IMAGE_VIDEO);
     }
 
@@ -333,7 +339,7 @@ public class FileGalleryAdapter extends MultiSelectionAdapter<FileGalleryAdapter
         notifyItemRangeChanged(itemStartPosition + position, count, payload);
     }
 
-    public void submitList(List<MediaFile> mediaFiles) {
+    public void submitList(PagedList<MediaFile> mediaFiles) {
         differ.submitList(mediaFiles);
     }
 

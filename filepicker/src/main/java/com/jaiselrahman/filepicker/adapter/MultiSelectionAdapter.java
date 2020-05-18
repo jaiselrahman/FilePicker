@@ -20,7 +20,7 @@ import android.view.View;
 
 import androidx.annotation.CallSuper;
 import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.AsyncListDiffer;
+import androidx.paging.AsyncPagedListDiffer;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.jaiselrahman.filepicker.model.MediaFile;
@@ -42,7 +42,7 @@ public abstract class MultiSelectionAdapter<VH extends RecyclerView.ViewHolder> 
     private boolean singleChoiceMode = false;
     private int maxSelection = -1;
     protected int itemStartPosition = 0;
-    private AsyncListDiffer<MediaFile> differ;
+    private AsyncPagedListDiffer<MediaFile> differ;
 
     private OnSelectionListener<VH> onSelectionListener = new OnSelectionListener<VH>() {
         @Override
@@ -114,7 +114,7 @@ public abstract class MultiSelectionAdapter<VH extends RecyclerView.ViewHolder> 
         }
     };
 
-    public void setDiffer(AsyncListDiffer<MediaFile> differ) {
+    public void setDiffer(AsyncPagedListDiffer<MediaFile> differ) {
         this.differ = differ;
     }
 
@@ -131,7 +131,7 @@ public abstract class MultiSelectionAdapter<VH extends RecyclerView.ViewHolder> 
     }
 
     protected MediaFile getItem(int position) {
-        return differ.getCurrentList().get(position);
+        return differ.getItem(position);
     }
 
     protected List<MediaFile> getCurrentList() {
@@ -140,7 +140,7 @@ public abstract class MultiSelectionAdapter<VH extends RecyclerView.ViewHolder> 
 
     @Override
     public int getItemCount() {
-        return differ.getCurrentList().size();
+        return differ.getItemCount();
     }
 
     @CallSuper

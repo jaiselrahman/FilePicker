@@ -39,6 +39,10 @@ public class Configurations implements Parcelable {
             return new Configurations[size];
         }
     };
+
+    public static int PAGE_SIZE = 120;
+    public static int PREFETCH_DISTANCE = 40;
+
     private final boolean imageCaptureEnabled;
     private final boolean videoCaptureEnabled;
     private final boolean showVideos;

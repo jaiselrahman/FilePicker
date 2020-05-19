@@ -30,6 +30,7 @@ dependencies {
 
     implementation 'com.github.bumptech.glide:glide:4.10.0'
 
+    implementation "androidx.activity:activity:1.2.0-alpha04"
 
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test:runner:1.1.2-alpha01'

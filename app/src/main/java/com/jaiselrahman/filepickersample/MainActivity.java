@@ -21,12 +21,16 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.jaiselrahman.filepicker.activity.DirSelectActivity;
 import com.jaiselrahman.filepicker.activity.FilePickerActivity;
+import com.jaiselrahman.filepicker.activity.PickFile;
 import com.jaiselrahman.filepicker.config.Configurations;
 import com.jaiselrahman.filepicker.model.MediaFile;
 import com.jaiselrahman.filepicker.utils.FilePickerProvider;
@@ -34,6 +38,7 @@ import com.jaiselrahman.filepicker.utils.FilePickerProvider;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
     private final static int FILE_REQUEST_CODE = 1;
@@ -48,11 +53,20 @@ public class MainActivity extends AppCompatActivity {
         fileListAdapter = new FileListAdapter(mediaFiles);
         recyclerView.setAdapter(fileListAdapter);
 
+        final ActivityResultLauncher<Configurations> pickImage = registerForActivityResult(new PickFile().throughDir(true), new ActivityResultCallback<List<MediaFile>>() {
+            @Override
+            public void onActivityResult(List<MediaFile> result) {
+                if (result != null)
+                    setMediaFiles(result);
+                else
+                    Toast.makeText(MainActivity.this, "Image not selected", Toast.LENGTH_SHORT).show();
+            }
+        });
+
         findViewById(R.id.launch_imagePicker).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(MainActivity.this, FilePickerActivity.class);
-                intent.putExtra(FilePickerActivity.CONFIGS, new Configurations.Builder()
+                pickImage.launch(new Configurations.Builder()
                         .setCheckPermission(true)
                         .setSelectedMediaFiles(mediaFiles)
                         .enableImageCapture(true)
@@ -60,7 +74,6 @@ public class MainActivity extends AppCompatActivity {
                         .setSkipZeroSizeFiles(true)
                         .setMaxSelection(10)
                         .build());
-                startActivityForResult(intent, FILE_REQUEST_CODE);
             }
         });
 
@@ -132,10 +145,19 @@ public class MainActivity extends AppCompatActivity {
         if (requestCode == FILE_REQUEST_CODE
                 && resultCode == RESULT_OK
                 && data != null) {
-            mediaFiles.clear();
-            mediaFiles.addAll(data.<MediaFile>getParcelableArrayListExtra(FilePickerActivity.MEDIA_FILES));
-            fileListAdapter.notifyDataSetChanged();
+            List<MediaFile> mediaFiles = data.<MediaFile>getParcelableArrayListExtra(FilePickerActivity.MEDIA_FILES);
+            if(mediaFiles != null) {
+                setMediaFiles(mediaFiles);
+            } else {
+                Toast.makeText(MainActivity.this, "Image not selected", Toast.LENGTH_SHORT).show();
+            }
         }
+    }
+
+    private void setMediaFiles(List<MediaFile> mediaFiles) {
+        this.mediaFiles.clear();
+        this.mediaFiles.addAll(mediaFiles);
+        fileListAdapter.notifyDataSetChanged();
     }
 
     @Override

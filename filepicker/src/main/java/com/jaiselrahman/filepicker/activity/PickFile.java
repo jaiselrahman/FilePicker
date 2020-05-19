@@ -1,0 +1,56 @@
+/*
+ *  Copyright (c) 2020, Jaisel Rahman <jaiselrahman@gmail.com>.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+package com.jaiselrahman.filepicker.activity;
+
+import android.content.Context;
+import android.content.Intent;
+
+import androidx.activity.result.contract.ActivityResultContract;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import com.jaiselrahman.filepicker.config.Configurations;
+import com.jaiselrahman.filepicker.model.MediaFile;
+
+import java.util.List;
+
+import static android.app.Activity.RESULT_OK;
+
+public class PickFile extends ActivityResultContract<Configurations, List<MediaFile>> {
+    private boolean throughDir = false;
+
+    @NonNull
+    @Override
+    public Intent createIntent(@NonNull Context context, Configurations input) {
+        return new Intent(context,
+                throughDir ? DirSelectActivity.class : FilePickerActivity.class
+        ).putExtra(FilePickerActivity.CONFIGS, input);
+    }
+
+    @Override
+    public List<MediaFile> parseResult(int resultCode, @Nullable Intent intent) {
+        if (resultCode == RESULT_OK && intent != null) {
+            return intent.getParcelableArrayListExtra(FilePickerActivity.MEDIA_FILES);
+        }
+        return null;
+    }
+
+    public PickFile throughDir(boolean throughDir) {
+        this.throughDir = throughDir;
+        return this;
+    }
+}

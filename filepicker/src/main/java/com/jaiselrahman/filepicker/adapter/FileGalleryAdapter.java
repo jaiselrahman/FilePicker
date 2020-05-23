@@ -32,7 +32,6 @@ import androidx.annotation.NonNull;
 import androidx.paging.AsyncPagedListDiffer;
 import androidx.paging.PagedList;
 import androidx.recyclerview.widget.AsyncDifferConfig;
-import androidx.recyclerview.widget.AsyncListDiffer;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.ListUpdateCallback;
 import androidx.recyclerview.widget.RecyclerView;
@@ -49,7 +48,6 @@ import com.jaiselrahman.filepicker.view.SquareImage;
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.List;
 import java.util.Locale;
 
 import static android.os.Environment.DIRECTORY_MOVIES;
@@ -77,7 +75,6 @@ public class FileGalleryAdapter extends MultiSelectionAdapter<FileGalleryAdapter
         this.activity = activity;
         this.showCamera = showCamera;
         this.showVideoCamera = showVideoCamera;
-
 
         setDiffer(differ);
 

@@ -41,6 +41,8 @@ import static android.provider.MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO;
 import static android.provider.MediaStore.MediaColumns.BUCKET_ID;
 import static android.provider.MediaStore.MediaColumns.DATA;
 import static android.provider.MediaStore.MediaColumns.DATE_ADDED;
+import static android.provider.MediaStore.MediaColumns.DATE_MODIFIED;
+import static android.provider.MediaStore.MediaColumns.DATE_TAKEN;
 import static android.provider.MediaStore.MediaColumns.SIZE;
 import static com.jaiselrahman.filepicker.model.MediaFileDataSource.appendDefaultFileSelection;
 import static com.jaiselrahman.filepicker.model.MediaFileDataSource.appendFileSelection;
@@ -131,9 +133,23 @@ public class DirDataSource extends PositionalDataSource<Dir> {
     }
 
     private List<Dir> getDirs(int offset, int limit) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            return getDirsQ(offset);
+        }
+
         Cursor data = ContentResolverCompat.query(contentResolver, uri, projection,
                 selection, selectionArgs,
                 sortOrder + " LIMIT " + limit + " OFFSET " + offset, null);
+
+        return DirLoader.getDirs(data, configs);
+    }
+
+    private List<Dir> getDirsQ(int offset) {
+        if (offset != 0) return Collections.emptyList();
+
+        Cursor data = ContentResolverCompat.query(contentResolver, uri, projection,
+                selection, selectionArgs,
+                sortOrder, null);
 
         return DirLoader.getDirs(data, configs);
     }

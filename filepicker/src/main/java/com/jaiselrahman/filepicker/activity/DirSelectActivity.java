@@ -46,10 +46,10 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.jaiselrahman.filepicker.R;
 import com.jaiselrahman.filepicker.adapter.DirListAdapter;
 import com.jaiselrahman.filepicker.config.Configurations;
-import com.jaiselrahman.filepicker.model.MediaFileLoader;
 import com.jaiselrahman.filepicker.model.Dir;
 import com.jaiselrahman.filepicker.model.DirViewModel;
 import com.jaiselrahman.filepicker.model.MediaFile;
+import com.jaiselrahman.filepicker.model.MediaFileLoader;
 import com.jaiselrahman.filepicker.view.DividerItemDecoration;
 
 import java.io.File;
@@ -202,14 +202,12 @@ public class DirSelectActivity extends AppCompatActivity implements DirListAdapt
                         new MediaScannerConnection.OnScanCompletedListener() {
                             @Override
                             public void onScanCompleted(String path, final Uri uri) {
-                                if (uri != null) {
-                                    runOnUiThread(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            viewModel.refresh();
-                                        }
-                                    });
-                                }
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        viewModel.refresh();
+                                    }
+                                });
                             }
                         });
             } else {

@@ -48,7 +48,7 @@ import com.jaiselrahman.filepicker.adapter.FileGalleryAdapter;
 import com.jaiselrahman.filepicker.adapter.FileGalleryAdapter.OnCameraClickListener;
 import com.jaiselrahman.filepicker.adapter.MultiSelectionAdapter.OnSelectionListener;
 import com.jaiselrahman.filepicker.config.Configurations;
-import com.jaiselrahman.filepicker.model.FileLoader;
+import com.jaiselrahman.filepicker.model.MediaFileLoader;
 import com.jaiselrahman.filepicker.model.MediaFile;
 import com.jaiselrahman.filepicker.model.MediaFileViewModel;
 import com.jaiselrahman.filepicker.view.DividerItemDecoration;
@@ -243,10 +243,10 @@ public class FilePickerActivity extends AppCompatActivity
                 ClipData clipData = data.getClipData();
                 for (int i = 0; i < clipData.getItemCount(); i++) {
                     uri = clipData.getItemAt(i).getUri();
-                    mediaFiles.add(FileLoader.asMediaFile(contentResolver, uri, configs));
+                    mediaFiles.add(MediaFileLoader.asMediaFile(contentResolver, uri, configs));
                 }
             } else {
-                mediaFiles.add(FileLoader.asMediaFile(contentResolver, uri, configs));
+                mediaFiles.add(MediaFileLoader.asMediaFile(contentResolver, uri, configs));
             }
             Intent intent = new Intent();
             intent.putExtra(MEDIA_FILES, mediaFiles);

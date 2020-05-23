@@ -46,7 +46,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.jaiselrahman.filepicker.R;
 import com.jaiselrahman.filepicker.adapter.DirListAdapter;
 import com.jaiselrahman.filepicker.config.Configurations;
-import com.jaiselrahman.filepicker.model.FileLoader;
+import com.jaiselrahman.filepicker.model.MediaFileLoader;
 import com.jaiselrahman.filepicker.model.Dir;
 import com.jaiselrahman.filepicker.model.DirViewModel;
 import com.jaiselrahman.filepicker.model.MediaFile;
@@ -228,10 +228,10 @@ public class DirSelectActivity extends AppCompatActivity implements DirListAdapt
                 ClipData clipData = data.getClipData();
                 for (int i = 0; i < clipData.getItemCount(); i++) {
                     uri = clipData.getItemAt(i).getUri();
-                    mediaFiles.add(FileLoader.asMediaFile(contentResolver, uri, configs));
+                    mediaFiles.add(MediaFileLoader.asMediaFile(contentResolver, uri, configs));
                 }
             } else {
-                mediaFiles.add(FileLoader.asMediaFile(contentResolver, uri, configs));
+                mediaFiles.add(MediaFileLoader.asMediaFile(contentResolver, uri, configs));
             }
             Intent intent = new Intent();
             intent.putExtra(MEDIA_FILES, mediaFiles);

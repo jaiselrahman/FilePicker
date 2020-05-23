@@ -118,7 +118,7 @@ public class MediaFileDataSource extends PositionalDataSource<MediaFile> {
             selectionBuilder.append(SIZE).append(" > 0 ");
         }
 
-        List<String> projection = new ArrayList<>(FileLoader.FILE_PROJECTION);
+        List<String> projection = new ArrayList<>(MediaFileLoader.FILE_PROJECTION);
 
         if (canUseMediaType(configs)) {
             projection.add(MediaStore.Files.FileColumns.MEDIA_TYPE);
@@ -161,7 +161,7 @@ public class MediaFileDataSource extends PositionalDataSource<MediaFile> {
                 selection, selectionArgs,
                 sortOrder + " LIMIT " + limit + " OFFSET " + offset, null);
 
-        return FileLoader.asMediaFiles(data, configs);
+        return MediaFileLoader.asMediaFiles(data, configs);
     }
 
     private static boolean canUseAlbumId(Configurations configs) {
@@ -268,7 +268,7 @@ public class MediaFileDataSource extends PositionalDataSource<MediaFile> {
             this.configs = configs;
             this.dirId = dirId;
 
-            uri = FileLoader.getContentUri(configs);
+            uri = MediaFileLoader.getContentUri(configs);
         }
 
         public Uri getUri() {

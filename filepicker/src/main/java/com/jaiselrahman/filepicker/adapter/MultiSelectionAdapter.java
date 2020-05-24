@@ -29,7 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @SuppressWarnings({"unused", "WeakerAccess"})
-public abstract class MultiSelectionAdapter<VH extends RecyclerView.ViewHolder> extends RecyclerView.Adapter<VH> {
+public abstract class MultiSelectionAdapter<VH extends MultiSelectionAdapter.ViewHolder> extends RecyclerView.Adapter<VH> {
     private static final String TAG = MultiSelectionAdapter.class.getSimpleName();
     private ArrayList<MediaFile> selectedItems = new ArrayList<>();
 
@@ -146,47 +146,7 @@ public abstract class MultiSelectionAdapter<VH extends RecyclerView.ViewHolder> 
     @CallSuper
     @Override
     public void onBindViewHolder(@NonNull final VH holder, int position) {
-        final View view = holder.itemView;
-
-        view.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                int position = holder.getAdapterPosition() - itemStartPosition;
-                if (enabledSelection && (isSelectionStarted || isSingleClickSelection)) {
-                    if (selectedItems.contains(getItem(position))) {
-                        onSelectionListener.onUnSelected(holder, position);
-                        if (selectedItems.isEmpty()) {
-                            onSelectionListener.onSelectionEnd();
-                        }
-                    } else {
-                        onSelectionListener.onSelected(holder, position);
-                    }
-                }
-                if (onItemClickListener != null)
-                    onItemClickListener.onClick(v, position);
-            }
-        });
-
-        setItemSelected(view, position, selectedItems.contains(getItem(position)));
-
-        view.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                int position = holder.getAdapterPosition() - itemStartPosition;
-                if (enabledSelection) {
-                    if (!isSelectionStarted) {
-                        onSelectionListener.onSelectionBegin();
-                        onSelectionListener.onSelected(holder, position);
-                    } else if (selectedItems.size() <= 1
-                            && selectedItems.contains(getItem(position))) {
-                        onSelectionListener.onSelectionEnd();
-                        onSelectionListener.onUnSelected(holder, position);
-                    }
-                }
-                return onItemLongClickListener == null ||
-                        onItemLongClickListener.onLongClick(view, position);
-            }
-        });
+        setItemSelected(holder.itemView, position, selectedItems.contains(getItem(position)));
     }
 
     @Override
@@ -321,5 +281,67 @@ public abstract class MultiSelectionAdapter<VH extends RecyclerView.ViewHolder> 
         void onSelectionEnd();
 
         void onMaxReached();
+    }
+
+    private class SelectionLongClickListener implements View.OnLongClickListener {
+        private VH holder;
+
+        private SelectionLongClickListener(VH viewHolder) {
+            this.holder = viewHolder;
+        }
+
+        @Override
+        public boolean onLongClick(View v) {
+            int position = holder.getAdapterPosition() - itemStartPosition;
+            if (enabledSelection) {
+                if (!isSelectionStarted) {
+                    onSelectionListener.onSelectionBegin();
+                    onSelectionListener.onSelected(holder, position);
+                } else if (selectedItems.size() <= 1
+                        && selectedItems.contains(getItem(position))) {
+                    onSelectionListener.onSelectionEnd();
+                    onSelectionListener.onUnSelected(holder, position);
+                }
+            }
+            return onItemLongClickListener == null ||
+                    onItemLongClickListener.onLongClick(holder.itemView, position);
+        }
+    }
+
+    private class SelectionClickListener implements View.OnClickListener {
+        private VH holder;
+
+        private SelectionClickListener(VH viewHolder) {
+            this.holder = viewHolder;
+        }
+
+        @Override
+        public void onClick(View v) {
+            int position = holder.getAdapterPosition() - itemStartPosition;
+            if (enabledSelection && (isSelectionStarted || isSingleClickSelection)) {
+                if (selectedItems.contains(getItem(position))) {
+                    onSelectionListener.onUnSelected(holder, position);
+                    if (selectedItems.isEmpty()) {
+                        onSelectionListener.onSelectionEnd();
+                    }
+                } else {
+                    onSelectionListener.onSelected(holder, position);
+                }
+            }
+            if (onItemClickListener != null)
+                onItemClickListener.onClick(v, position);
+        }
+    }
+
+
+    public abstract class ViewHolder extends RecyclerView.ViewHolder {
+
+        @SuppressWarnings("unchecked")
+        ViewHolder(View view) {
+            super(view);
+
+            view.setOnClickListener(new SelectionClickListener((VH) this));
+            view.setOnLongClickListener(new SelectionLongClickListener((VH) this));
+        }
     }
 }

@@ -34,7 +34,6 @@ import androidx.paging.PagedList;
 import androidx.recyclerview.widget.AsyncDifferConfig;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.ListUpdateCallback;
-import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.RequestManager;
@@ -118,25 +117,22 @@ public class FileGalleryAdapter extends MultiSelectionAdapter<FileGalleryAdapter
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         if (showCamera) {
             if (position == 0) {
-                handleCamera(holder.openCamera, false);
+                holder.bind(null, false);
                 return;
             }
             if (showVideoCamera) {
                 if (position == 1) {
-                    handleCamera(holder.openVideoCamera, true);
+                    holder.bind(null, true);
                     return;
                 }
-                holder.openVideoCamera.setVisibility(View.GONE);
                 position--;
             }
-            holder.openCamera.setVisibility(View.GONE);
             position--;
         } else if (showVideoCamera) {
             if (position == 0) {
-                handleCamera(holder.openVideoCamera, true);
+                holder.bind(null, true);
                 return;
             }
-            holder.openVideoCamera.setVisibility(View.GONE);
             position--;
         }
 
@@ -144,47 +140,7 @@ public class FileGalleryAdapter extends MultiSelectionAdapter<FileGalleryAdapter
 
         MediaFile mediaFile = getItem(position);
 
-        if (mediaFile.getMediaType() == MediaFile.TYPE_VIDEO ||
-                mediaFile.getMediaType() == MediaFile.TYPE_IMAGE) {
-            glideRequest.load(mediaFile.getUri())
-                    .into(holder.fileThumbnail);
-        } else if (mediaFile.getMediaType() == MediaFile.TYPE_AUDIO) {
-            glideRequest.load(mediaFile.getThumbnail())
-                    .apply(RequestOptions.placeholderOf(R.drawable.ic_audio))
-                    .into(holder.fileThumbnail);
-        } else {
-            holder.fileThumbnail.setImageResource(R.drawable.ic_file);
-        }
-
-        if (mediaFile.getMediaType() == MediaFile.TYPE_VIDEO ||
-                mediaFile.getMediaType() == MediaFile.TYPE_AUDIO) {
-            holder.fileDuration.setVisibility(View.VISIBLE);
-            holder.fileDuration.setText(TimeUtils.getDuration(mediaFile.getDuration()));
-        } else {
-            holder.fileDuration.setVisibility(View.GONE);
-        }
-
-        if (mediaFile.getMediaType() == MediaFile.TYPE_FILE
-                || mediaFile.getMediaType() == MediaFile.TYPE_AUDIO) {
-            holder.fileName.setVisibility(View.VISIBLE);
-            holder.fileName.setText(mediaFile.getName());
-        } else {
-            holder.fileName.setVisibility(View.GONE);
-        }
-
-        holder.fileSelected.setVisibility(isSelected(mediaFile) ? View.VISIBLE : View.GONE);
-    }
-
-    private void handleCamera(final ImageView openCamera, final boolean forVideo) {
-        openCamera.setVisibility(View.VISIBLE);
-        openCamera.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (onCameraClickListener != null && !onCameraClickListener.onCameraClick(forVideo))
-                    return;
-                openCamera(forVideo);
-            }
-        });
+        holder.bind(mediaFile, null);
     }
 
     public void openCamera(boolean forVideo) {
@@ -300,7 +256,7 @@ public class FileGalleryAdapter extends MultiSelectionAdapter<FileGalleryAdapter
         }
     }
 
-    public static class ViewHolder extends RecyclerView.ViewHolder {
+    public class ViewHolder extends MultiSelectionAdapter.ViewHolder {
         private ImageView fileSelected, openCamera, openVideoCamera;
         private SquareImage fileThumbnail;
         private TextView fileDuration, fileName;
@@ -313,6 +269,66 @@ public class FileGalleryAdapter extends MultiSelectionAdapter<FileGalleryAdapter
             fileDuration = v.findViewById(R.id.file_duration);
             fileName = v.findViewById(R.id.file_name);
             fileSelected = v.findViewById(R.id.file_selected);
+
+            openCamera.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (onCameraClickListener != null && !onCameraClickListener.onCameraClick(false))
+                        return;
+                    openCamera(false);
+                }
+            });
+
+            openVideoCamera.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (onCameraClickListener != null && !onCameraClickListener.onCameraClick(true))
+                        return;
+                    openCamera(true);
+                }
+            });
+        }
+
+        void bind(MediaFile mediaFile, Boolean forVideo) {
+            if (forVideo == null) {
+                openCamera.setVisibility(View.GONE);
+                openVideoCamera.setVisibility(View.GONE);
+            } else {
+                openCamera.setVisibility(forVideo ? View.GONE : View.VISIBLE);
+                openVideoCamera.setVisibility(forVideo ? View.VISIBLE : View.GONE);
+            }
+
+            if (mediaFile == null) return;
+
+            if (mediaFile.getMediaType() == MediaFile.TYPE_VIDEO ||
+                    mediaFile.getMediaType() == MediaFile.TYPE_IMAGE) {
+                glideRequest.load(mediaFile.getUri())
+                        .into(fileThumbnail);
+            } else if (mediaFile.getMediaType() == MediaFile.TYPE_AUDIO) {
+                glideRequest.load(mediaFile.getThumbnail())
+                        .apply(RequestOptions.placeholderOf(R.drawable.ic_audio))
+                        .into(fileThumbnail);
+            } else {
+                fileThumbnail.setImageResource(R.drawable.ic_file);
+            }
+
+            if (mediaFile.getMediaType() == MediaFile.TYPE_VIDEO ||
+                    mediaFile.getMediaType() == MediaFile.TYPE_AUDIO) {
+                fileDuration.setVisibility(View.VISIBLE);
+                fileDuration.setText(TimeUtils.getDuration(mediaFile.getDuration()));
+            } else {
+                fileDuration.setVisibility(View.GONE);
+            }
+
+            if (mediaFile.getMediaType() == MediaFile.TYPE_FILE
+                    || mediaFile.getMediaType() == MediaFile.TYPE_AUDIO) {
+                fileName.setVisibility(View.VISIBLE);
+                fileName.setText(mediaFile.getName());
+            } else {
+                fileName.setVisibility(View.GONE);
+            }
+
+            fileSelected.setVisibility(isSelected(mediaFile) ? View.VISIBLE : View.GONE);
         }
     }
 

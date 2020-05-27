@@ -161,7 +161,9 @@ public class MediaFileDataSource extends PositionalDataSource<MediaFile> {
                 selection, selectionArgs,
                 sortOrder + " LIMIT " + limit + " OFFSET " + offset, null);
 
-        return MediaFileLoader.asMediaFiles(data, configs);
+        List<MediaFile> mediaFiles = MediaFileLoader.asMediaFiles(data, configs);
+        data.close();
+        return mediaFiles;
     }
 
     private static boolean canUseAlbumId(Configurations configs) {

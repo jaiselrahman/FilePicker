@@ -266,10 +266,16 @@ public class FilePickerActivity extends AppCompatActivity
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.done) {
-            Intent intent = new Intent();
-            intent.putExtra(MEDIA_FILES, fileGalleryAdapter.getSelectedItems());
-            setResult(RESULT_OK, intent);
-            finish();
+            ArrayList<MediaFile> selectedFiles = fileGalleryAdapter.getSelectedItems();
+            if (selectedFiles.isEmpty()) {
+                Toast.makeText(this, R.string.must_select_file, Toast.LENGTH_SHORT).show();
+            } else {
+                Intent intent = new Intent();
+                intent.putExtra(MEDIA_FILES, fileGalleryAdapter.getSelectedItems());
+                setResult(RESULT_OK, intent);
+                finish();
+            }
+
             return true;
         }
         return super.onOptionsItemSelected(item);

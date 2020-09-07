@@ -2,7 +2,7 @@
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![API](https://img.shields.io/badge/API-14%2B-brightgreen.svg?style=flat)](https://android-arsenal.com/api?level=14)
-[![jitPack](https://jitpack.io/v/jaiselrahman/FilePicker.svg)](https://jitpack.io/#jaiselrahman/FilePicker)
+[![jitPack](https://jitpack.io/v/mazenrashed/FilePicker.svg)](https://jitpack.io/#mazenrashed/FilePicker)
 [![Monthly Downloads](https://jitpack.io/v/jaiselrahman/FilePicker/month.svg)](https://jitpack.io/#jaiselrahman/FilePicker)
 [![Weekly Downloads](https://jitpack.io/v/jaiselrahman/FilePicker/week.svg)](https://jitpack.io/#jaiselrahman/FilePicker)
 [![Android Arsenal](https://img.shields.io/badge/Android%20Arsenal-FilePicker-brightgreen.svg?style=flat)](https://android-arsenal.com/details/1/7002)
@@ -39,7 +39,7 @@ Step 2: Add the dependency
 ```gradle
     dependencies {
         ...
-        implementation 'com.github.jaiselrahman:FilePicker:1.3.2'
+              implementation 'com.github.mazenrashed:FilePicker:1.3.3'
     }
 ```
 

@@ -162,7 +162,8 @@ public class MediaFileDataSource extends PositionalDataSource<MediaFile> {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             Bundle bundle = new Bundle();
             bundle.putInt(ContentResolver.QUERY_ARG_LIMIT, limit);
-            bundle.putInt(ContentResolver.QUERY_ARG_OFFSET, limit);
+            bundle.putInt(ContentResolver.QUERY_ARG_OFFSET, offset);
+            bundle.putString(ContentResolver.QUERY_ARG_SQL_SELECTION, selection);
             bundle.putStringArray(ContentResolver.QUERY_ARG_SQL_SELECTION_ARGS, selectionArgs);
             data = contentResolver.query(uri, projection, bundle, null);
         } else {

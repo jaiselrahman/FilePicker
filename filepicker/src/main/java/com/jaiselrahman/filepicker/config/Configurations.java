@@ -136,7 +136,7 @@ public class Configurations implements Parcelable {
     }
 
     public ArrayList<MediaFile> getSelectedMediaFiles() {
-        return selectedMediaFiles;
+        return selectedMediaFiles != null ? selectedMediaFiles : new ArrayList<MediaFile>();
     }
 
     @Override

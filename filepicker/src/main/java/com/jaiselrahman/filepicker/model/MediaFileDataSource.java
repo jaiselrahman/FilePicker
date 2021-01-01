@@ -20,6 +20,7 @@ import android.content.ContentResolver;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Bundle;
 import android.provider.MediaStore;
 
 import androidx.annotation.NonNull;
@@ -157,11 +158,23 @@ public class MediaFileDataSource extends PositionalDataSource<MediaFile> {
     }
 
     private List<MediaFile> getMediaFiles(int offset, int limit) {
-        Cursor data = ContentResolverCompat.query(contentResolver, uri, projection,
-                selection, selectionArgs,
-                sortOrder + " LIMIT " + limit + " OFFSET " + offset, null);
+        Cursor data;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            Bundle bundle = new Bundle();
+            bundle.putInt(ContentResolver.QUERY_ARG_LIMIT, limit);
+            bundle.putInt(ContentResolver.QUERY_ARG_OFFSET, offset);
+            bundle.putString(ContentResolver.QUERY_ARG_SQL_SELECTION, selection);
+            bundle.putStringArray(ContentResolver.QUERY_ARG_SQL_SELECTION_ARGS, selectionArgs);
+            data = contentResolver.query(uri, projection, bundle, null);
+        } else {
+            data = ContentResolverCompat.query(contentResolver, uri, projection,
+                    selection, selectionArgs,
+                    sortOrder + " LIMIT " + limit + " OFFSET " + offset, null);
+        }
 
-        return MediaFileLoader.asMediaFiles(data, configs);
+        List<MediaFile> mediaFiles = MediaFileLoader.asMediaFiles(data, configs);
+        data.close();
+        return mediaFiles;
     }
 
     private static boolean canUseAlbumId(Configurations configs) {

@@ -21,11 +21,13 @@ import android.provider.MediaStore;
 import com.jaiselrahman.filepicker.config.Configurations;
 
 import java.io.File;
+import java.util.HashSet;
 import java.util.regex.Matcher;
 
 import static java.io.File.separatorChar;
 
 public class FileUtils {
+    private static HashSet<String> traversedPaths = new HashSet<>();
     public static boolean toIgnoreFolder(String path, Configurations configs) {
         String parent = getParent(path);
         if (configs.isIgnoreHiddenFile() && getName(parent).startsWith(".")) return true;
@@ -37,8 +39,18 @@ public class FileUtils {
             }
         }
         if (configs.isIgnoreNoMediaDir()) {
-            while (!parent.isEmpty() && !new File(parent, MediaStore.MEDIA_IGNORE_FILENAME).exists()) {
+            while (!parent.isEmpty()) {
+                if (traversedPaths.contains(parent)) {
+                    parent = "";
+                    break;
+                }
+                traversedPaths.add(parent);
+                boolean exists = new File(parent, MediaStore.MEDIA_IGNORE_FILENAME).exists();
+                if (exists) {
+                    break;
+                }
                 parent = getParent(parent);
+                break;
             }
             return !parent.isEmpty();
         }

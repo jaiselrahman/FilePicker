@@ -80,7 +80,11 @@ public class Configurations implements Parcelable {
         this.portraitSpanCount = builder.portraitSpanCount;
         this.rootPath = builder.rootPath;
         this.suffixes = builder.suffixes;
-        this.selectedMediaFiles = builder.selectedMediaFiles;
+        if (builder.selectedMediaFiles != null) {
+            this.selectedMediaFiles = builder.selectedMediaFiles;
+        } else {
+            this.selectedMediaFiles = new ArrayList<>();
+        }
         setIgnorePathMatchers(builder.ignorePaths);
         this.ignoreNoMedia = builder.ignoreNoMedia;
         this.ignoreHiddenFile = builder.ignoreHiddenFile;
@@ -132,7 +136,7 @@ public class Configurations implements Parcelable {
     }
 
     public ArrayList<MediaFile> getSelectedMediaFiles() {
-        return selectedMediaFiles;
+        return selectedMediaFiles != null ? selectedMediaFiles : new ArrayList<MediaFile>();
     }
 
     @Override

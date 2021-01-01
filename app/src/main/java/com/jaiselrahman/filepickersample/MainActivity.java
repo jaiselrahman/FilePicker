@@ -53,7 +53,8 @@ public class MainActivity extends AppCompatActivity {
         fileListAdapter = new FileListAdapter(mediaFiles);
         recyclerView.setAdapter(fileListAdapter);
 
-        final ActivityResultLauncher<Configurations> pickImage = registerForActivityResult(new PickFile().throughDir(true), new ActivityResultCallback<List<MediaFile>>() {
+        final ActivityResultLauncher<Configurations> pickImage = registerForActivityResult(
+                new PickFile().throughDir(true), new ActivityResultCallback<List<MediaFile>>() {
             @Override
             public void onActivityResult(List<MediaFile> result) {
                 if (result != null)

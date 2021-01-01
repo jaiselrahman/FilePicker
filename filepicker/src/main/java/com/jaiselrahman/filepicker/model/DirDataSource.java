@@ -151,7 +151,9 @@ public class DirDataSource extends PositionalDataSource<Dir> {
                 selection, selectionArgs,
                 sortOrder, null);
 
-        return DirLoader.getDirs(data, configs);
+        List<Dir> dirs = DirLoader.getDirs(data, configs);
+        data.close();
+        return dirs;
     }
 
     private static String[] getDirProjection() {

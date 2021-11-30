@@ -20,9 +20,11 @@ import android.content.ContentResolver;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Bundle;
 import android.provider.MediaStore;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.core.content.ContentResolverCompat;
 import androidx.paging.DataSource;
 import androidx.paging.PositionalDataSource;
@@ -52,6 +54,9 @@ public class MediaFileDataSource extends PositionalDataSource<MediaFile> {
 
     private String[] projection;
     private String sortOrder;
+
+    private String sortColumn;
+    private int sortDirection;
     private String selection;
     private String[] selectionArgs;
     private Uri uri;
@@ -141,7 +146,9 @@ public class MediaFileDataSource extends PositionalDataSource<MediaFile> {
         }
 
         this.projection = projection.toArray(new String[0]);
+        this.sortColumn = DATE_ADDED;
         this.sortOrder = DATE_ADDED + " DESC";
+        this.sortDirection =ContentResolver.QUERY_SORT_DIRECTION_DESCENDING;
         this.selection = selectionBuilder.toString();
         this.selectionArgs = selectionArgs.toArray(new String[0]);
     }
@@ -155,8 +162,22 @@ public class MediaFileDataSource extends PositionalDataSource<MediaFile> {
     public void loadRange(@NonNull LoadRangeParams params, @NonNull LoadRangeCallback<MediaFile> callback) {
         callback.onResult(getMediaFiles(params.startPosition, params.loadSize));
     }
-
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private Bundle create(int limit, int offset) {
+        Bundle bundle = new Bundle();
+        bundle.putInt(ContentResolver.QUERY_ARG_LIMIT, limit);
+        bundle.putInt(ContentResolver.QUERY_ARG_OFFSET, offset);
+        bundle.putString(ContentResolver.QUERY_ARG_SORT_COLUMNS, sortColumn);
+        bundle.putInt(ContentResolver.QUERY_ARG_SORT_DIRECTION, sortDirection);
+        bundle.putString(ContentResolver.QUERY_ARG_SQL_SELECTION, selection);
+        bundle.putStringArray(ContentResolver.QUERY_ARG_SQL_SELECTION_ARGS, selectionArgs);
+        return bundle;
+    }
     private List<MediaFile> getMediaFiles(int offset, int limit) {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            Cursor query = contentResolver.query(uri, projection, create(limit, offset), null);
+            return MediaFileLoader.asMediaFiles(query, configs);
+        }
         Cursor data = ContentResolverCompat.query(contentResolver, uri, projection,
                 selection, selectionArgs,
                 sortOrder + " LIMIT " + limit + " OFFSET " + offset, null);

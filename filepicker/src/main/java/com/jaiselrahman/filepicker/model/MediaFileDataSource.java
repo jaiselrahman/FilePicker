@@ -167,14 +167,16 @@ public class MediaFileDataSource extends PositionalDataSource<MediaFile> {
         Bundle bundle = new Bundle();
         bundle.putInt(ContentResolver.QUERY_ARG_LIMIT, limit);
         bundle.putInt(ContentResolver.QUERY_ARG_OFFSET, offset);
-        bundle.putString(ContentResolver.QUERY_ARG_SORT_COLUMNS, sortColumn);
-        bundle.putInt(ContentResolver.QUERY_ARG_SORT_DIRECTION, sortDirection);
+        if (sortColumn !=null && sortColumn.trim().length() != 0) {
+            bundle.putString(ContentResolver.QUERY_ARG_SORT_COLUMNS, sortColumn);
+            bundle.putInt(ContentResolver.QUERY_ARG_SORT_DIRECTION, sortDirection);
+        }
         bundle.putString(ContentResolver.QUERY_ARG_SQL_SELECTION, selection);
         bundle.putStringArray(ContentResolver.QUERY_ARG_SQL_SELECTION_ARGS, selectionArgs);
         return bundle;
     }
     private List<MediaFile> getMediaFiles(int offset, int limit) {
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+        if (android.os.Build.VERSION.SDK_INT >= 30) {
             Cursor query = contentResolver.query(uri, projection, create(limit, offset), null);
             return MediaFileLoader.asMediaFiles(query, configs);
         }

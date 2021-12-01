@@ -29,10 +29,10 @@ import androidx.paging.PagedList;
 import com.jaiselrahman.filepicker.config.Configurations;
 
 public class MediaFileViewModel extends ViewModel {
-    private ContentResolver contentResolver;
+    private final ContentResolver contentResolver;
     public LiveData<PagedList<MediaFile>> mediaFiles;
 
-    private ContentObserver contentObserver = new ContentObserver(null) {
+    private final ContentObserver contentObserver = new ContentObserver(null) {
         @Override
         public void onChange(boolean selfChange) {
             refresh();
@@ -69,9 +69,9 @@ public class MediaFileViewModel extends ViewModel {
     }
 
     public static class Factory extends ViewModelProvider.NewInstanceFactory {
-        private ContentResolver contentResolver;
-        private Configurations configs;
-        private Long dirId;
+        private final ContentResolver contentResolver;
+        private final Configurations configs;
+        private final Long dirId;
 
         public Factory(ContentResolver contentResolver, Configurations configs, Long dirId) {
             this.contentResolver = contentResolver;

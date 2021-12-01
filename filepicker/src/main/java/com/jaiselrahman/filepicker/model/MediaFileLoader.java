@@ -23,6 +23,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.provider.MediaStore;
 import android.text.TextUtils;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -81,6 +82,7 @@ public class MediaFileLoader {
     }
 
     static List<MediaFile> asMediaFiles(Cursor data, Configurations configs) {
+        long current = System.currentTimeMillis();
         ArrayList<MediaFile> mediaFiles = new ArrayList<>(data.getCount());
         if (data.moveToFirst())
             do {
@@ -89,6 +91,7 @@ public class MediaFileLoader {
                     mediaFiles.add(mediaFile);
                 }
             } while (data.moveToNext());
+        Log.i("Fuzhengyin", "asMediaFiles: ms:"+(System.currentTimeMillis() - current));
         return mediaFiles;
     }
 

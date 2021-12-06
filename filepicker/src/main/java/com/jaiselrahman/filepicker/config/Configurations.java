@@ -345,6 +345,11 @@ public class Configurations implements Parcelable {
             return this;
         }
 
+        /**
+         * 根据后缀名过滤
+         * @param suffixes 不需要在后缀名前面添加`.` 内部会自动添加
+         * @return
+         */
         public Builder setSuffixes(String... suffixes) {
             this.suffixes = suffixes;
             return this;

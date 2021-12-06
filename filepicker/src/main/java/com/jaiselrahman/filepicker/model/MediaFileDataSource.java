@@ -120,6 +120,18 @@ public class MediaFileDataSource extends PositionalDataSource<MediaFile> {
             selectionBuilder.append(") and ");
         }
 
+        if (configs.isShowAudios()) {
+            String[] suffixes = configs.getSuffixes();
+            if (suffixes.length > 0) {
+                selectionBuilder.append("(");
+                for (String suffix : suffixes) {
+                    selectionBuilder.append(DATA).append(" like '%.").append(suffix).append("' or ");
+                }
+                selectionBuilder.delete(selectionBuilder.length()-4, selectionBuilder.length());
+                selectionBuilder.append(") AND ");
+            }
+        }
+
         if (configs.isSkipZeroSizeFiles()) {
             selectionBuilder.append(SIZE).append(" > 0 ");
         }

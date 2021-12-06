@@ -111,6 +111,7 @@ public class MainActivity extends AppCompatActivity {
                         .setIgnoreNoMedia(false)
                         .setShowAudios(true)
                         .setSingleChoiceMode(true)
+                        .setSuffixes("mp3")
                         .setSelectedMediaFile(file)
                         .setTitle("Select an audio")
                         .build());

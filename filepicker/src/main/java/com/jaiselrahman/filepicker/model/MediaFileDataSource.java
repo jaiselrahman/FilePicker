@@ -20,9 +20,12 @@ import android.content.ContentResolver;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Bundle;
 import android.provider.MediaStore;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.core.content.ContentResolverCompat;
 import androidx.paging.DataSource;
 import androidx.paging.PositionalDataSource;
@@ -47,14 +50,17 @@ import static android.provider.MediaStore.MediaColumns.SIZE;
 
 public class MediaFileDataSource extends PositionalDataSource<MediaFile> {
 
-    private Configurations configs;
-    private ContentResolver contentResolver;
+    private final Configurations configs;
+    private final ContentResolver contentResolver;
 
-    private String[] projection;
-    private String sortOrder;
-    private String selection;
-    private String[] selectionArgs;
-    private Uri uri;
+    private final String[] projection;
+    private final String sortOrder;
+
+    private final String sortColumn;
+    private final int sortDirection;
+    private final String selection;
+    private final String[] selectionArgs;
+    private final Uri uri;
 
     private MediaFileDataSource(ContentResolver contentResolver, Uri uri, @NonNull Configurations configs, Long dirId) {
         this.contentResolver = contentResolver;
@@ -114,6 +120,18 @@ public class MediaFileDataSource extends PositionalDataSource<MediaFile> {
             selectionBuilder.append(") and ");
         }
 
+        if (configs.isShowAudios()) {
+            String[] suffixes = configs.getSuffixes();
+            if (suffixes.length > 0) {
+                selectionBuilder.append("(");
+                for (String suffix : suffixes) {
+                    selectionBuilder.append(DATA).append(" like '%.").append(suffix).append("' or ");
+                }
+                selectionBuilder.delete(selectionBuilder.length()-4, selectionBuilder.length());
+                selectionBuilder.append(") AND ");
+            }
+        }
+
         if (configs.isSkipZeroSizeFiles()) {
             selectionBuilder.append(SIZE).append(" > 0 ");
         }
@@ -127,7 +145,6 @@ public class MediaFileDataSource extends PositionalDataSource<MediaFile> {
         if (canUseAlbumId(configs)) {
             projection.add(MediaStore.Audio.AudioColumns.ALBUM_ID);
         }
-
         List<String> folders = getFoldersToIgnore(contentResolver, configs);
         if (folders.size() > 0) {
             selectionBuilder.append(" and(").append(DATA).append(" NOT LIKE ? ");
@@ -139,11 +156,13 @@ public class MediaFileDataSource extends PositionalDataSource<MediaFile> {
             }
             selectionBuilder.append(")");
         }
-
         this.projection = projection.toArray(new String[0]);
+        this.sortColumn = DATE_ADDED;
         this.sortOrder = DATE_ADDED + " DESC";
+        this.sortDirection =ContentResolver.QUERY_SORT_DIRECTION_DESCENDING;
         this.selection = selectionBuilder.toString();
         this.selectionArgs = selectionArgs.toArray(new String[0]);
+
     }
 
     @Override
@@ -155,8 +174,25 @@ public class MediaFileDataSource extends PositionalDataSource<MediaFile> {
     public void loadRange(@NonNull LoadRangeParams params, @NonNull LoadRangeCallback<MediaFile> callback) {
         callback.onResult(getMediaFiles(params.startPosition, params.loadSize));
     }
-
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private Bundle create(int limit, int offset) {
+        Bundle bundle = new Bundle();
+        bundle.putInt(ContentResolver.QUERY_ARG_LIMIT, limit);
+        bundle.putInt(ContentResolver.QUERY_ARG_OFFSET, offset);
+        if (sortColumn !=null && sortColumn.trim().length() != 0) {
+            bundle.putString(ContentResolver.QUERY_ARG_SORT_COLUMNS, sortColumn);
+            bundle.putInt(ContentResolver.QUERY_ARG_SORT_DIRECTION, sortDirection);
+        }
+        bundle.putString(ContentResolver.QUERY_ARG_SQL_SELECTION, selection);
+        bundle.putStringArray(ContentResolver.QUERY_ARG_SQL_SELECTION_ARGS, selectionArgs);
+        return bundle;
+    }
     private List<MediaFile> getMediaFiles(int offset, int limit) {
+        Log.i("Fuzhengyin", "getMediaFiles: offset:"+offset+" limit:"+limit);
+        if (android.os.Build.VERSION.SDK_INT >= 30) {
+            Cursor query = contentResolver.query(uri, projection, create(limit, offset), null);
+            return MediaFileLoader.asMediaFiles(query, configs);
+        }
         Cursor data = ContentResolverCompat.query(contentResolver, uri, projection,
                 selection, selectionArgs,
                 sortOrder + " LIMIT " + limit + " OFFSET " + offset, null);
@@ -176,6 +212,9 @@ public class MediaFileDataSource extends PositionalDataSource<MediaFile> {
 
     @NonNull
     private static List<String> getFoldersToIgnore(ContentResolver contentResolver, Configurations configs) {
+        if (!configs.isIgnoreHiddenFile() && !configs.isIgnoreNoMediaDir() && configs.getIgnorePathMatchers() == null) {
+            return new ArrayList<>();
+        }
         Uri uri = MediaStore.Files.getContentUri("external");
 
         String[] projection = new String[]{DATA};
@@ -257,11 +296,11 @@ public class MediaFileDataSource extends PositionalDataSource<MediaFile> {
     }
 
     public static class Factory extends DataSource.Factory<Integer, MediaFile> {
-        private ContentResolver contentResolver;
-        private Configurations configs;
-        private Long dirId;
+        private final ContentResolver contentResolver;
+        private final Configurations configs;
+        private final Long dirId;
 
-        private Uri uri;
+        private final Uri uri;
 
         Factory(ContentResolver contentResolver, Configurations configs, Long dirId) {
             this.contentResolver = contentResolver;

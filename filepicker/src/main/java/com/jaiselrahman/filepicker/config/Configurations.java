@@ -40,8 +40,8 @@ public class Configurations implements Parcelable {
         }
     };
 
-    public static int PAGE_SIZE = 120;
-    public static int PREFETCH_DISTANCE = 40;
+    public static int PAGE_SIZE = 30;
+    public static int PREFETCH_DISTANCE = 10;
 
     private final boolean imageCaptureEnabled;
     private final boolean videoCaptureEnabled;
@@ -345,6 +345,11 @@ public class Configurations implements Parcelable {
             return this;
         }
 
+        /**
+         * 根据后缀名过滤
+         * @param suffixes 不需要在后缀名前面添加`.` 内部会自动添加
+         * @return
+         */
         public Builder setSuffixes(String... suffixes) {
             this.suffixes = suffixes;
             return this;

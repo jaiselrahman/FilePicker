@@ -28,6 +28,7 @@ import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.webkit.MimeTypeMap;
@@ -81,7 +82,7 @@ public class FilePickerActivity extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        long current = System.currentTimeMillis();
         configs = getIntent().getParcelableExtra(CONFIGS);
         if (configs == null) {
             configs = new Configurations.Builder().build();
@@ -169,6 +170,7 @@ public class FilePickerActivity extends AppCompatActivity
         if (maxCount > 0) {
             setTitle(getResources().getString(title_res, fileGalleryAdapter.getSelectedItemCount(), maxCount, title));
         }
+        Log.i(TAG, "onCreate: ms:"+(System.currentTimeMillis() - current));
     }
 
     private boolean useDocumentUi() {
@@ -191,6 +193,7 @@ public class FilePickerActivity extends AppCompatActivity
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        Log.d(TAG, "onRequestPermissionsResult() called with: requestCode = [" + requestCode + "], permissions = [" + permissions + "], grantResults = [" + grantResults + "]");
         if (requestCode == REQUEST_WRITE_PERMISSION) {
             if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 loadFiles();
@@ -212,6 +215,7 @@ public class FilePickerActivity extends AppCompatActivity
     @SuppressLint("NewApi")
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        Log.d(TAG, "onActivityResult() called with: requestCode = [" + requestCode + "], resultCode = [" + resultCode + "], data = [" + data + "]");
         if (requestCode == FileGalleryAdapter.CAPTURE_IMAGE_VIDEO) {
             if (resultCode == RESULT_OK) {
                 String path = fileGalleryAdapter.getLastCapturedFile();

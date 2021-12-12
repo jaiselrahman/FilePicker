@@ -51,8 +51,8 @@ public class DirViewModel extends ViewModel {
     }
 
     public static class Factory extends ViewModelProvider.NewInstanceFactory {
-        private ContentResolver contentResolver;
-        private Configurations configs;
+        private final ContentResolver contentResolver;
+        private final Configurations configs;
 
         public Factory(ContentResolver contentResolver, Configurations configs) {
             this.contentResolver = contentResolver;
